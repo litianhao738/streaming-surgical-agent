@@ -8,7 +8,7 @@
 >
 > **任何阶段未真实通过测试，不得进入下一阶段；任何字段、annotation semantics、ontology、FPS、tracker 训练来源或 API 能力不明确时，必须标记 `BLOCKED`，禁止自行假设。**
 
-> **当前执行检查点（2026-08-24，2026-08-25 独立复核）**：P0 `PASS`；P1 `PASS_WITH_EXPLICIT_PARTIAL_SUPERVISION`；P2 Local Smoke `PASS`，运行约束由 `<resolved dataset root>/repair_manifest.json` 冻结。真实 masked optimizer step、checkpoint round-trip、VID02/VID31/VID30 canonical pipeline、Gold-free PredictionRecord、atomic artifact 和 20-video target-granularity audit 均已运行通过。VID30 仍是候选重建验证源；VID31 只启用 CholecT50 frame-level Instrument/Verb/Target/Triplet presence 与 Cholec80 phase，不启用 instance、bounding box、operator 或 track supervision。历史完整环境为 `79 passed`；2026-08-25 当前环境在未配置可选原始 Cholec80 provenance 目录时为 `78 passed, 1 skipped`，两次结果按各自运行环境保留。P3 exact API identity、P4 prediction/evaluation granularity 与 P9 canonical per-sample task error 继续保持各自阶段性 `BLOCKED`；不得因 P2 通过而越过这些门槛。
+> **当前执行检查点（2026-08-24，2026-08-25 独立复核与 P3 mock 实现）**：P0 `PASS`；P1 `PASS_WITH_EXPLICIT_PARTIAL_SUPERVISION`；P2 Local Smoke `PASS`，运行约束由 `<resolved dataset root>/repair_manifest.json` 冻结。真实 masked optimizer step、checkpoint round-trip、VID02/VID31/VID30 canonical pipeline、Gold-free PredictionRecord、atomic artifact 和 20-video target-granularity audit 均已运行通过。VID30 仍是候选重建验证源；VID31 只启用 CholecT50 frame-level Instrument/Verb/Target/Triplet presence 与 Cholec80 phase，不启用 instance、bounding box、operator 或 track supervision。历史完整环境为 `79 passed`；2026-08-25 当前环境在未配置可选原始 Cholec80 provenance 目录时为 `78 passed, 1 skipped`，两次结果按各自运行环境保留。P3 provider-neutral client/hash/cache/retry/usage、mock adapter 与合成图像 smoke 已通过，但 exact API identity 和真实调用仍为 `BLOCKED`，故 P3 为 `PARTIAL`；P4 prediction/evaluation granularity 与 P9 canonical per-sample task error 继续保持各自阶段性 `BLOCKED`。不得因 mock 通过而进入 P4。
 
 ---
 

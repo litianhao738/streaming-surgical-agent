@@ -1,11 +1,14 @@
 enabled: false
 provider: null
+endpoint_identifier: null
 declared_model_name: GPT-5.6 Terra
 model_identifier: null
 model_identifier_status: BLOCKED_REQUIRES_PROVIDER_VERIFICATION
 role: main_perception_and_same_backbone_verification
 credentials_source: environment_or_external_secret
+credential_env: null
 cache_required: true
 record_usage: true
 record_latency: true
-status: DECLARED_BACKBONE_PLANNED_P3
+real_image_policy: synthetic_or_non_sensitive_until_data_authorization
+status: P3_REAL_API_SMOKE_BLOCKED_PROVIDER_NOT_CONFIGURED

@@ -33,6 +33,8 @@ construction and verification, use the Codex implementation specification.
 - P0: `PASS`.
 - P1: `PASS_WITH_EXPLICIT_PARTIAL_SUPERVISION`.
 - P2: `PASS`; local masked train/infer/checkpoint/artifact smoke completed.
+- P3: `PARTIAL`; provider-neutral client/cache/hash/retry/usage and mock
+  synthetic-image smoke completed, real API identity smoke remains `BLOCKED`.
 - Canonical implementation package: `src/surgical_agent/`.
 - Compatibility-only namespace: `src/streaming_surgical_agent/`.
 - Active data contract: `<resolved dataset root>/repair_manifest.json`.

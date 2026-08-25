@@ -1,0 +1,12 @@
+enabled: true
+mode: mock
+provider: mock
+endpoint_identifier: mock://local/p3
+requested_model_identifier: mock-model-request-v1
+returned_model_identifier: mock-model-returned-v1
+prompt_version: p3_transport_probe_v1
+response_schema_version: p3_multimodal_smoke_v1
+credential_env: null
+synthetic_input_required: true
+retryable_failures_before_success: 1
+status: P3_MOCK_ONLY_REAL_API_BLOCKED

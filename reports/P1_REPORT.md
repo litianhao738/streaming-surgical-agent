@@ -29,7 +29,7 @@ explicit protocol. No P2 or later stage was executed.
 | Semantic API data input | READY; API implementation remains P3 work |
 | Formal training/evaluation data layer | READY_WITH_CONSTRAINTS |
 | VID30 | CANDIDATE_REPAIRED_VALIDATION |
-| VID31 | PHASE_AND_FRAME_LEVEL_IVT_TRAINING; instance tasks masked |
+| VID31 | CHOLEC50_FRAME_LEVEL_I_V_T_TRIPLET_PRESENCE_PLUS_CHOLEC80_PHASE; instance/bbox/operator/track supervision masked |
 | P3 API engineering stage | NOT STARTED; P1 data blocker removed |
 | P9 prerequisite | BLOCKED/TBD |
 

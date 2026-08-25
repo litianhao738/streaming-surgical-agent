@@ -67,11 +67,15 @@ def test_base_config_has_no_workstation_dataset_default() -> None:
     config = load_yaml(PROJECT_ROOT / "configs" / "base.yaml")
     assert config["data"]["root"] is None
     assert config["data"]["read_only"] is True
-    assert config["project"]["current_phase"] == "P2"
-    assert config["project"]["phase_status"] == "PASS"
-    assert config["project"]["next_phase"] == "P3"
-    assert config["project"]["method_implementation"] == "p2_local_smoke_only"
-    assert config["data"]["current_phase_blockers"] == []
+    assert config["project"]["current_phase"] == "P3"
+    assert config["project"]["phase_status"] == "PARTIAL"
+    assert config["project"]["next_phase"] == "P4"
+    assert config["project"]["method_implementation"] == (
+        "p2_local_smoke_plus_p3_mock_api"
+    )
+    assert config["data"]["current_phase_blockers"] == [
+        "p3_real_api_smoke_provider_endpoint_model_credential_unverified"
+    ]
 
 
 def test_inference_schema_is_structurally_gold_free() -> None:

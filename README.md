@@ -5,10 +5,11 @@ predicted tracking, selective structured verification, and reliability-aware
 event memory.
 
 > **Current status:** P0 PASS; P1 data qualification is
-> `PASS_WITH_EXPLICIT_PARTIAL_SUPERVISION`; P2 Local Smoke is PASS. VID30/VID31
-> use explicit sidecars and task masks while original assets remain unchanged.
-> The canonical component pipeline is implemented; API, Gate, Specialist,
-> tracking, workflow, and memory research modules remain phase-gated.
+> `PASS_WITH_EXPLICIT_PARTIAL_SUPERVISION`; P2 Local Smoke is PASS. P3 is
+> `PARTIAL`: provider-neutral request hashing, cache, retry/error handling,
+> usage accounting, mock transport, and a synthetic-image smoke are implemented,
+> while the real provider/endpoint/model/credential smoke remains BLOCKED. P4 and
+> later research modules remain phase-gated.
 
 ## Current documentation
 
@@ -53,6 +54,8 @@ CLI option or resolved configuration; it must not be embedded in source code.
   until verified during P3; the declared display name is not treated as an
   auditable API identifier.
 - Credentials remain external and must never be committed.
+- The P3 mock uses a generated non-sensitive image. CholecTrack20 images are not
+  sent to an external API before data-use authorization is confirmed.
 
 ## Phase order
 
@@ -79,6 +82,22 @@ scores are not paper results.
 
 See [AutoDL quickstart](docs/AUTODL_QUICKSTART.md) before moving the code and
 external dataset to a GPU instance.
+
+## P3 API infrastructure
+
+The deterministic mock exercises multimodal transport boundaries, structured
+response validation, one injected retry, canonical request hashing, cache replay,
+and logical/provider-call accounting without network access:
+
+```powershell
+.\.venv-p2\Scripts\python.exe scripts\smoke_api.py `
+  --config configs\api\mock.yaml
+```
+
+`--real` fails closed until an approved provider adapter, endpoint, credential
+environment variable, requested model alias, and returned model field can be
+verified. The P3 schema is a transport probe only and does not freeze the P4
+instance/frame prediction contract.
 
 ## Dataset tooling
 

@@ -5,6 +5,16 @@ data_config: ../data/cholectrack20.yaml
 train_config: ../train/default.yaml
 eval_config: ../eval/default.yaml
 
+# Reproduce the frozen P2 experiment even after the repository advances to P3.
+project:
+  current_phase: P2
+  phase_status: PASS
+  next_phase: P3
+  method_implementation: p2_local_smoke_only
+
+data:
+  current_phase_blockers: []
+
 pipeline:
   runner: canonical_streaming
   context: frames_only

@@ -33,7 +33,9 @@ class ApiConfig:
 
     enabled: bool = False
     provider: str | None = None
+    endpoint_identifier: str | None = None
     model_identifier: str | None = None
+    credential_env: str | None = None
     cache_required: bool = True
 
 

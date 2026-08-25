@@ -30,6 +30,7 @@ class PhaseStatus(str, Enum):
     NOT_STARTED = "NOT_STARTED"
     IN_PROGRESS = "IN_PROGRESS"
     PASS = "PASS"
+    PARTIAL = "PARTIAL"
     FAIL = "FAIL"
     BLOCKED = "BLOCKED"
     NOT_RUN = "NOT_RUN"

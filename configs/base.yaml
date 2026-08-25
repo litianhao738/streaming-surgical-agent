@@ -1,19 +1,20 @@
 project:
   name: surgical_agent
   version: 3.1.0-dev
-  current_phase: P2
-  phase_status: PASS
-  next_phase: P3
+  current_phase: P3
+  phase_status: PARTIAL
+  next_phase: P4
   seed: 42
   research_enabled: false
-  method_implementation: p2_local_smoke_only
+  method_implementation: p2_local_smoke_plus_p3_mock_api
   data_layer_implementation: p2_dataset_adapter_with_explicit_partial_supervision
 
 data:
   dataset: cholectrack20
   root: null
   read_only: true
-  current_phase_blockers: []
+  current_phase_blockers:
+    - p3_real_api_smoke_provider_endpoint_model_credential_unverified
   deferred_phase_blockers:
     - p3_exact_provider_and_model_identifier
     - p4_prediction_evaluation_granularity_and_matching

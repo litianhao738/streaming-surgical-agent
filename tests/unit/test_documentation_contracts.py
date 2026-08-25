@@ -35,14 +35,16 @@ def test_docs_freeze_one_canonical_pipeline_and_package() -> None:
     assert "video-identity 去重清单" in implementation
 
 
-def test_p2_machine_state_matches_documented_checkpoint() -> None:
+def test_p3_partial_machine_state_matches_documented_checkpoint() -> None:
     base = load_yaml(PROJECT_ROOT / "configs/base.yaml")
     data = load_yaml(PROJECT_ROOT / "configs/data/cholectrack20.yaml")
 
-    assert base["project"]["current_phase"] == "P2"
-    assert base["project"]["phase_status"] == "PASS"
-    assert base["project"]["next_phase"] == "P3"
-    assert base["data"]["current_phase_blockers"] == []
+    assert base["project"]["current_phase"] == "P3"
+    assert base["project"]["phase_status"] == "PARTIAL"
+    assert base["project"]["next_phase"] == "P4"
+    assert base["data"]["current_phase_blockers"] == [
+        "p3_real_api_smoke_provider_endpoint_model_credential_unverified"
+    ]
     assert "p4_prediction_evaluation_granularity_and_matching" in base["data"][
         "deferred_phase_blockers"
     ]

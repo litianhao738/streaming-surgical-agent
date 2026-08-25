@@ -20,7 +20,8 @@ Specialist verification, workflow model, EventMemory, or paper evaluation.
 | Partial-label semantics | PASS FOR TRAINING | Task-wise masks are frozen; official negative-sentinel wording remains unknown |
 | Gold-free boundary | PASS | Inference and evaluation target types are structurally separate |
 | P2 Local Smoke | PASS | Real masked step, checkpoint reload, canonical rollout, evaluation, and atomic artifacts passed |
-| P3-P12 | NOT STARTED / PHASE-GATED | No later research stage was implemented by P2 |
+| P3 API infrastructure | PARTIAL | Mock client/hash/cache/retry/usage/schema smoke passes; real API identity smoke is BLOCKED |
+| P4-P12 | NOT STARTED / PHASE-GATED | No later research stage has passed |
 
 P2 is an engineering baseline, not a scientific-performance baseline. VID30 remains a documented
 candidate reconstruction. VID31 contributes CholecT50 frame-level Instrument/Verb/Target/Triplet
@@ -83,7 +84,8 @@ evidence, was not copied into the repository, and is represented as `REDACTED_NO
 2. VID30 reconstruction is evidence-backed but not an official maintainer correction. Paper
    experiments must disclose it and include a sensitivity result that excludes VID30.
 3. VID31 cannot provide instance detection, bbox-to-IVT association, operator, or tracking
-   supervision. Those tasks remain masked; frame-level IVT must never be attached to boxes.
+   supervision. Those tasks remain masked; its frame-level Instrument/Verb/Target/Triplet
+   presence must never be attached to boxes or interpreted as instance supervision.
 4. Official Synapse text does not spell out every PNG extraction/index convention or negative
    sentinel meaning. Exact local/cross-dataset rules and task-wise masks make these nonblocking
    provenance caveats, not permission to invent medical semantics.
@@ -119,7 +121,8 @@ evidence, was not copied into the repository, and is represented as `REDACTED_NO
 ## Phase Decision
 
 P1 is closed as `PASS_WITH_EXPLICIT_PARTIAL_SUPERVISION`; P2 Local Smoke is closed as `PASS`.
-P3 is the next phase and cannot pass without a sanitized real API provenance smoke. P4 cannot
+P3 mock infrastructure is implemented but the phase cannot pass without a sanitized real API
+provenance smoke. P4 cannot
 start until prediction and evaluation granularity/matching are frozen from P2 evidence. P9 cannot
 start until the canonical per-sample task error contract is approved and implemented in the
 single EvaluationEngine.
