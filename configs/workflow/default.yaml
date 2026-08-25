@@ -1,0 +1,6 @@
+enabled: true
+scope: per_video
+history_source: finalized_only
+allow_similarity_retrieval: false
+reset_at_video_boundary: true
+status: CONTRACT_ONLY_P0

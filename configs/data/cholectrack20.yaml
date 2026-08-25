@@ -1,0 +1,109 @@
+dataset: cholectrack20
+root: null
+root_env: CHOLECTRACK20_ROOT
+root_source: cli_then_environment_then_config
+root_portability: portable_external_dataset
+read_only: true
+derived_supervision_manifest: repair_manifest.json
+splits:
+  train: Training
+  validation: Validation
+  test: Testing
+media:
+  backend: auto
+  official_synapse_project: syn53182642
+  official_synapse_dataset_folder: syn60059476
+  official_synapse_audit: artifacts/p1/synapse_metadata_audit.json
+  official_metadata_status: PARTIAL
+  annotation_frame_alignment: explicit
+  annotation_sampling_fps: 1
+  annotation_sampling_fps_status: VERIFIED_OFFICIAL_EMAIL_AND_DATASET_DOCUMENTATION
+  raw_test_video_fps: 25
+  raw_test_video_fps_status: VERIFIED_OFFICIAL_EMAIL_AND_LOCAL_FFPROBE
+  mp4_index_offset: -1
+  mp4_index_rule: decoder_frame_index_equals_annotation_frame_id_minus_1
+  mp4_index_alignment_version: ct20_test_mp4_annotation_id_minus_1_v1
+  mp4_index_offset_status: VERIFIED_BY_CROSS_DATASET_AND_LOCAL_BOUNDS_EVIDENCE
+  mp4_index_evidence: dataset_reports/cholectrack20_cross_dataset_provenance_audit.json
+  frame_extraction_convention_status: NOT_OFFICIALLY_DOCUMENTED_RUNTIME_ALIGNMENT_VERIFIED
+  png_naming_semantics_status: NOT_OFFICIALLY_DOCUMENTED_EXACT_NUMERIC_STEM_VERIFIED
+  png_alignment_rule: canonical_frame_id_equals_numeric_png_stem
+  nearest_frame_fallback: forbidden
+  alignment_manifest: artifacts/p1/media_alignment_manifest.json
+  alignment_status: OPERATIONAL_WITH_MATERIALIZED_VID30_VID31_SIDECARS
+  videos_requiring_explicit_sidecars:
+    - VID30
+    - VID31
+  identity_resolution:
+    status: DERIVED_SUPERVISION_PACKAGE_BUILT
+    tool: tools/data_resolution/cholectrack20_vid30_vid31/resolve_identity.py
+    builder: tools/data_resolution/cholectrack20_vid30_vid31/build_derived_supervision.py
+    artifact_dir: artifacts/data_resolution/cholectrack20_vid30_vid31
+    raw_field_level_supervision_manifest: artifacts/data_resolution/cholectrack20_vid30_vid31/field_level_supervision_manifest.json
+    derived_supervision_manifest: repair_manifest.json
+    modification_record: artifacts/data_resolution/cholectrack20_vid30_vid31/DERIVED_SUPERVISION_MODIFICATION_RECORD.md
+    field_level_supervision_manifest: artifacts/data_resolution/cholectrack20_vid30_vid31/field_level_supervision_manifest.json
+    source_data_policy: READ_ONLY_NO_RENAME_NO_MOVE_NO_OVERWRITE
+    VID30:
+      usage: CANDIDATE_REPAIRED_VALIDATION
+      media: RAW_TRACK20_VID30
+      core_annotations: DERIVED_FROM_TRACK20_VID31_JSON
+      annotation_artifact: Validation/VID30/vid30_repaired.json
+      phase: DERIVED_FROM_CHOLEC80_VIDEO30
+      visual_conditions: DISABLED
+    VID31:
+      usage: PHASE_AND_FRAME_LEVEL_IVT_TRAINING
+      media: RAW_TRACK20_VID31
+      phase: DERIVED_FROM_CHOLEC80_VIDEO31
+      phase_artifact: Training/VID31/vid31_phase_repaired.json
+      frame_level_ivt: DERIVED_FROM_CHOLECT50_VIDEO31
+      frame_level_ivt_artifact: Training/VID31/vid31_frame_ivt_repaired.json
+      instance_level_detection_tracking_supervision: DISABLED
+      cholect50_audit: artifacts/data_resolution/cholect50_vid31/audit.json
+  official_release_local_consistency:
+    VID30: VERIFIED_REMOTE_ENTITY_AND_FRAME_SET_MATCH_LOCAL
+    VID31: VERIFIED_REMOTE_SEMANTIC_JSON_AND_FRAME_SET_MATCH_LOCAL
+targets:
+  invalid_categorical_rule: outside_verified_task_id_range
+  use_completeness_masks: true
+  partial_label_semantics_version: ct20_task_range_and_ivt_consistency_v1
+  verified_id_ranges:
+    instrument: [0, 6]
+    verb: [0, 9]
+    target: [0, 14]
+    triplet: [0, 99]
+    phase: [0, 6]
+  negative_one_name: MASKED_INVALID_OR_ABSENT_FOR_TASK
+  negative_one_training_status: RESOLVED_BY_TASK_WISE_MASK
+  negative_one_official_semantics_status: UNRESOLVED_NOT_REQUIRED_FOR_TRAINING
+  observed_additional_negative_ids:
+    triplet:
+      - -2
+  additional_negative_id_training_status: RESOLVED_BY_TASK_WISE_MASK
+  additional_negative_id_official_semantics_status: UNRESOLVED_NOT_REQUIRED_FOR_TRAINING
+  masks_are_task_wise_independent: true
+  ivt_component_consistency:
+    separate_from_task_validity: true
+    specimen_bag_scope_difference_rewritten: false
+    unresolved_conflicts_rewritten: false
+    policy_module: src/surgical_agent/data/label_policy.py
+  ontology_mapping: dataset_reports/cholectrack20_cross_dataset_provenance_audit.json
+  initial_ontology_audit: artifacts/p1/ontology_provenance.json
+  ontology_mapping_status: NORMAL_NONNEGATIVE_CLASSES_RECOVERED_WITH_PROVENANCE_CAVEATS
+  verified_name_mappings:
+    - instrument
+    - operator
+    - verb
+    - target
+    - triplet
+  high_confidence_cross_dataset_mappings:
+    - phase_numeric_id
+  unresolved_name_mappings:
+    - negative_sentinels
+local_audit:
+  verified_on: 2026-08-22
+  split_directories_present: true
+  annotation_json_files: 20
+  canonical_annotated_frames: 35009
+  canonical_tool_instances: 65247
+  p1_status: PASS_WITH_EXPLICIT_PARTIAL_SUPERVISION

@@ -1,0 +1,6 @@
+experiment: v3_always_verify
+phase_required: P8
+gate:
+  policy: always_verify
+runtime:
+  allow_oracle_track_provider: false

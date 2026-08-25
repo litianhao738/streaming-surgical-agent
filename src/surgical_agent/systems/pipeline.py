@@ -1,0 +1,319 @@
+"""The single canonical streaming pipeline used by every experiment system."""
+
+from __future__ import annotations
+
+from collections.abc import Mapping
+from dataclasses import dataclass
+from typing import Any, Protocol
+
+import torch
+from torch import Tensor
+
+from surgical_agent.data.schemas import InferenceSample
+from surgical_agent.inference.engine import require_inference_sample
+from surgical_agent.inference.schemas import InitialPrediction, PredictionRecord
+from surgical_agent.models.baseline import LocalSmokeModel, decode_frame_logits
+
+
+class PipelineContractError(RuntimeError):
+    """Raised when a component violates the frozen runner contract."""
+
+
+@dataclass(frozen=True)
+class ContextBundle:
+    """Causal visual context and immutable snapshots; no GT is representable."""
+
+    sample: InferenceSample
+    frames: Tensor
+    workflow_snapshot: Mapping[str, Any]
+    memory_snapshot: Mapping[str, Any]
+
+
+@dataclass(frozen=True)
+class CandidateTrace:
+    status: str
+    candidate_ids: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class GateDecision:
+    action: str
+    scope: str | None
+    reason: str
+
+    def __post_init__(self) -> None:
+        if self.action not in {"ACCEPT", "VERIFY"}:
+            raise ValueError(f"Unsupported Gate action: {self.action}")
+        if (self.action == "VERIFY") != (self.scope is not None):
+            raise ValueError("VERIFY requires one scope and ACCEPT forbids scope")
+
+
+@dataclass(frozen=True)
+class FinalizedEvent:
+    video_id: str
+    frame_id: int
+    phase_id: int
+    backend: str
+
+
+@dataclass(frozen=True)
+class PipelineRunResult:
+    prediction: PredictionRecord
+    event: FinalizedEvent
+    runtime_trace: tuple[str, ...]
+
+
+class PredictionSink(Protocol):
+    def write(self, record: PredictionRecord) -> None:
+        """Persist one runtime record or raise an artifact error."""
+
+
+class FramesOnlyContextBuilder:
+    """P2 context implementation: causal frames and prior snapshots only."""
+
+    def build(
+        self,
+        sample: InferenceSample,
+        frames: Tensor,
+        *,
+        workflow_snapshot: Mapping[str, Any],
+        memory_snapshot: Mapping[str, Any],
+    ) -> ContextBundle:
+        if frames.ndim not in {4, 5}:
+            raise PipelineContractError("Context frames must be 4D or 5D")
+        return ContextBundle(
+            sample=sample,
+            frames=frames,
+            workflow_snapshot=dict(workflow_snapshot),
+            memory_snapshot=dict(memory_snapshot),
+        )
+
+
+class LocalSmokePerception:
+    """Adapter exposing the local P2 model through the perception slot."""
+
+    def __init__(
+        self,
+        model: LocalSmokeModel,
+        *,
+        device: torch.device,
+        threshold: float = 0.5,
+    ) -> None:
+        self.model = model.to(device)
+        self.device = device
+        self.threshold = threshold
+
+    def predict(self, context: ContextBundle) -> InitialPrediction:
+        self.model.eval()
+        with torch.no_grad():
+            logits = self.model(context.frames.to(self.device))
+        decoded = decode_frame_logits(logits, threshold=self.threshold)
+        if len(decoded) != 1:
+            raise PipelineContractError("Canonical per-sample runner expects batch size 1")
+        return decoded[0]
+
+
+class DisabledCandidateGenerator:
+    def build(self, prediction: InitialPrediction) -> CandidateTrace:
+        del prediction
+        return CandidateTrace(status="DISABLED_TRACEABLE")
+
+
+class NoOpSignalExtractor:
+    def extract(
+        self,
+        prediction: InitialPrediction,
+        candidates: CandidateTrace,
+    ) -> Mapping[str, float]:
+        del prediction, candidates
+        return {}
+
+
+class NeverVerify:
+    def decide(self, signals: Mapping[str, float]) -> GateDecision:
+        del signals
+        return GateDecision(
+            action="ACCEPT",
+            scope=None,
+            reason="P2_NEVER_VERIFY_POLICY",
+        )
+
+
+class DisabledSpecialistRegistry:
+    enabled_scopes: tuple[str, ...] = ()
+
+    def verify(self, scope: str, prediction: InitialPrediction) -> InitialPrediction:
+        del scope, prediction
+        raise PipelineContractError("Specialists are disabled in P2")
+
+
+class NoOpCoordinator:
+    """KEEP-only coordinator; it cannot generate or alter semantic content."""
+
+    def coordinate(
+        self,
+        prediction: InitialPrediction,
+        decision: GateDecision,
+    ) -> InitialPrediction:
+        if decision.action != "ACCEPT":
+            raise PipelineContractError("P2 coordinator received an illegal VERIFY route")
+        return prediction
+
+
+class NoOpCausalStore:
+    """Traceable per-video state slot with no semantic payload."""
+
+    def __init__(self, name: str) -> None:
+        self.name = name
+        self.video_id: str | None = None
+        self.reset_history: list[str] = []
+        self.committed_frames: list[int] = []
+
+    def reset(self, video_id: str) -> None:
+        self.video_id = video_id
+        self.committed_frames = []
+        self.reset_history.append(video_id)
+
+    def snapshot(self) -> Mapping[str, Any]:
+        return {
+            "component": self.name,
+            "video_id": self.video_id,
+            "committed_frame_count": len(self.committed_frames),
+            "status": "NOOP_TRACEABLE",
+        }
+
+    def update(self, event: FinalizedEvent) -> None:
+        if self.video_id != event.video_id:
+            raise PipelineContractError(f"{self.name} commit crossed a video boundary")
+        if self.committed_frames and event.frame_id <= self.committed_frames[-1]:
+            raise PipelineContractError(f"{self.name} received non-increasing frame IDs")
+        self.committed_frames.append(event.frame_id)
+
+
+class PredictionFinalizer:
+    def finalize(
+        self,
+        *,
+        run_id: str,
+        sample: InferenceSample,
+        prediction: InitialPrediction,
+        decision: GateDecision,
+        trace: tuple[str, ...],
+    ) -> tuple[PredictionRecord, FinalizedEvent]:
+        record = PredictionRecord(
+            run_id=run_id,
+            video_id=sample.video_id,
+            frame_id=sample.target_frame_id,
+            source_split=sample.source_split,
+            causal_frame_ids=sample.causal_frame_ids,
+            instrument_ids=prediction.instrument_ids,
+            verb_ids=prediction.verb_ids,
+            target_ids=prediction.target_ids,
+            triplet_ids=prediction.triplet_ids,
+            phase_id=prediction.phase_id,
+            granularity=prediction.granularity,
+            backend=prediction.backend,
+            gate_action=decision.action,
+            verification_status="NOT_REQUESTED",
+            alignment_version=sample.alignment_version,
+            probabilities=prediction.probabilities,
+            trace=trace,
+        )
+        event = FinalizedEvent(
+            video_id=sample.video_id,
+            frame_id=sample.target_frame_id,
+            phase_id=prediction.phase_id,
+            backend=prediction.backend,
+        )
+        return record, event
+
+
+@dataclass(frozen=True)
+class PipelineComponents:
+    context_builder: FramesOnlyContextBuilder
+    perception: LocalSmokePerception
+    candidate_generator: DisabledCandidateGenerator
+    signal_extractor: NoOpSignalExtractor
+    gate_policy: NeverVerify
+    specialist_registry: DisabledSpecialistRegistry
+    coordinator: NoOpCoordinator
+    finalizer: PredictionFinalizer
+    workflow_store: NoOpCausalStore
+    event_memory: NoOpCausalStore
+    prediction_writer: PredictionSink
+
+
+class CanonicalStreamingPipeline:
+    """Frozen per-sample runner; component assembly is the only variation point."""
+
+    def __init__(self, components: PipelineComponents) -> None:
+        self.components = components
+        self._active_video_id: str | None = None
+
+    def _reset_for_video(self, video_id: str) -> None:
+        self.components.workflow_store.reset(video_id)
+        self.components.event_memory.reset(video_id)
+        self._active_video_id = video_id
+
+    def run(
+        self,
+        sample: InferenceSample,
+        frames: Tensor,
+        *,
+        run_id: str,
+    ) -> PipelineRunResult:
+        """Execute the canonical order without accepting any GT-bearing object."""
+
+        sample = require_inference_sample(sample)
+        trace: list[str] = []
+        if sample.video_id != self._active_video_id:
+            self._reset_for_video(sample.video_id)
+            trace.append("01_video_boundary_reset")
+        else:
+            trace.append("01_video_boundary_continue")
+        trace.append("02_gold_free_sample_resolved")
+
+        workflow_snapshot = self.components.workflow_store.snapshot()
+        memory_snapshot = self.components.event_memory.snapshot()
+        trace.append("03_prior_state_snapshotted")
+        context = self.components.context_builder.build(
+            sample,
+            frames,
+            workflow_snapshot=workflow_snapshot,
+            memory_snapshot=memory_snapshot,
+        )
+        trace.append("04_causal_context_built")
+        initial = self.components.perception.predict(context)
+        trace.append("05_perception_validated")
+        candidates = self.components.candidate_generator.build(initial)
+        signals = self.components.signal_extractor.extract(initial, candidates)
+        trace.append("06_candidates_and_signals_built")
+        decision = self.components.gate_policy.decide(signals)
+        trace.append(f"07_gate_{decision.action.lower()}")
+        if decision.action == "VERIFY":
+            if decision.scope not in self.components.specialist_registry.enabled_scopes:
+                raise PipelineContractError("Gate selected a disabled Specialist scope")
+            initial = self.components.specialist_registry.verify(decision.scope, initial)
+            trace.extend(("08_specialist_routed", "09_specialist_result_validated"))
+        else:
+            trace.extend(("08_specialist_skipped", "09_keep_initial_prediction"))
+        coordinated = self.components.coordinator.coordinate(initial, decision)
+        trace.append("10_coordinator_keep")
+        record, event = self.components.finalizer.finalize(
+            run_id=run_id,
+            sample=sample,
+            prediction=coordinated,
+            decision=decision,
+            trace=(*trace, "11_prediction_finalized"),
+        )
+        trace.append("11_prediction_finalized")
+        self.components.prediction_writer.write(record)
+        trace.append("12_prediction_persisted")
+        self.components.workflow_store.update(event)
+        self.components.event_memory.update(event)
+        trace.append("13_prior_state_committed")
+        return PipelineRunResult(
+            prediction=record,
+            event=event,
+            runtime_trace=tuple(trace),
+        )

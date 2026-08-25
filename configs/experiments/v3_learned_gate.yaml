@@ -1,0 +1,11 @@
+experiment: v3_learned_gate
+phase_required: P10
+gate:
+  policy: benefit_threshold
+  gate_stage: final_g1
+  artifact: null
+  threshold_source_split: validation
+  allow_test_refresh: false
+runtime:
+  allow_oracle_track_provider: false
+status: PLANNED_NOT_RUN

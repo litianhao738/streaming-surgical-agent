@@ -1,0 +1,26 @@
+.venv*/
+.idea/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+tmp/
+
+.env
+.env.*
+!.env.example
+scripts/API.txt
+*.ckpt
+*.pt
+
+logs/*
+!logs/.gitkeep
+artifacts/*
+!artifacts/.gitkeep
+outputs/*
+!outputs/.gitkeep
+
+# The raw dataset is external to this repository.
+cholec_dataset/

@@ -1,0 +1,8 @@
+experiment: v3_track_workflow
+phase_required: P4
+tracking:
+  provider: predicted
+workflow:
+  history_source: predicted_finalized_only
+runtime:
+  allow_oracle_track_provider: false

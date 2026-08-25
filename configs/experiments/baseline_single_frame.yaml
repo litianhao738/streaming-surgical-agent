@@ -1,0 +1,9 @@
+experiment: baseline_single_frame
+phase_required: P2
+data_config: ../data/cholectrack20.yaml
+model:
+  name: current_window_multitask
+  window_length: 1
+  pretrained: false
+runtime:
+  allow_oracle_track_provider: false

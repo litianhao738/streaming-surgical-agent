@@ -1,0 +1,5 @@
+evaluation:
+  split: Validation
+  thresholds_source: validation
+  save_predictions: true
+  save_metrics: true

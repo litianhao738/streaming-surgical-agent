@@ -1,0 +1,7 @@
+ablation: workflow_only
+phase_required: P12
+workflow:
+  enabled: true
+memory:
+  enabled: false
+status: PLANNED_NOT_RUN

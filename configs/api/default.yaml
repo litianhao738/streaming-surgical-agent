@@ -1,0 +1,11 @@
+enabled: false
+provider: null
+declared_model_name: GPT-5.6 Terra
+model_identifier: null
+model_identifier_status: BLOCKED_REQUIRES_PROVIDER_VERIFICATION
+role: main_perception_and_same_backbone_verification
+credentials_source: environment_or_external_secret
+cache_required: true
+record_usage: true
+record_latency: true
+status: DECLARED_BACKBONE_PLANNED_P3

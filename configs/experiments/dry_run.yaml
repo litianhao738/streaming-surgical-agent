@@ -1,0 +1,9 @@
+experiment: dry_run
+phase_required: P2
+base_config: ../base.yaml
+data_config: ../data/cholectrack20.yaml
+train_config: ../train/default.yaml
+eval_config: ../eval/default.yaml
+runtime:
+  dry_run: true
+  allow_oracle_track_provider: false

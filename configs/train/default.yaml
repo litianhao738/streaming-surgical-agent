@@ -1,0 +1,10 @@
+model:
+  name: current_window_multitask
+  pretrained: false
+window:
+  history: 4
+  stride: 1
+optimization:
+  epochs: 1
+  batch_size: 2
+  learning_rate: 0.0001

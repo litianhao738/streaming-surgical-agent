@@ -1,0 +1,1367 @@
+{
+  "schema_version": "ct20_cross_dataset_provenance_audit_v1",
+  "access_date": "2026-08-21",
+  "read_only": true,
+  "dataset_root": "D:\\cholec_dataset",
+  "status": {
+    "VIDEO_PROVENANCE_STATUS": "PASS_OFFICIAL_ID_RELATION",
+    "ONTOLOGY_STATUS": "PARTIAL_RECOVERED_WITH_EXCEPTIONS",
+    "FRAME_INDEX_RULE_STATUS": "UNRESOLVED_FORMAL_RULE_STRONGLY_SUPPORTED",
+    "VID30_STATUS": "BLOCKED_VID17_CORE_ANNOTATION_DUPLICATE_CONFIRMED",
+    "VID31_STATUS": "BLOCKED_ANNOTATION_MEDIA_PAIRING",
+    "NEGATIVE_LABEL_STATUS": "PARTIAL",
+    "IVT_CONFLICT_STATUS": "PARTIAL_32_EXPLAINED_2_UNRESOLVED",
+    "FORMAL_EXPERIMENT_READY": "BLOCKED"
+  },
+  "video_provenance": {
+    "counts": {
+      "track20_videos": 20,
+      "mapped_to_cholec80": 15,
+      "mapped_to_cholec50": 14,
+      "mapped_to_both": 9,
+      "unmapped": 0
+    },
+    "videos": [
+      {
+        "track20_video_id": "VID01",
+        "track20_split": "testing",
+        "cholec80_video_id": "video01",
+        "cholec50_video_id": "VID01",
+        "cholec50_split": "train",
+        "identity_basis": "OFFICIAL_PRESERVED_NUMERIC_VIDEO_ID",
+        "image_content_verified": false
+      },
+      {
+        "track20_video_id": "VID02",
+        "track20_split": "training",
+        "cholec80_video_id": "video02",
+        "cholec50_video_id": "VID02",
+        "cholec50_split": "train",
+        "identity_basis": "OFFICIAL_PRESERVED_NUMERIC_VIDEO_ID",
+        "image_content_verified": false
+      },
+      {
+        "track20_video_id": "VID04",
+        "track20_split": "training",
+        "cholec80_video_id": "video04",
+        "cholec50_video_id": "VID04",
+        "cholec50_split": "train",
+        "identity_basis": "OFFICIAL_PRESERVED_NUMERIC_VIDEO_ID",
+        "image_content_verified": false
+      },
+      {
+        "track20_video_id": "VID06",
+        "track20_split": "testing",
+        "cholec80_video_id": "video06",
+        "cholec50_video_id": "VID06",
+        "cholec50_split": "test",
+        "identity_basis": "OFFICIAL_PRESERVED_NUMERIC_VIDEO_ID",
+        "image_content_verified": false
+      },
+      {
+        "track20_video_id": "VID07",
+        "track20_split": "testing",
+        "cholec80_video_id": "video07",
+        "cholec50_video_id": null,
+        "cholec50_split": null,
+        "identity_basis": "OFFICIAL_PRESERVED_NUMERIC_VIDEO_ID",
+        "image_content_verified": false
+      },
+      {
+        "track20_video_id": "VID11",
+        "track20_split": "training",
+        "cholec80_video_id": "video11",
+        "cholec50_video_id": null,
+        "cholec50_split": null,
+        "identity_basis": "OFFICIAL_PRESERVED_NUMERIC_VIDEO_ID",
+        "image_content_verified": false
+      },
+      {
+        "track20_video_id": "VID12",
+        "track20_split": "testing",
+        "cholec80_video_id": "video12",
+        "cholec50_video_id": "VID12",
+        "cholec50_split": "val",
+        "identity_basis": "OFFICIAL_PRESERVED_NUMERIC_VIDEO_ID",
+        "image_content_verified": false
+      },
+      {
+        "track20_video_id": "VID13",
+        "track20_split": "training",
+        "cholec80_video_id": "video13",
+        "cholec50_video_id": "VID13",
+        "cholec50_split": "train",
+        "identity_basis": "OFFICIAL_PRESERVED_NUMERIC_VIDEO_ID",
+        "image_content_verified": false
+      },
+      {
+        "track20_video_id": "VID17",
+        "track20_split": "training",
+        "cholec80_video_id": "video17",
+        "cholec50_video_id": null,
+        "cholec50_split": null,
+        "identity_basis": "OFFICIAL_PRESERVED_NUMERIC_VIDEO_ID",
+        "image_content_verified": false
+      },
+      {
+        "track20_video_id": "VID23",
+        "track20_split": "training",
+        "cholec80_video_id": "video23",
+        "cholec50_video_id": "VID23",
+        "cholec50_split": "train",
+        "identity_basis": "OFFICIAL_PRESERVED_NUMERIC_VIDEO_ID",
+        "image_content_verified": false
+      },
+      {
+        "track20_video_id": "VID25",
+        "track20_split": "testing",
+        "cholec80_video_id": "video25",
+        "cholec50_video_id": "VID25",
+        "cholec50_split": "train",
+        "identity_basis": "OFFICIAL_PRESERVED_NUMERIC_VIDEO_ID",
+        "image_content_verified": false
+      },
+      {
+        "track20_video_id": "VID30",
+        "track20_split": "validation",
+        "cholec80_video_id": "video30",
+        "cholec50_video_id": null,
+        "cholec50_split": null,
+        "identity_basis": "OFFICIAL_PRESERVED_NUMERIC_VIDEO_ID",
+        "image_content_verified": false
+      },
+      {
+        "track20_video_id": "VID31",
+        "track20_split": "training",
+        "cholec80_video_id": "video31",
+        "cholec50_video_id": "VID31",
+        "cholec50_split": "train",
+        "identity_basis": "OFFICIAL_PRESERVED_NUMERIC_VIDEO_ID",
+        "image_content_verified": false
+      },
+      {
+        "track20_video_id": "VID37",
+        "track20_split": "training",
+        "cholec80_video_id": "video37",
+        "cholec50_video_id": null,
+        "cholec50_split": null,
+        "identity_basis": "OFFICIAL_PRESERVED_NUMERIC_VIDEO_ID",
+        "image_content_verified": false
+      },
+      {
+        "track20_video_id": "VID39",
+        "track20_split": "testing",
+        "cholec80_video_id": "video39",
+        "cholec50_video_id": null,
+        "cholec50_split": null,
+        "identity_basis": "OFFICIAL_PRESERVED_NUMERIC_VIDEO_ID",
+        "image_content_verified": false
+      },
+      {
+        "track20_video_id": "VID92",
+        "track20_split": "testing",
+        "cholec80_video_id": null,
+        "cholec50_video_id": "VID92",
+        "cholec50_split": "train",
+        "identity_basis": "OFFICIAL_PRESERVED_NUMERIC_VIDEO_ID",
+        "image_content_verified": false
+      },
+      {
+        "track20_video_id": "VID96",
+        "track20_split": "training",
+        "cholec80_video_id": null,
+        "cholec50_video_id": "VID96",
+        "cholec50_split": "train",
+        "identity_basis": "OFFICIAL_PRESERVED_NUMERIC_VIDEO_ID",
+        "image_content_verified": false
+      },
+      {
+        "track20_video_id": "VID103",
+        "track20_split": "training",
+        "cholec80_video_id": null,
+        "cholec50_video_id": "VID103",
+        "cholec50_split": "train",
+        "identity_basis": "OFFICIAL_PRESERVED_NUMERIC_VIDEO_ID",
+        "image_content_verified": false
+      },
+      {
+        "track20_video_id": "VID110",
+        "track20_split": "validation",
+        "cholec80_video_id": null,
+        "cholec50_video_id": "VID110",
+        "cholec50_split": "train",
+        "identity_basis": "OFFICIAL_PRESERVED_NUMERIC_VIDEO_ID",
+        "image_content_verified": false
+      },
+      {
+        "track20_video_id": "VID111",
+        "track20_split": "testing",
+        "cholec80_video_id": null,
+        "cholec50_video_id": "VID111",
+        "cholec50_split": "test",
+        "identity_basis": "OFFICIAL_PRESERVED_NUMERIC_VIDEO_ID",
+        "image_content_verified": false
+      }
+    ]
+  },
+  "ontology": {
+    "status": "PARTIAL_RECOVERED_WITH_EXCEPTIONS",
+    "instrument": {
+      "status": "VERIFIED",
+      "track20_mapping": {
+        "0": "grasper",
+        "1": "bipolar",
+        "2": "hook",
+        "3": "scissors",
+        "4": "clipper",
+        "5": "irrigator",
+        "6": "specimen-bag"
+      },
+      "cholec50_mapping": {
+        "0": "grasper",
+        "1": "bipolar",
+        "2": "hook",
+        "3": "scissors",
+        "4": "clipper",
+        "5": "irrigator"
+      },
+      "note": "Track20 adds instrument 6 specimen-bag; CholecT50 has instruments 0-5."
+    },
+    "verb": {
+      "status": "RECOVERED_CROSS_DATASET_PROVENANCE",
+      "mapping": {
+        "0": "grasp",
+        "1": "retract",
+        "2": "dissect",
+        "3": "coagulate",
+        "4": "clip",
+        "5": "cut",
+        "6": "aspirate",
+        "7": "irrigate",
+        "8": "pack",
+        "9": "null_verb"
+      }
+    },
+    "target": {
+      "status": "RECOVERED_CROSS_DATASET_PROVENANCE",
+      "mapping": {
+        "0": "gallbladder",
+        "1": "cystic_plate",
+        "2": "cystic_duct",
+        "3": "cystic_artery",
+        "4": "cystic_pedicle",
+        "5": "blood_vessel",
+        "6": "fluid",
+        "7": "abdominal_wall_cavity",
+        "8": "liver",
+        "9": "adhesion",
+        "10": "omentum",
+        "11": "peritoneum",
+        "12": "gut",
+        "13": "specimen_bag",
+        "14": "null_target"
+      }
+    },
+    "triplet": {
+      "status": "RECOVERED_CROSS_DATASET_PROVENANCE_WITH_EXCEPTIONS",
+      "mapping": {
+        "0": "grasper,dissect,cystic_plate",
+        "1": "grasper,dissect,gallbladder",
+        "2": "grasper,dissect,omentum",
+        "3": "grasper,grasp,cystic_artery",
+        "4": "grasper,grasp,cystic_duct",
+        "5": "grasper,grasp,cystic_pedicle",
+        "6": "grasper,grasp,cystic_plate",
+        "7": "grasper,grasp,gallbladder",
+        "8": "grasper,grasp,gut",
+        "9": "grasper,grasp,liver",
+        "10": "grasper,grasp,omentum",
+        "11": "grasper,grasp,peritoneum",
+        "12": "grasper,grasp,specimen_bag",
+        "13": "grasper,pack,gallbladder",
+        "14": "grasper,retract,cystic_duct",
+        "15": "grasper,retract,cystic_pedicle",
+        "16": "grasper,retract,cystic_plate",
+        "17": "grasper,retract,gallbladder",
+        "18": "grasper,retract,gut",
+        "19": "grasper,retract,liver",
+        "20": "grasper,retract,omentum",
+        "21": "grasper,retract,peritoneum",
+        "22": "bipolar,coagulate,abdominal_wall_cavity",
+        "23": "bipolar,coagulate,blood_vessel",
+        "24": "bipolar,coagulate,cystic_artery",
+        "25": "bipolar,coagulate,cystic_duct",
+        "26": "bipolar,coagulate,cystic_pedicle",
+        "27": "bipolar,coagulate,cystic_plate",
+        "28": "bipolar,coagulate,gallbladder",
+        "29": "bipolar,coagulate,liver",
+        "30": "bipolar,coagulate,omentum",
+        "31": "bipolar,coagulate,peritoneum",
+        "32": "bipolar,dissect,adhesion",
+        "33": "bipolar,dissect,cystic_artery",
+        "34": "bipolar,dissect,cystic_duct",
+        "35": "bipolar,dissect,cystic_plate",
+        "36": "bipolar,dissect,gallbladder",
+        "37": "bipolar,dissect,omentum",
+        "38": "bipolar,grasp,cystic_plate",
+        "39": "bipolar,grasp,liver",
+        "40": "bipolar,grasp,specimen_bag",
+        "41": "bipolar,retract,cystic_duct",
+        "42": "bipolar,retract,cystic_pedicle",
+        "43": "bipolar,retract,gallbladder",
+        "44": "bipolar,retract,liver",
+        "45": "bipolar,retract,omentum",
+        "46": "hook,coagulate,blood_vessel",
+        "47": "hook,coagulate,cystic_artery",
+        "48": "hook,coagulate,cystic_duct",
+        "49": "hook,coagulate,cystic_pedicle",
+        "50": "hook,coagulate,cystic_plate",
+        "51": "hook,coagulate,gallbladder",
+        "52": "hook,coagulate,liver",
+        "53": "hook,coagulate,omentum",
+        "54": "hook,cut,blood_vessel",
+        "55": "hook,cut,peritoneum",
+        "56": "hook,dissect,blood_vessel",
+        "57": "hook,dissect,cystic_artery",
+        "58": "hook,dissect,cystic_duct",
+        "59": "hook,dissect,cystic_plate",
+        "60": "hook,dissect,gallbladder",
+        "61": "hook,dissect,omentum",
+        "62": "hook,dissect,peritoneum",
+        "63": "hook,retract,gallbladder",
+        "64": "hook,retract,liver",
+        "65": "scissors,coagulate,omentum",
+        "66": "scissors,cut,adhesion",
+        "67": "scissors,cut,blood_vessel",
+        "68": "scissors,cut,cystic_artery",
+        "69": "scissors,cut,cystic_duct",
+        "70": "scissors,cut,cystic_plate",
+        "71": "scissors,cut,liver",
+        "72": "scissors,cut,omentum",
+        "73": "scissors,cut,peritoneum",
+        "74": "scissors,dissect,cystic_plate",
+        "75": "scissors,dissect,gallbladder",
+        "76": "scissors,dissect,omentum",
+        "77": "clipper,clip,blood_vessel",
+        "78": "clipper,clip,cystic_artery",
+        "79": "clipper,clip,cystic_duct",
+        "80": "clipper,clip,cystic_pedicle",
+        "81": "clipper,clip,cystic_plate",
+        "82": "irrigator,aspirate,fluid",
+        "83": "irrigator,dissect,cystic_duct",
+        "84": "irrigator,dissect,cystic_pedicle",
+        "85": "irrigator,dissect,cystic_plate",
+        "86": "irrigator,dissect,gallbladder",
+        "87": "irrigator,dissect,omentum",
+        "88": "irrigator,irrigate,abdominal_wall_cavity",
+        "89": "irrigator,irrigate,cystic_pedicle",
+        "90": "irrigator,irrigate,liver",
+        "91": "irrigator,retract,gallbladder",
+        "92": "irrigator,retract,liver",
+        "93": "irrigator,retract,omentum",
+        "94": "grasper,null_verb,null_target",
+        "95": "bipolar,null_verb,null_target",
+        "96": "hook,null_verb,null_target",
+        "97": "scissors,null_verb,null_target",
+        "98": "clipper,null_verb,null_target",
+        "99": "irrigator,null_verb,null_target"
+      },
+      "component_map": {
+        "0": [
+          0,
+          2,
+          1
+        ],
+        "1": [
+          0,
+          2,
+          0
+        ],
+        "2": [
+          0,
+          2,
+          10
+        ],
+        "3": [
+          0,
+          0,
+          3
+        ],
+        "4": [
+          0,
+          0,
+          2
+        ],
+        "5": [
+          0,
+          0,
+          4
+        ],
+        "6": [
+          0,
+          0,
+          1
+        ],
+        "7": [
+          0,
+          0,
+          0
+        ],
+        "8": [
+          0,
+          0,
+          12
+        ],
+        "9": [
+          0,
+          0,
+          8
+        ],
+        "10": [
+          0,
+          0,
+          10
+        ],
+        "11": [
+          0,
+          0,
+          11
+        ],
+        "12": [
+          0,
+          0,
+          13
+        ],
+        "13": [
+          0,
+          8,
+          0
+        ],
+        "14": [
+          0,
+          1,
+          2
+        ],
+        "15": [
+          0,
+          1,
+          4
+        ],
+        "16": [
+          0,
+          1,
+          1
+        ],
+        "17": [
+          0,
+          1,
+          0
+        ],
+        "18": [
+          0,
+          1,
+          12
+        ],
+        "19": [
+          0,
+          1,
+          8
+        ],
+        "20": [
+          0,
+          1,
+          10
+        ],
+        "21": [
+          0,
+          1,
+          11
+        ],
+        "22": [
+          1,
+          3,
+          7
+        ],
+        "23": [
+          1,
+          3,
+          5
+        ],
+        "24": [
+          1,
+          3,
+          3
+        ],
+        "25": [
+          1,
+          3,
+          2
+        ],
+        "26": [
+          1,
+          3,
+          4
+        ],
+        "27": [
+          1,
+          3,
+          1
+        ],
+        "28": [
+          1,
+          3,
+          0
+        ],
+        "29": [
+          1,
+          3,
+          8
+        ],
+        "30": [
+          1,
+          3,
+          10
+        ],
+        "31": [
+          1,
+          3,
+          11
+        ],
+        "32": [
+          1,
+          2,
+          9
+        ],
+        "33": [
+          1,
+          2,
+          3
+        ],
+        "34": [
+          1,
+          2,
+          2
+        ],
+        "35": [
+          1,
+          2,
+          1
+        ],
+        "36": [
+          1,
+          2,
+          0
+        ],
+        "37": [
+          1,
+          2,
+          10
+        ],
+        "38": [
+          1,
+          0,
+          1
+        ],
+        "39": [
+          1,
+          0,
+          8
+        ],
+        "40": [
+          1,
+          0,
+          13
+        ],
+        "41": [
+          1,
+          1,
+          2
+        ],
+        "42": [
+          1,
+          1,
+          4
+        ],
+        "43": [
+          1,
+          1,
+          0
+        ],
+        "44": [
+          1,
+          1,
+          8
+        ],
+        "45": [
+          1,
+          1,
+          10
+        ],
+        "46": [
+          2,
+          3,
+          5
+        ],
+        "47": [
+          2,
+          3,
+          3
+        ],
+        "48": [
+          2,
+          3,
+          2
+        ],
+        "49": [
+          2,
+          3,
+          4
+        ],
+        "50": [
+          2,
+          3,
+          1
+        ],
+        "51": [
+          2,
+          3,
+          0
+        ],
+        "52": [
+          2,
+          3,
+          8
+        ],
+        "53": [
+          2,
+          3,
+          10
+        ],
+        "54": [
+          2,
+          5,
+          5
+        ],
+        "55": [
+          2,
+          5,
+          11
+        ],
+        "56": [
+          2,
+          2,
+          5
+        ],
+        "57": [
+          2,
+          2,
+          3
+        ],
+        "58": [
+          2,
+          2,
+          2
+        ],
+        "59": [
+          2,
+          2,
+          1
+        ],
+        "60": [
+          2,
+          2,
+          0
+        ],
+        "61": [
+          2,
+          2,
+          10
+        ],
+        "62": [
+          2,
+          2,
+          11
+        ],
+        "63": [
+          2,
+          1,
+          0
+        ],
+        "64": [
+          2,
+          1,
+          8
+        ],
+        "65": [
+          3,
+          3,
+          10
+        ],
+        "66": [
+          3,
+          5,
+          9
+        ],
+        "67": [
+          3,
+          5,
+          5
+        ],
+        "68": [
+          3,
+          5,
+          3
+        ],
+        "69": [
+          3,
+          5,
+          2
+        ],
+        "70": [
+          3,
+          5,
+          1
+        ],
+        "71": [
+          3,
+          5,
+          8
+        ],
+        "72": [
+          3,
+          5,
+          10
+        ],
+        "73": [
+          3,
+          5,
+          11
+        ],
+        "74": [
+          3,
+          2,
+          1
+        ],
+        "75": [
+          3,
+          2,
+          0
+        ],
+        "76": [
+          3,
+          2,
+          10
+        ],
+        "77": [
+          4,
+          4,
+          5
+        ],
+        "78": [
+          4,
+          4,
+          3
+        ],
+        "79": [
+          4,
+          4,
+          2
+        ],
+        "80": [
+          4,
+          4,
+          4
+        ],
+        "81": [
+          4,
+          4,
+          1
+        ],
+        "82": [
+          5,
+          6,
+          6
+        ],
+        "83": [
+          5,
+          2,
+          2
+        ],
+        "84": [
+          5,
+          2,
+          4
+        ],
+        "85": [
+          5,
+          2,
+          1
+        ],
+        "86": [
+          5,
+          2,
+          0
+        ],
+        "87": [
+          5,
+          2,
+          10
+        ],
+        "88": [
+          5,
+          7,
+          7
+        ],
+        "89": [
+          5,
+          7,
+          4
+        ],
+        "90": [
+          5,
+          7,
+          8
+        ],
+        "91": [
+          5,
+          1,
+          0
+        ],
+        "92": [
+          5,
+          1,
+          8
+        ],
+        "93": [
+          5,
+          1,
+          10
+        ],
+        "94": [
+          0,
+          9,
+          14
+        ],
+        "95": [
+          1,
+          9,
+          14
+        ],
+        "96": [
+          2,
+          9,
+          14
+        ],
+        "97": [
+          3,
+          9,
+          14
+        ],
+        "98": [
+          4,
+          9,
+          14
+        ],
+        "99": [
+          5,
+          9,
+          14
+        ]
+      },
+      "compared_instances": 22994,
+      "exact_component_matches": 22960,
+      "mismatch_count": 34,
+      "mismatches": [
+        {
+          "triplet_id": 12,
+          "expected_i_v_t": [
+            0,
+            0,
+            13
+          ],
+          "observed_i_v_t": [
+            6,
+            0,
+            13
+          ],
+          "video_id": "VID111",
+          "count": 32,
+          "interpretation": "EXPLAINED_SCOPE_DIFFERENCE: Track20 box category is specimen-bag, while upstream triplet 12 describes the grasper grasping specimen_bag"
+        },
+        {
+          "triplet_id": 43,
+          "expected_i_v_t": [
+            1,
+            1,
+            0
+          ],
+          "observed_i_v_t": [
+            0,
+            1,
+            0
+          ],
+          "video_id": "VID25",
+          "count": 1,
+          "interpretation": "UNRESOLVED_COMPONENT_CONFLICT"
+        },
+        {
+          "triplet_id": 94,
+          "expected_i_v_t": [
+            0,
+            9,
+            14
+          ],
+          "observed_i_v_t": [
+            0,
+            -1,
+            -1
+          ],
+          "video_id": "VID23",
+          "count": 1,
+          "interpretation": "UNRESOLVED_NULL_ENCODING: upstream uses verb 9/target 14, Track20 uses negative component sentinels"
+        }
+      ]
+    },
+    "phase": {
+      "status": "UNRESOLVED_TRACK20_NUMERIC_ID_MAPPING",
+      "cholec50_explicit_mapping": {
+        "0": "preparation",
+        "1": "carlot-triangle-dissection",
+        "2": "clipping-and-cutting",
+        "3": "gallbladder-dissection",
+        "4": "gallbladder-packaging",
+        "5": "cleaning-and-coagulation",
+        "6": "gallbladder-extraction"
+      },
+      "track20_paper_ordered_names": [
+        "preparation",
+        "calot triangle dissection",
+        "gallbladder dissection",
+        "clipping & cutting",
+        "gallbladder packaging",
+        "cleaning and coagulation",
+        "gallbladder extraction"
+      ],
+      "reason": "The Track20 paper lists names in this order but does not provide an explicit zero-based ID table; CholecT50 uses a different ID 2/3 order."
+    }
+  },
+  "frame_index_rule": {
+    "status": "UNRESOLVED_FORMAL_RULE_STRONGLY_SUPPORTED",
+    "candidate_rule": "decoder_frame_index = annotation_frame_id - 1",
+    "track20_all_annotation_ids_mod_25": [
+      1
+    ],
+    "track20_all_differences_are_multiples_of_25": true,
+    "cholec80_official_extraction_evidence": "Official SelfSupSurg extraction starts count=0 and names every decoded frame with that zero-based count; 1 FPS label Original_frame_id values are 0 mod 25.",
+    "cholec80_same_video_checks": [
+      {
+        "video_id": "VID01",
+        "track20_annotation_frames": 1516,
+        "candidate_key_minus_one_found_upstream": 1506,
+        "coverage": 0.9934036939313984,
+        "phase_id_exact_count": 1396,
+        "phase_id_exact_fraction_on_common": 0.9269588313413014,
+        "upstream_last_original_frame_id": 43325
+      },
+      {
+        "video_id": "VID02",
+        "track20_annotation_frames": 2545,
+        "candidate_key_minus_one_found_upstream": 2363,
+        "coverage": 0.9284872298624754,
+        "phase_id_exact_count": 1510,
+        "phase_id_exact_fraction_on_common": 0.6390181972069403,
+        "upstream_last_original_frame_id": 70975
+      },
+      {
+        "video_id": "VID04",
+        "track20_annotation_frames": 1189,
+        "candidate_key_minus_one_found_upstream": 1128,
+        "coverage": 0.9486963835155593,
+        "phase_id_exact_count": 522,
+        "phase_id_exact_fraction_on_common": 0.4627659574468085,
+        "upstream_last_original_frame_id": 38050
+      },
+      {
+        "video_id": "VID06",
+        "track20_annotation_frames": 1962,
+        "candidate_key_minus_one_found_upstream": 1509,
+        "coverage": 0.7691131498470948,
+        "phase_id_exact_count": 610,
+        "phase_id_exact_fraction_on_common": 0.4042412193505633,
+        "upstream_last_original_frame_id": 53825
+      },
+      {
+        "video_id": "VID07",
+        "track20_annotation_frames": 4213,
+        "candidate_key_minus_one_found_upstream": 4213,
+        "coverage": 1.0,
+        "phase_id_exact_count": 4213,
+        "phase_id_exact_fraction_on_common": 1.0,
+        "upstream_last_original_frame_id": 113925
+      },
+      {
+        "video_id": "VID11",
+        "track20_annotation_frames": 2962,
+        "candidate_key_minus_one_found_upstream": 2951,
+        "coverage": 0.9962862930452397,
+        "phase_id_exact_count": 2797,
+        "phase_id_exact_fraction_on_common": 0.9478143002372077,
+        "upstream_last_original_frame_id": 80500
+      },
+      {
+        "video_id": "VID12",
+        "track20_annotation_frames": 827,
+        "candidate_key_minus_one_found_upstream": 818,
+        "coverage": 0.9891172914147521,
+        "phase_id_exact_count": 597,
+        "phase_id_exact_fraction_on_common": 0.7298288508557457,
+        "upstream_last_original_frame_id": 27250
+      },
+      {
+        "video_id": "VID13",
+        "track20_annotation_frames": 924,
+        "candidate_key_minus_one_found_upstream": 924,
+        "coverage": 1.0,
+        "phase_id_exact_count": 917,
+        "phase_id_exact_fraction_on_common": 0.9924242424242424,
+        "upstream_last_original_frame_id": 24525
+      },
+      {
+        "video_id": "VID17",
+        "track20_annotation_frames": 1066,
+        "candidate_key_minus_one_found_upstream": 1028,
+        "coverage": 0.9643527204502814,
+        "phase_id_exact_count": 783,
+        "phase_id_exact_fraction_on_common": 0.7616731517509727,
+        "upstream_last_original_frame_id": 32600
+      },
+      {
+        "video_id": "VID23",
+        "track20_annotation_frames": 1456,
+        "candidate_key_minus_one_found_upstream": 1456,
+        "coverage": 1.0,
+        "phase_id_exact_count": 1438,
+        "phase_id_exact_fraction_on_common": 0.9876373626373627,
+        "upstream_last_original_frame_id": 40875
+      },
+      {
+        "video_id": "VID25",
+        "track20_annotation_frames": 1915,
+        "candidate_key_minus_one_found_upstream": 1829,
+        "coverage": 0.9550913838120104,
+        "phase_id_exact_count": 1405,
+        "phase_id_exact_fraction_on_common": 0.7681793329688354,
+        "upstream_last_original_frame_id": 53225
+      },
+      {
+        "video_id": "VID30",
+        "track20_annotation_frames": 1066,
+        "candidate_key_minus_one_found_upstream": 1066,
+        "coverage": 1.0,
+        "phase_id_exact_count": 225,
+        "phase_id_exact_fraction_on_common": 0.21106941838649157,
+        "upstream_last_original_frame_id": 73125
+      },
+      {
+        "video_id": "VID31",
+        "track20_annotation_frames": 2717,
+        "candidate_key_minus_one_found_upstream": 2717,
+        "coverage": 1.0,
+        "phase_id_exact_count": 2497,
+        "phase_id_exact_fraction_on_common": 0.9190283400809717,
+        "upstream_last_original_frame_id": 98625
+      },
+      {
+        "video_id": "VID37",
+        "track20_annotation_frames": 1201,
+        "candidate_key_minus_one_found_upstream": 877,
+        "coverage": 0.7302248126561199,
+        "phase_id_exact_count": 272,
+        "phase_id_exact_fraction_on_common": 0.31014823261117447,
+        "upstream_last_original_frame_id": 30800
+      },
+      {
+        "video_id": "VID39",
+        "track20_annotation_frames": 1462,
+        "candidate_key_minus_one_found_upstream": 1179,
+        "coverage": 0.8064295485636115,
+        "phase_id_exact_count": 524,
+        "phase_id_exact_fraction_on_common": 0.4444444444444444,
+        "upstream_last_original_frame_id": 41175
+      }
+    ],
+    "test_mp4_checks": [
+      {
+        "video_id": "VID01",
+        "container_frame_count": 45175,
+        "all_candidate_decoder_indices_valid": true,
+        "candidate_rule": "decoder_frame_index = annotation_frame_id - 1",
+        "cholec80_same_id_upstream_available": true
+      },
+      {
+        "video_id": "VID06",
+        "container_frame_count": 68141,
+        "all_candidate_decoder_indices_valid": true,
+        "candidate_rule": "decoder_frame_index = annotation_frame_id - 1",
+        "cholec80_same_id_upstream_available": true
+      },
+      {
+        "video_id": "VID07",
+        "container_frame_count": 118224,
+        "all_candidate_decoder_indices_valid": true,
+        "candidate_rule": "decoder_frame_index = annotation_frame_id - 1",
+        "cholec80_same_id_upstream_available": true
+      },
+      {
+        "video_id": "VID111",
+        "container_frame_count": 53650,
+        "all_candidate_decoder_indices_valid": true,
+        "candidate_rule": "decoder_frame_index = annotation_frame_id - 1",
+        "cholec80_same_id_upstream_available": false
+      },
+      {
+        "video_id": "VID12",
+        "container_frame_count": 29393,
+        "all_candidate_decoder_indices_valid": true,
+        "candidate_rule": "decoder_frame_index = annotation_frame_id - 1",
+        "cholec80_same_id_upstream_available": true
+      },
+      {
+        "video_id": "VID25",
+        "container_frame_count": 58871,
+        "all_candidate_decoder_indices_valid": true,
+        "candidate_rule": "decoder_frame_index = annotation_frame_id - 1",
+        "cholec80_same_id_upstream_available": true
+      },
+      {
+        "video_id": "VID39",
+        "container_frame_count": 78748,
+        "all_candidate_decoder_indices_valid": true,
+        "candidate_rule": "decoder_frame_index = annotation_frame_id - 1",
+        "cholec80_same_id_upstream_available": true
+      },
+      {
+        "video_id": "VID92",
+        "container_frame_count": 53088,
+        "all_candidate_decoder_indices_valid": true,
+        "candidate_rule": "decoder_frame_index = annotation_frame_id - 1",
+        "cholec80_same_id_upstream_available": false
+      }
+    ],
+    "blocking_reason": "No accessible upstream same-VID image frames were available for pixel/hash comparison, and phase annotations differ across release variants. Arithmetic and provenance support key-1, but do not make it an authoritative Track20 rule."
+  },
+  "vid30_vid31": {
+    "VID30": {
+      "status": "BLOCKED_VID17_CORE_ANNOTATION_DUPLICATE_CONFIRMED",
+      "annotation_frame_count": 1066,
+      "png_count": 2717,
+      "annotation_identity": {
+        "matches_video": "VID17",
+        "frame_id_sets_equal": true,
+        "instance_row_counts_equal": true,
+        "instance_rows": 1863,
+        "equal_core_fields": [
+          "area",
+          "blurred",
+          "crowded",
+          "instrument",
+          "intracorporeal_track",
+          "intraoperative_track",
+          "iscrowd",
+          "occluded",
+          "operator",
+          "score",
+          "target",
+          "tool_bbox",
+          "triplet",
+          "verb",
+          "visibility",
+          "visibility_track",
+          "visible"
+        ],
+        "differing_fields": {
+          "bleeding": 531,
+          "phase": 1788,
+          "reflection": 6,
+          "smoke": 123,
+          "stainedlens": 69,
+          "undercoverage": 18
+        },
+        "core_sha256_vid17": "ceee7f8a5179a88a59bd14cabcc11e2dec990e16f7e78b7912f3bb90d0de5a7b",
+        "core_sha256_vid30": "ceee7f8a5179a88a59bd14cabcc11e2dec990e16f7e78b7912f3bb90d0de5a7b",
+        "core_values_equal": true
+      },
+      "media_identity": "UNRESOLVED_NO_UPSTREAM_IMAGE_CONTENT_AVAILABLE",
+      "png_ids_equal_vid31_annotation_ids": true
+    },
+    "VID31": {
+      "status": "BLOCKED_ANNOTATION_MEDIA_PAIRING",
+      "annotation_frame_count": 2717,
+      "png_count": 3903,
+      "annotation_identity": "LIKELY_FOR_VID30_PER_PUBLIC_ISSUE_AND_EXACT_VID30_PNG_ID_SET; NOT_MAINTAINER_CONFIRMED",
+      "media_identity": "UNRESOLVED_NO_UPSTREAM_IMAGE_CONTENT_AVAILABLE"
+    }
+  },
+  "negative_labels": {
+    "status": "PARTIAL",
+    "negative_patterns": [
+      {
+        "verb_id": -1,
+        "target_id": -1,
+        "triplet_id": -1,
+        "count": 41124
+      },
+      {
+        "verb_id": -1,
+        "target_id": -1,
+        "triplet_id": 94,
+        "count": 1
+      },
+      {
+        "verb_id": 9,
+        "target_id": 14,
+        "triplet_id": -2,
+        "count": 1129
+      }
+    ],
+    "triplet_minus_two": {
+      "total": 1129,
+      "by_instrument": {
+        "0": 11,
+        "1": 1,
+        "2": 1,
+        "6": 1116
+      },
+      "specimen_bag_count": 1116,
+      "specimen_bag_fraction": 0.9884853852967228,
+      "interpretation": "PARTIALLY_EXPLAINED: CholecT50 has no instrument/triplet class for Track20 specimen-bag; non-bag -2 cases remain unresolved."
+    },
+    "minus_one_interpretation": "UNRESOLVED: CholecT50 encodes null as verb 9, target 14 and triplets 94-99, so Track20 -1 cannot be equated with the upstream null classes."
+  },
+  "remote_access": {
+    "method": "HTTP_RANGE_ONLY",
+    "full_archives_downloaded": false,
+    "cholec50_zip_transferred_bytes": 264793,
+    "cholec80_zip_transferred_bytes": 11367044,
+    "cholec50_zip_metadata": {
+      "content_range": "bytes 322504491-322635562/322635563",
+      "etag": "\"e790290b46b26225460159a6c804b46f-39\"",
+      "last_modified": "Mon, 20 Feb 2023 13:09:26 GMT",
+      "content_type": "application/zip"
+    },
+    "cholec80_zip_metadata": {
+      "content_range": "bytes 86651272-86782343/86782344",
+      "etag": "\"ca4703f6d0ff7d6f26de0b320699c3f1-11\"",
+      "last_modified": "Mon, 06 Feb 2023 12:27:36 GMT",
+      "content_type": "application/zip"
+    },
+    "cholec80_entries": [
+      {
+        "entry": "labels/train/1fps_100_0.pickle",
+        "sha256": "36a87ed0b4647ab2ead38f2d5d639d99465f0b81d80280fa70143e21df4ad435",
+        "uncompressed_size": 22206631,
+        "pickle_globals_allowlisted": true
+      },
+      {
+        "entry": "labels/val/1fps.pickle",
+        "sha256": "ad329dc65b9bbb5f73c2bb3a61783912e9e7b4f0316355a423fba4a7eaa7ea92",
+        "uncompressed_size": 5541903,
+        "pickle_globals_allowlisted": true
+      },
+      {
+        "entry": "labels/test/1fps.pickle",
+        "sha256": "785eea686841ba639ed17bdcd7cb82620f56bd491174ee2b5ac567df170cf54b",
+        "uncompressed_size": 19846883,
+        "pickle_globals_allowlisted": true
+      }
+    ]
+  },
+  "sources": [
+    {
+      "source_id": "CAMMA dataset-overlap CholecT50 split",
+      "url": "https://raw.githubusercontent.com/CAMMA-public/camma_dataset_overlaps/8347b9f4cb02ebe739747903e6eada272ee9d25e/resources/CholecT50_splits.json",
+      "version": "8347b9f4cb02ebe739747903e6eada272ee9d25e",
+      "sha256": "ddb056be3e1cf13f46d1842936b05345f25263143f41aedde5d49800fc574ec1",
+      "claim_supported": "CholecT50 membership and official split"
+    },
+    {
+      "source_id": "CAMMA dataset-overlap Cholec80 split",
+      "url": "https://raw.githubusercontent.com/CAMMA-public/camma_dataset_overlaps/8347b9f4cb02ebe739747903e6eada272ee9d25e/resources/Cholec80_splits.json",
+      "version": "8347b9f4cb02ebe739747903e6eada272ee9d25e",
+      "sha256": "e14fcd87fca4e719354dfee7ada5413e003167243fbd9921fc209bcc1cf4553f",
+      "claim_supported": "Cholec80 video membership and split"
+    },
+    {
+      "source_id": "CholecT50 official format",
+      "url": "https://github.com/CAMMA-public/cholect50/blob/354020eb217086a07be4b225d803c7fea7760b7a/docs/README-Format.md",
+      "version": "354020eb217086a07be4b225d803c7fea7760b7a",
+      "sha256": null,
+      "claim_supported": "1 FPS sequential image IDs, ontology and mapping format"
+    },
+    {
+      "source_id": "CholecT50 official preserved-ID statement",
+      "url": "https://github.com/CAMMA-public/cholect50/blob/354020eb217086a07be4b225d803c7fea7760b7a/docs/README-Splits.md",
+      "version": "354020eb217086a07be4b225d803c7fea7760b7a",
+      "sha256": null,
+      "claim_supported": "Numeric video IDs are consistent across CAMMA datasets"
+    },
+    {
+      "source_id": "CholecT50 challenge mapping",
+      "url": "https://s3.unistra.fr/camma_public/datasets/cholect50/CholecT50-Challenge-Validation.zip#cholect50-challenge-val/label_mapping.txt",
+      "version": "Mon, 20 Feb 2023 13:09:26 GMT",
+      "sha256": "e031ce8646491ddabfd37a23804e46cf4775d257b569deb7702eafd7e9119092",
+      "claim_supported": "100 IVT-to-I/V/T relations"
+    },
+    {
+      "source_id": "CholecT50 challenge ontology",
+      "url": "https://s3.unistra.fr/camma_public/datasets/cholect50/CholecT50-Challenge-Validation.zip#cholect50-challenge-val/labels/VID68.json",
+      "version": "Mon, 20 Feb 2023 13:09:26 GMT",
+      "sha256": "7125094dd9b31359b2eb02b873f239bdb39b97d2f94604b2cda9cb7a131772ac",
+      "claim_supported": "Instrument, verb, target, triplet and phase ID names"
+    },
+    {
+      "source_id": "CholecT50 challenge README",
+      "url": "https://s3.unistra.fr/camma_public/datasets/cholect50/CholecT50-Challenge-Validation.zip#cholect50-challenge-val/README.md",
+      "version": "Mon, 20 Feb 2023 13:09:26 GMT",
+      "sha256": "636b5425414157073cbd302a40ed537ec95d7eee539a4dac99e8f250db89bc91",
+      "claim_supported": "Release identity, source institution and preserved video IDs"
+    },
+    {
+      "source_id": "Cholec80 official frame extractor",
+      "url": "https://github.com/CAMMA-public/SelfSupSurg/blob/8a03d28948e59471cc8ea865d56632eda048079c/utils/extract_frames_ch80.py",
+      "version": "8a03d28948e59471cc8ea865d56632eda048079c",
+      "sha256": null,
+      "claim_supported": "25 FPS check and zero-based decoder-frame filenames"
+    },
+    {
+      "source_id": "Cholec80 official 1 FPS labels",
+      "url": "https://s3.unistra.fr/camma_public/github/selfsupsurg/ch80_labels.zip",
+      "version": "Mon, 06 Feb 2023 12:27:36 GMT",
+      "sha256": null,
+      "claim_supported": "Original_frame_id values and phase labels for 80 videos"
+    },
+    {
+      "source_id": "CholecTrack20 official README",
+      "url": "https://github.com/CAMMA-public/cholectrack20/blob/6406b52806b6d881ef5ee9bf75255b3d0af665f9/README.md",
+      "version": "6406b52806b6d881ef5ee9bf75255b3d0af665f9",
+      "sha256": null,
+      "claim_supported": "Dataset overlap, preserved identities, 1 FPS labels and 25 FPS videos"
+    },
+    {
+      "source_id": "CholecTrack20 CVPR paper",
+      "url": "https://openaccess.thecvf.com/content/CVPR2025/papers/Nwoye_CholecTrack20_A_Multi-Perspective_Tracking_Dataset_for_Surgical_Tools_CVPR_2025_paper.pdf",
+      "version": "CVPR 2025",
+      "sha256": null,
+      "claim_supported": "Track20 phase names and dataset design"
+    },
+    {
+      "source_id": "CholecTrack20 public issue 10",
+      "url": "https://github.com/CAMMA-public/cholectrack20/issues/10",
+      "version": "opened 2026-04-22; no maintainer resolution at access date",
+      "sha256": null,
+      "claim_supported": "Independent report that VID31 annotation appears to describe VID30"
+    }
+  ],
+  "automatic_repairs_applied": false,
+  "training_or_inference_executed": false
+}

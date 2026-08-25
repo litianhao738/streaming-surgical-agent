@@ -1,0 +1,39 @@
+experiment: local_smoke
+phase_required: P2
+base_config: ../base.yaml
+data_config: ../data/cholectrack20.yaml
+train_config: ../train/default.yaml
+eval_config: ../eval/default.yaml
+
+pipeline:
+  runner: canonical_streaming
+  context: frames_only
+  perception: local_smoke
+  candidate_generator: disabled_traceable
+  gate_policy: never_verify
+  verifier: disabled_traceable
+  workflow_store: noop_traceable
+  event_memory: noop_traceable
+
+model:
+  pretrained: false
+  output_granularity:
+    - frame_multilabel
+    - frame_phase
+  instance_prediction: disabled_for_p2
+
+smoke:
+  max_train_batches: 1
+  max_validation_samples: 4
+  required_training_videos:
+    - VID02
+    - VID31
+  required_validation_videos:
+    - VID30
+  forbid_test_for_training_or_selection: true
+  require_checkpoint_round_trip: true
+  require_deterministic_sample_order: true
+
+runtime:
+  dry_run: false
+  allow_oracle_track_provider: false

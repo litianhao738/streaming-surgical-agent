@@ -1,0 +1,11 @@
+enabled: true
+scope: per_video
+history_source: finalized_only
+episodic_retrieval: true
+reset_at_video_boundary: true
+max_events_per_video: null
+reliability:
+  mode: provenance_capped
+  cap_policy: null
+  temporal_weight_location: retrieval_only
+status: CONTRACT_ONLY_P0

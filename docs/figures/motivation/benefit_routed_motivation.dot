@@ -1,0 +1,210 @@
+digraph Motivation {
+  graph [
+    layout=neato,
+    bgcolor="#FFFFFF",
+    bb="0,0,1440,810",
+    size="14.4,8.1!",
+    ratio=fill,
+    pad="0.20",
+    outputorder=edgesfirst,
+    splines=true,
+    overlap=true,
+    fontname="Arial"
+  ];
+
+  node [
+    shape=box,
+    style="rounded,filled",
+    fontname="Arial",
+    fontsize=13,
+    margin="0.18,0.10",
+    penwidth=1.25,
+    pin=true,
+    fixedsize=false
+  ];
+
+  edge [
+    fontname="Arial",
+    fontsize=10,
+    color="#737B87",
+    fontcolor="#525A66",
+    penwidth=1.35,
+    arrowsize=0.72
+  ];
+
+  title [
+    shape=plain,
+    style="",
+    pos="720,785!",
+    label=<<FONT POINT-SIZE="25"><B>From Clip-level Recognition to Benefit-Routed Long-Video Reasoning</B></FONT>>
+  ];
+  subtitle [
+    shape=plain,
+    style="",
+    pos="720,750!",
+    label=<<FONT POINT-SIZE="13" COLOR="#5D6573">Why stateful and selective verification is needed for causal surgical video understanding</FONT>>
+  ];
+
+  subgraph previous {
+
+    p_header [
+      shape=plain,
+      style="",
+      pos="320,700!",
+      width=5.6,
+      height=0.55,
+      label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+        <TR><TD><FONT POINT-SIZE="18" COLOR="#434A54"><B>PREVIOUS METHODS</B></FONT></TD></TR>
+        <TR><TD><FONT POINT-SIZE="11" COLOR="#5D6573">Sample-wise clip understanding</FONT></TD></TR>
+      </TABLE>>
+    ];
+
+    p_input [pos="320,610!", width=3.45, height=0.58, label="Frame / Short Clip", fillcolor="#FFFFFF", color="#C2C7CF"];
+    p_heads [pos="320,510!", width=3.45, height=0.58, label="Task Heads / Experts", fillcolor="#FFFFFF", color="#C2C7CF"];
+    p_reflect [pos="320,410!", width=3.45, height=0.68, label="Optional Consistency\nor Reflection", fillcolor="#FFFFFF", color="#C2C7CF"];
+    p_output [pos="320,310!", width=3.45, height=0.58, label=<<B>Current-sample Output</B>>, fillcolor="#E8EAEE", color="#B7BDC6"];
+
+    p_input -> p_heads -> p_reflect -> p_output;
+
+    p_limits [
+      shape=plain,
+      style="",
+      pos="320,160!",
+      width=4.35,
+      height=1.42,
+      label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8" COLOR="#D3D7DD">
+        <TR><TD BGCOLOR="#ECEEF1"><FONT POINT-SIZE="10" COLOR="#525A66">Local temporal context</FONT></TD></TR>
+        <TR><TD BGCOLOR="#ECEEF1"><FONT POINT-SIZE="10" COLOR="#525A66">Independent sample processing</FONT></TD></TR>
+        <TR><TD BGCOLOR="#ECEEF1"><FONT POINT-SIZE="10" COLOR="#525A66">No explicit persistent video state</FONT></TD></TR>
+      </TABLE>>
+    ];
+  }
+
+  transition [
+    shape=plain,
+    style="",
+    pos="596,420!",
+    label=<<FONT POINT-SIZE="23" COLOR="#3D8DCE"><B>→</B></FONT>>
+  ];
+
+  divider [
+    shape=box,
+    pos="600,390!",
+    width=0.02,
+    height=6.65,
+    fixedsize=true,
+    style=filled,
+    fillcolor="#D8DDE5",
+    color="#D8DDE5",
+    label=""
+  ];
+
+  subgraph ours {
+
+    o_header [
+      shape=plain,
+      style="",
+      pos="995,700!",
+      width=7.9,
+      height=0.55,
+      label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+        <TR><TD><FONT POINT-SIZE="18" COLOR="#155FA0"><B>OURS</B></FONT></TD></TR>
+        <TR><TD><FONT POINT-SIZE="11" COLOR="#2475AF">Stateful long-video surgical agents</FONT></TD></TR>
+      </TABLE>>
+    ];
+
+    o_stream [pos="885,625!", width=3.15, height=0.58, label="Causal Surgical Stream", fillcolor="#FFFFFF", color="#80B7E8"];
+    o_joint [pos="885,545!", width=3.15, height=0.58, label=<<B>Joint Perception Agent</B>>, fillcolor="#E7F3FE", color="#5D9FD9"];
+    o_gate [
+      shape=diamond,
+      pos="885,450!",
+      width=2.75,
+      height=1.00,
+      margin="0.06,0.03",
+      label=<<B>Task-wise<BR/>Benefit Gate</B>>,
+      fillcolor="#CFE8FC",
+      color="#3D8DCE"
+    ];
+
+    accept_label [shape=plain, style="", pos="745,360!", label=<<FONT POINT-SIZE="10" COLOR="#2A76AA"><B>ACCEPT</B></FONT>>];
+    verify_label [shape=plain, style="", pos="1095,410!", label=<<FONT POINT-SIZE="10" COLOR="#2479B8"><B>VERIFY(scope)</B></FONT>>];
+
+    o_specialist [
+      pos="1120,340!",
+      width=3.65,
+      height=0.72,
+      label=<<B>One Routed Specialist</B><BR/><FONT POINT-SIZE="9.5">spatial_track · interaction · workflow</FONT>>,
+      fillcolor="#DDF0FD",
+      color="#4A98D4"
+    ];
+    o_coord [
+      pos="1120,250!",
+      width=3.65,
+      height=0.72,
+      label=<<B>Deterministic Coordinator</B><BR/><FONT POINT-SIZE="9.5">scope · candidate · touched-task checks</FONT>>,
+      fillcolor="#FFFFFF",
+      color="#6AA9D9"
+    ];
+    o_final [pos="885,190!", width=3.15, height=0.62, label=<<B>Finalized Event</B>>, fillcolor="#BDE2FA", color="#3183C2"];
+    o_memory [
+      pos="885,105!",
+      width=3.85,
+      height=0.68,
+      label=<<B>Workflow State + Event Memory</B><BR/><FONT POINT-SIZE="9.5">finalized causal history only</FONT>>,
+      fillcolor="#EAF6FE",
+      color="#61A4D7"
+    ];
+
+    o_stream -> o_joint -> o_gate;
+    o_gate -> accept_label [color="#4D8FBF"];
+    accept_label -> o_final [color="#4D8FBF"];
+    o_gate -> verify_label [color="#2479B8", penwidth=1.7];
+    verify_label -> o_specialist [color="#2479B8", penwidth=1.7];
+    o_specialist -> o_coord [color="#2479B8"];
+    o_coord -> o_final [color="#2479B8"];
+    o_final -> o_memory [color="#2479B8", penwidth=1.55];
+    fb_low [shape=point, style=invis, pos="655,105!", width=0.01, height=0.01, label=""];
+    fb_high [shape=point, style=invis, pos="655,545!", width=0.01, height=0.01, label=""];
+    o_memory -> fb_low [
+      style=dashed,
+      color="#6C9FC3",
+      penwidth=1.25,
+      arrowhead=none,
+      constraint=false
+    ];
+    fb_low -> fb_high [
+      style=dashed,
+      color="#6C9FC3",
+      penwidth=1.25,
+      arrowhead=none,
+      constraint=false
+    ];
+    fb_high -> o_joint [
+      style=dashed,
+      color="#6C9FC3",
+      penwidth=1.25,
+      constraint=false
+    ];
+
+    feedback_label [
+      shape=plain,
+      style="",
+      pos="662,395!",
+      label=<<FONT POINT-SIZE="9" COLOR="#527D9B">causal context for t+1</FONT>>
+    ];
+
+    o_benefits [
+      shape=plain,
+      style="",
+      pos="1110,105!",
+      width=2.6,
+      height=1.25,
+      label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="6" COLOR="#B9DDF5">
+        <TR><TD BGCOLOR="#E4F3FD"><FONT POINT-SIZE="9" COLOR="#155F91"><B>Causal long-horizon state</B></FONT></TD></TR>
+        <TR><TD BGCOLOR="#E4F3FD"><FONT POINT-SIZE="9" COLOR="#155F91"><B>Benefit-routed verification</B></FONT></TD></TR>
+        <TR><TD BGCOLOR="#E4F3FD"><FONT POINT-SIZE="9" COLOR="#155F91"><B>Task-scoped safe repair</B></FONT></TD></TR>
+        <TR><TD BGCOLOR="#E4F3FD"><FONT POINT-SIZE="9" COLOR="#155F91"><B>Budget-aware API calls</B></FONT></TD></TR>
+      </TABLE>>
+    ];
+  }
+}

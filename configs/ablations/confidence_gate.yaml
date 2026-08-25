@@ -1,0 +1,4 @@
+ablation: confidence_gate
+phase_required: P12
+gate:
+  policy: confidence

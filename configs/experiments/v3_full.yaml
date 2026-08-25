@@ -1,0 +1,25 @@
+experiment: v3_full
+phase_required: P11
+tracking:
+  provider: predicted
+workflow:
+  enabled: true
+  history_source: predicted_finalized_only
+  allow_similarity_retrieval: false
+gate:
+  policy: benefit_threshold
+  gate_stage: final_g1
+  artifact: null
+  threshold_source_split: validation
+  allow_test_refresh: false
+memory:
+  enabled: true
+  store: event_memory
+  history_source: finalized_only
+  reliability_mode: provenance_capped
+  temporal_weight_location: retrieval_only
+verification:
+  bounded_candidates: true
+runtime:
+  allow_oracle_track_provider: false
+status: PLANNED_NOT_RUN

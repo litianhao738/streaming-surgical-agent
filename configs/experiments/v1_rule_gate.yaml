@@ -1,0 +1,7 @@
+experiment: v1_rule_gate
+phase_required: P8
+gate:
+  policy: v1_rule
+  statistical_signals_only: true
+runtime:
+  allow_oracle_track_provider: false

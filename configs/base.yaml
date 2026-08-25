@@ -1,0 +1,39 @@
+project:
+  name: surgical_agent
+  version: 3.1.0-dev
+  current_phase: P2
+  phase_status: PASS
+  next_phase: P3
+  seed: 42
+  research_enabled: false
+  method_implementation: p2_local_smoke_only
+  data_layer_implementation: p2_dataset_adapter_with_explicit_partial_supervision
+
+data:
+  dataset: cholectrack20
+  root: null
+  read_only: true
+  current_phase_blockers: []
+  deferred_phase_blockers:
+    - p3_exact_provider_and_model_identifier
+    - p4_prediction_evaluation_granularity_and_matching
+    - p9_canonical_per_sample_task_error
+  nonblocking_provenance_caveats:
+    - official_png_extraction_wording_not_published
+    - official_negative_label_sentinel_wording_not_published
+    - vid30_candidate_reconstruction_requires_disclosure
+  verified_contracts:
+    - annotation_sampling_fps_1
+    - raw_test_video_fps_25
+    - canonical_numeric_parser
+    - gold_free_runtime_boundary
+    - official_split_safety
+    - test_mp4_decoder_index_equals_annotation_frame_id_minus_1
+    - nonnegative_ontology_with_cross_dataset_provenance
+    - vid30_vid31_explicit_sidecar_supervision
+
+runtime:
+  device: auto
+  num_workers: 0
+  deterministic: true
+  allow_oracle_track_provider: false
