@@ -39,7 +39,7 @@ $env:CHOLECTRACK20_ROOT='D:\cholec_dataset'
 .venv-p2\Scripts\python.exe scripts\smoke_api.py `
   --config configs/api/mock.yaml `
   --output-root artifacts/p3 `
-  --run-id p3_mock_20260825
+  --run-id p3_mock_release_20260825
 .venv-p2\Scripts\python.exe scripts\run_local_smoke.py `
   --config configs/experiments/local_smoke.yaml `
   --dataset-root D:\cholec_dataset `
@@ -57,7 +57,8 @@ $env:CHOLECTRACK20_ROOT='D:\cholec_dataset'
 - structured response validation: PASS;
 - returned mock model field captured separately from requested mock alias;
 - usage summary: 2 logical calls, 2 provider attempts, 1 cache hit;
-- artifact: `artifacts/p3/p3_mock_20260825/p3_mock_smoke.json` (generated and ignored).
+- clean-tree artifact: `artifacts/p3/p3_mock_release_20260825/p3_mock_smoke.json`
+  (generated and ignored); it records the exact clean Git commit used by the run.
 - frozen P2 smoke after the base status advanced to P3: PASS; the P2 experiment
   override remains reproducible and does not inherit P3 runtime semantics.
 
