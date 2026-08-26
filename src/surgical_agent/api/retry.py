@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -19,6 +20,22 @@ class RetryResult(Generic[T]):
     attempt_count: int
     retry_count: int
 
+    def __post_init__(self) -> None:
+        if (
+            not isinstance(self.attempt_count, int)
+            or isinstance(self.attempt_count, bool)
+            or self.attempt_count <= 0
+        ):
+            raise ValueError("attempt count must be a positive integer")
+        if (
+            not isinstance(self.retry_count, int)
+            or isinstance(self.retry_count, bool)
+            or self.retry_count < 0
+        ):
+            raise ValueError("retry count must be a non-negative integer")
+        if self.retry_count != self.attempt_count - 1:
+            raise ValueError("retry count must equal attempt count minus one")
+
 
 @dataclass(frozen=True)
 class RetryPolicy:
@@ -27,10 +44,21 @@ class RetryPolicy:
     max_delay_seconds: float = 2.0
 
     def __post_init__(self) -> None:
-        if self.max_attempts <= 0:
+        if (
+            not isinstance(self.max_attempts, int)
+            or isinstance(self.max_attempts, bool)
+            or self.max_attempts <= 0
+        ):
             raise ValueError("max_attempts must be positive")
-        if self.base_delay_seconds < 0 or self.max_delay_seconds < 0:
-            raise ValueError("retry delays must be non-negative")
+        for name in ("base_delay_seconds", "max_delay_seconds"):
+            value = getattr(self, name)
+            if (
+                not isinstance(value, (int, float))
+                or isinstance(value, bool)
+                or not math.isfinite(float(value))
+                or value < 0
+            ):
+                raise ValueError("retry delays must be finite non-negative numbers")
 
     def execute(
         self,

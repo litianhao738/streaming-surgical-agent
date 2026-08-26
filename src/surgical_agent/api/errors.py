@@ -63,6 +63,22 @@ class ApiCallFailure(ApiError):
         attempt_count: int,
         retry_count: int,
     ) -> None:
+        if not isinstance(cause, ApiTransportError):
+            raise TypeError("API call failure cause must be a transport error")
+        if (
+            not isinstance(attempt_count, int)
+            or isinstance(attempt_count, bool)
+            or attempt_count <= 0
+        ):
+            raise ValueError("attempt count must be a positive integer")
+        if (
+            not isinstance(retry_count, int)
+            or isinstance(retry_count, bool)
+            or retry_count < 0
+        ):
+            raise ValueError("retry count must be a non-negative integer")
+        if retry_count != attempt_count - 1:
+            raise ValueError("retry count must equal attempt count minus one")
         super().__init__(f"API call failed with category {cause.code}")
         self.cause = cause
         self.attempt_count = attempt_count

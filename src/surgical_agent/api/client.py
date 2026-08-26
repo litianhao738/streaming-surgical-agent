@@ -145,13 +145,26 @@ class CachedMultimodalApiClient:
             try:
                 self._validate_payload(cached)
             except ApiError as exc:
+                failed_replay = replace(
+                    cached,
+                    cache_hit=True,
+                    provider_call_count=0,
+                    retry_count=0,
+                    latency_ms=0.0,
+                    provider_cost=0.0,
+                    origin_provider_cost=(
+                        cached.origin_provider_cost
+                        if cached.origin_provider_cost is not None
+                        else cached.provider_cost
+                    ),
+                )
                 self._log_failure(
                     metadata,
                     error_code=exc.code,
                     retry_count=0,
                     provider_call_count=0,
-                    latency_ms=(perf_counter() - cache_start) * 1000.0,
-                    response=cached,
+                    latency_ms=0.0,
+                    response=failed_replay,
                 )
                 raise
             replay = replace(

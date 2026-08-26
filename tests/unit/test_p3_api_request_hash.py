@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import fields
 
 import pytest
@@ -141,6 +142,147 @@ def test_response_safe_metadata_rejects_body_and_credential_keys() -> None:
                 parsed_payload={},
                 safe_metadata={unsafe_key: "must-not-persist"},
             )
+
+
+@pytest.mark.parametrize(
+    "generation_parameters",
+    [
+        {"authorization": "credential"},
+        {"access_token": "credential"},
+        {"Temperature": 0.0},
+        {"temperature": True},
+        {"temperature": -0.1},
+        {"temperature": 2.1},
+        {"temperature": float("nan")},
+        {"top_p": 0.0},
+        {"top_p": 1.1},
+        {"max_output_tokens": False},
+        {"max_output_tokens": 0},
+        {"seed": True},
+        {"deterministic_mock": 1},
+    ],
+)
+def test_request_generation_parameters_are_an_exact_typed_allowlist(
+    generation_parameters: object,
+) -> None:
+    with pytest.raises((TypeError, ValueError), match="generation_parameters"):
+        _request(generation_parameters=generation_parameters)
+
+
+def test_request_accepts_only_the_supported_generation_options() -> None:
+    request = _request(
+        generation_parameters={
+            "temperature": 0.5,
+            "top_p": 0.9,
+            "max_output_tokens": 128,
+            "seed": 7,
+            "deterministic_mock": True,
+        }
+    )
+
+    assert request.generation_parameters == {
+        "temperature": 0.5,
+        "top_p": 0.9,
+        "max_output_tokens": 128,
+        "seed": 7,
+        "deterministic_mock": True,
+    }
+
+
+def test_canonical_metadata_revalidates_generation_parameter_allowlist() -> None:
+    persisted = request_hash.canonical_request_metadata(_request()).to_mapping()
+    persisted["generation_parameters"] = {"access_token": "credential"}
+
+    with pytest.raises(ValueError, match="generation_parameters"):
+        contracts.CanonicalRequestMetadata.from_mapping(persisted)
+
+
+@pytest.mark.parametrize(
+    ("safe_metadata", "error_match"),
+    [
+        ({"authorization": "credential"}, "safe_metadata"),
+        ({"requesty_request_id": "Bearer credential text"}, "requesty_request_id"),
+        ({"requesty_latency_ms": True}, "requesty_latency_ms"),
+        ({"requesty_latency_ms": math.inf}, "requesty_latency_ms"),
+        ({"requesty_cache_status": "authorization"}, "requesty_cache_status"),
+        ({"finish_reason": "provider error detail"}, "finish_reason"),
+        ({"finish_reason": {"nested": "stop"}}, "finish_reason"),
+    ],
+)
+def test_response_safe_metadata_is_an_exact_normalized_allowlist(
+    safe_metadata: object,
+    error_match: str,
+) -> None:
+    with pytest.raises((TypeError, ValueError), match=error_match):
+        ProviderResponse(
+            provider="mock",
+            returned_model_identifier="returned-model",
+            parsed_payload={},
+            safe_metadata=safe_metadata,
+        )
+
+
+def test_response_accepts_normalized_safe_metadata_fields() -> None:
+    response = ProviderResponse(
+        provider="mock",
+        returned_model_identifier="returned-model",
+        parsed_payload={},
+        safe_metadata={
+            "finish_reason": "stop",
+            "requesty_provider": "openai/gpt",
+            "requesty_cache_status": "miss",
+            "requesty_latency_ms": 12.5,
+            "requesty_request_id": "req_123-ABC",
+        },
+    )
+
+    assert response.safe_metadata["requesty_cache_status"] == "miss"
+
+
+@pytest.mark.parametrize(
+    ("contract", "changes"),
+    [
+        ("request_payload", {"payload": ["not", "mapping"]}),
+        ("request_generation", {"generation_parameters": []}),
+        ("provider_payload", {"parsed_payload": []}),
+        ("provider_metadata", {"safe_metadata": []}),
+    ],
+)
+def test_runtime_contracts_require_mappings(
+    contract: str,
+    changes: dict[str, object],
+) -> None:
+    if contract.startswith("request"):
+        with pytest.raises(TypeError, match="mapping"):
+            _request(**changes)
+    else:
+        values: dict[str, object] = {
+            "provider": "mock",
+            "returned_model_identifier": "returned-model",
+            "parsed_payload": {},
+            "safe_metadata": {},
+        }
+        values.update(changes)
+        with pytest.raises(TypeError, match="mapping"):
+            ProviderResponse(**values)
+
+
+@pytest.mark.parametrize(
+    ("backend", "source"),
+    [("backend-model", None), (None, "response.model")],
+)
+def test_response_requires_coherent_exact_backend_evidence_pair(
+    backend: str | None,
+    source: str | None,
+) -> None:
+    with pytest.raises(ValueError, match="exact backend identity"):
+        ProviderResponse(
+            provider="mock",
+            returned_model_identifier="returned-model",
+            parsed_payload={},
+            exact_backend_model_identifier=backend,
+            exact_identity_evidence_source=source,
+        )
 
 
 @pytest.mark.parametrize(

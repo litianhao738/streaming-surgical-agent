@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import re
 from collections.abc import Callable, Mapping
 from dataclasses import asdict, dataclass, field
 from types import MappingProxyType
@@ -62,6 +63,12 @@ def _require_nonempty_string(value: object, *, name: str) -> None:
         raise ValueError(f"{name} must not be empty")
 
 
+def _require_mapping(value: object, *, name: str) -> Mapping[str, Any]:
+    if not isinstance(value, Mapping):
+        raise TypeError(f"{name} must be a mapping")
+    return value
+
+
 def _require_optional_nonempty_string(value: object, *, name: str) -> None:
     if value is not None:
         _require_nonempty_string(value, name=name)
@@ -98,31 +105,133 @@ def _require_optional_number(value: object, *, name: str) -> None:
         raise ValueError(f"{name} must be a finite non-negative number when available")
 
 
-_UNSAFE_METADATA_KEYS = frozenset(
-    {
-        "api_key",
-        "authorization",
-        "body",
-        "password",
-        "payload",
-        "raw_body",
-        "raw_response",
-        "secret",
-        "token",
-    }
+def _require_identity_evidence_pair(
+    backend: object,
+    source: object,
+) -> None:
+    if (backend is None) != (source is None):
+        raise ValueError(
+            "exact backend identity and evidence source must appear together"
+        )
+
+
+_GENERATION_PARAMETER_KEYS = frozenset(
+    {"deterministic_mock", "max_output_tokens", "seed", "temperature", "top_p"}
 )
 
 
-def _validate_safe_metadata(value: object, *, path: str = "safe_metadata") -> None:
-    if isinstance(value, Mapping):
-        for key, item in value.items():
-            normalized = str(key).strip().lower()
-            if normalized in _UNSAFE_METADATA_KEYS:
-                raise ValueError(f"{path} contains unsafe key {key}")
-            _validate_safe_metadata(item, path=f"{path}.{key}")
-    elif isinstance(value, (list, tuple)):
-        for index, item in enumerate(value):
-            _validate_safe_metadata(item, path=f"{path}[{index}]")
+def freeze_generation_parameters(value: object) -> Mapping[str, Any]:
+    """Validate and freeze the explicit P3 generation-option allowlist."""
+
+    mapping = _require_mapping(value, name="generation_parameters")
+    unknown = set(mapping) - _GENERATION_PARAMETER_KEYS
+    if unknown:
+        raise ValueError("generation_parameters contains unknown fields")
+    result: dict[str, Any] = {}
+    for key, item in mapping.items():
+        if not isinstance(key, str):
+            raise TypeError("generation_parameters keys must be strings")
+        if key in {"temperature", "top_p"}:
+            if (
+                not isinstance(item, (int, float))
+                or isinstance(item, bool)
+                or not math.isfinite(float(item))
+            ):
+                raise TypeError(f"generation_parameters.{key} must be a finite number")
+            number = float(item)
+            if key == "temperature" and not 0.0 <= number <= 2.0:
+                raise ValueError("generation_parameters.temperature is out of range")
+            if key == "top_p" and not 0.0 < number <= 1.0:
+                raise ValueError("generation_parameters.top_p is out of range")
+            result[key] = item
+        elif key == "max_output_tokens":
+            if (
+                not isinstance(item, int)
+                or isinstance(item, bool)
+                or not 1 <= item <= 1_000_000
+            ):
+                raise ValueError(
+                    "generation_parameters.max_output_tokens must be a positive integer"
+                )
+            result[key] = item
+        elif key == "seed":
+            if (
+                not isinstance(item, int)
+                or isinstance(item, bool)
+                or not -(2**31) <= item < 2**31
+            ):
+                raise ValueError(
+                    "generation_parameters.seed must be a signed 32-bit integer"
+                )
+            result[key] = item
+        elif key == "deterministic_mock":
+            if type(item) is not bool:
+                raise TypeError(
+                    "generation_parameters.deterministic_mock must be boolean"
+                )
+            result[key] = item
+    return MappingProxyType(result)
+
+
+_SAFE_METADATA_KEYS = frozenset(
+    {
+        "finish_reason",
+        "requesty_cache_status",
+        "requesty_latency_ms",
+        "requesty_provider",
+        "requesty_request_id",
+    }
+)
+_FINISH_REASONS = frozenset({"content_filter", "length", "stop", "tool_calls"})
+_REQUESTY_CACHE_STATUSES = frozenset({"bypass", "hit", "miss", "unknown"})
+_REQUESTY_PROVIDER_PATTERN = re.compile(r"[a-z0-9][a-z0-9._/-]{0,127}")
+_REQUESTY_REQUEST_ID_PATTERN = re.compile(
+    r"(?:chatcmpl|req|request|resp)[-_][A-Za-z0-9._-]{1,120}"
+)
+
+
+def freeze_safe_metadata(
+    value: object,
+    *,
+    path: str = "safe_metadata",
+) -> Mapping[str, Any]:
+    """Validate and freeze normalized provider metadata with no free-form values."""
+
+    mapping = _require_mapping(value, name=path)
+    if any(not isinstance(key, str) for key in mapping):
+        raise TypeError(f"{path} keys must be strings")
+    unknown = set(mapping) - _SAFE_METADATA_KEYS
+    if unknown:
+        raise ValueError(f"{path} contains unsafe key or unknown field")
+    result: dict[str, Any] = {}
+    for key, item in mapping.items():
+        if key == "finish_reason":
+            if not isinstance(item, str) or item not in _FINISH_REASONS:
+                raise ValueError(f"{path}.finish_reason is invalid")
+        elif key == "requesty_cache_status":
+            if not isinstance(item, str) or item not in _REQUESTY_CACHE_STATUSES:
+                raise ValueError(f"{path}.requesty_cache_status is invalid")
+        elif key == "requesty_latency_ms":
+            if (
+                not isinstance(item, (int, float))
+                or isinstance(item, bool)
+                or not math.isfinite(float(item))
+                or item < 0
+            ):
+                raise ValueError(f"{path}.requesty_latency_ms is invalid")
+        elif key == "requesty_provider":
+            if (
+                not isinstance(item, str)
+                or _REQUESTY_PROVIDER_PATTERN.fullmatch(item) is None
+            ):
+                raise ValueError(f"{path}.requesty_provider is invalid")
+        elif key == "requesty_request_id" and (
+            not isinstance(item, str)
+            or _REQUESTY_REQUEST_ID_PATTERN.fullmatch(item) is None
+        ):
+            raise ValueError(f"{path}.requesty_request_id is invalid")
+        result[key] = item
+    return MappingProxyType(result)
 
 
 @dataclass(frozen=True)
@@ -174,11 +283,12 @@ class ApiRequest:
         if len(set(identifiers)) != len(identifiers):
             raise ValueError("image identifiers must be unique within one request")
         object.__setattr__(self, "images", images)
-        object.__setattr__(self, "payload", _freeze_json(self.payload, path="payload"))
+        payload = _require_mapping(self.payload, name="payload")
+        object.__setattr__(self, "payload", _freeze_json(payload, path="payload"))
         object.__setattr__(
             self,
             "generation_parameters",
-            _freeze_json(self.generation_parameters, path="generation_parameters"),
+            freeze_generation_parameters(self.generation_parameters),
         )
 
 
@@ -235,7 +345,7 @@ class CanonicalRequestMetadata:
         object.__setattr__(
             self,
             "generation_parameters",
-            _freeze_json(self.generation_parameters, path="generation_parameters"),
+            freeze_generation_parameters(self.generation_parameters),
         )
 
     def to_mapping(self) -> dict[str, Any]:
@@ -281,8 +391,8 @@ class CanonicalRequestMetadata:
             requested_model_identifier=value["requested_model_identifier"],
             prompt_version=value["prompt_version"],
             response_schema_version=value["response_schema_version"],
-            generation_parameters=_freeze_json(
-                value["generation_parameters"], path="generation_parameters"
+            generation_parameters=freeze_generation_parameters(
+                value["generation_parameters"]
             ),
             payload_sha256=value["payload_sha256"],
             images=tuple(ImageProvenance(**dict(item)) for item in images),
@@ -320,20 +430,21 @@ class ProviderResponse:
             "exact_identity_evidence_source",
         ):
             _require_optional_nonempty_string(getattr(self, name), name=name)
+        _require_identity_evidence_pair(
+            self.exact_backend_model_identifier,
+            self.exact_identity_evidence_source,
+        )
         for name in ("input_tokens", "output_tokens", "total_tokens", "image_count"):
             _require_optional_count(getattr(self, name), name=name)
         _require_optional_number(self.provider_cost, name="provider_cost")
-        _validate_safe_metadata(self.safe_metadata)
+        parsed_payload = _require_mapping(self.parsed_payload, name="parsed_payload")
+        safe_metadata = freeze_safe_metadata(self.safe_metadata)
         object.__setattr__(
             self,
             "parsed_payload",
-            _freeze_json(self.parsed_payload, path="parsed_payload"),
+            _freeze_json(parsed_payload, path="parsed_payload"),
         )
-        object.__setattr__(
-            self,
-            "safe_metadata",
-            _freeze_json(self.safe_metadata, path="safe_metadata"),
-        )
+        object.__setattr__(self, "safe_metadata", safe_metadata)
 
 
 @dataclass(frozen=True)
@@ -378,6 +489,10 @@ class ApiResponseRecord:
             "exact_identity_evidence_source",
         ):
             _require_optional_nonempty_string(getattr(self, name), name=name)
+        _require_identity_evidence_pair(
+            self.exact_backend_model_identifier,
+            self.exact_identity_evidence_source,
+        )
         for name in (
             "input_tokens",
             "output_tokens",
@@ -387,21 +502,27 @@ class ApiResponseRecord:
             _require_optional_count(getattr(self, name), name=name)
         for name in ("retry_count", "provider_call_count"):
             _require_count(getattr(self, name), name=name)
+        if self.provider_call_count == 0:
+            if self.retry_count != 0:
+                raise ValueError(
+                    "response retry count is incoherent with provider calls"
+                )
+        elif self.retry_count != self.provider_call_count - 1:
+            raise ValueError("response retry count is incoherent with provider calls")
         for name in ("latency_ms", "provider_cost", "origin_provider_cost"):
             _require_optional_number(getattr(self, name), name=name)
         if type(self.cache_hit) is not bool:
             raise TypeError("cache_hit must be a boolean")
-        _validate_safe_metadata(self.safe_metadata)
+        if self.cache_hit and self.provider_call_count != 0:
+            raise ValueError("cache-hit response cannot contain current provider calls")
+        parsed_payload = _require_mapping(self.parsed_payload, name="parsed_payload")
+        safe_metadata = freeze_safe_metadata(self.safe_metadata)
         object.__setattr__(
             self,
             "parsed_payload",
-            _freeze_json(self.parsed_payload, path="parsed_payload"),
+            _freeze_json(parsed_payload, path="parsed_payload"),
         )
-        object.__setattr__(
-            self,
-            "safe_metadata",
-            _freeze_json(self.safe_metadata, path="safe_metadata"),
-        )
+        object.__setattr__(self, "safe_metadata", safe_metadata)
 
     @property
     def model_identifier(self) -> str:

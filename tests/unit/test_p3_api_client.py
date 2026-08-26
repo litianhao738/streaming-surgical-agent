@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 import pytest
@@ -10,10 +11,16 @@ import pytest
 from surgical_agent.api import errors
 from surgical_agent.api.cache import FileApiCache
 from surgical_agent.api.client import CachedMultimodalApiClient
-from surgical_agent.api.contracts import ApiImageInput, ApiRequest, ProviderResponse
+from surgical_agent.api.contracts import (
+    ApiImageInput,
+    ApiRequest,
+    ApiResponseRecord,
+    ProviderResponse,
+)
 from surgical_agent.api.errors import ApiCacheError, ApiSchemaError, ApiTransportError
 from surgical_agent.api.providers.mock import MockProviderTransport
-from surgical_agent.api.retry import RetryPolicy
+from surgical_agent.api.request_hash import canonical_request_metadata
+from surgical_agent.api.retry import RetryPolicy, RetryResult
 from surgical_agent.api.schema import (
     P3_SMOKE_SCHEMA_VERSION,
     validate_p3_smoke_payload,
@@ -78,6 +85,38 @@ def _valid_provider_response(**changes: object) -> ProviderResponse:
     }
     values.update(changes)
     return ProviderResponse(**values)
+
+
+def _origin_record(**changes: object) -> tuple[object, ApiResponseRecord]:
+    metadata = canonical_request_metadata(_request())
+    values: dict[str, object] = {
+        "provider": metadata.provider,
+        "endpoint_identifier": metadata.endpoint_identifier,
+        "request_hash": metadata.request_hash,
+        "requested_model_identifier": metadata.requested_model_identifier,
+        "returned_model_identifier": "mock-model-returned-v1",
+        "parsed_payload": {
+            "schema_version": P3_SMOKE_SCHEMA_VERSION,
+            "message": "mock multimodal response",
+            "image_observed": True,
+            "structured": True,
+        },
+        "input_tokens": 12,
+        "output_tokens": 7,
+        "total_tokens": 19,
+        "image_count": 1,
+        "latency_ms": 1.0,
+        "retry_count": 0,
+        "provider_call_count": 1,
+        "timestamp": "2026-08-26T00:00:00+00:00",
+        "cache_hit": False,
+        "provider_request_id": "mock-request-1",
+        "provider_cost": 0.25,
+        "origin_provider_cost": 0.25,
+        "safe_metadata": {"finish_reason": "stop"},
+    }
+    values.update(changes)
+    return metadata, ApiResponseRecord(**values)
 
 
 class SequenceTransport:
@@ -347,6 +386,230 @@ def test_cache_hit_has_zero_current_provider_cost(tmp_path: Path) -> None:
     assert usage.summarize()["provider_cost"] == 0.25
 
 
+def test_failed_cache_validation_never_recounts_origin_usage(tmp_path: Path) -> None:
+    transport = MockProviderTransport(provider_cost=0.25)
+    client, usage = _client(tmp_path, transport)
+    first = client.call(_request())
+    cache_path = tmp_path / "cache" / f"{first.request_hash}.json"
+    raw = json.loads(cache_path.read_text(encoding="utf-8"))
+    raw["response"]["parsed_payload"] = {"schema_version": "malformed"}
+    cache_path.write_text(json.dumps(raw), encoding="utf-8")
+
+    for expected_calls in (2, 3):
+        with pytest.raises(ApiSchemaError):
+            client.call(_request())
+        rows = usage.records()
+        failed = rows[-1]
+        assert len(rows) == expected_calls
+        assert failed["cache_hit"] is True
+        assert failed["provider_call_count"] == 0
+        assert failed["retry_count"] == 0
+        assert failed["latency_ms"] == 0.0
+        assert failed["provider_cost"] == 0.0
+        assert failed["origin_provider_cost"] == 0.25
+
+    assert transport.provider_call_count == 1
+    assert usage.summarize() == {
+        "schema_version": "api_usage_summary_v2",
+        "logical_calls": 3,
+        "provider_calls": 1,
+        "retries": 0,
+        "cache_hits": 2,
+        "successful_calls": 1,
+        "failed_calls": 2,
+        "input_tokens": 12,
+        "output_tokens": 7,
+        "total_tokens": 19,
+        "provider_cost": 0.25,
+    }
+
+
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {"provider": "other"},
+        {"endpoint_identifier": "mock://other"},
+        {"requested_model_identifier": "other-model"},
+    ],
+)
+def test_cache_put_rejects_identity_mismatch_before_io(
+    tmp_path: Path,
+    changes: dict[str, object],
+) -> None:
+    metadata, record = _origin_record(**changes)
+    cache = FileApiCache(tmp_path / "cache")
+
+    with pytest.raises(ApiCacheError, match="identity"):
+        cache.put(metadata, record)
+    assert not cache.root.exists()
+
+
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {
+            "cache_hit": True,
+            "provider_call_count": 0,
+            "retry_count": 0,
+            "provider_cost": 0.0,
+        },
+        {"provider_call_count": 0},
+        {"latency_ms": None},
+        {"provider_cost": 0.0, "origin_provider_cost": 0.25},
+    ],
+)
+def test_cache_put_rejects_incoherent_origin_record(
+    tmp_path: Path,
+    changes: dict[str, object],
+) -> None:
+    metadata, record = _origin_record(**changes)
+
+    with pytest.raises(ApiCacheError, match="origin"):
+        FileApiCache(tmp_path / "cache").put(metadata, record)
+
+
+def test_cache_get_rejects_path_replacement_after_open(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    transport = MockProviderTransport()
+    client, _ = _client(tmp_path, transport)
+    first = client.call(_request())
+    cache_path = tmp_path / "cache" / f"{first.request_hash}.json"
+    replacement = tmp_path / "replacement.json"
+    real_open = os.open
+    raced = False
+
+    def raced_open(path: object, flags: int, *args: object, **kwargs: object) -> int:
+        nonlocal raced
+        descriptor = real_open(path, flags, *args, **kwargs)
+        if Path(path) == cache_path and not raced:
+            raced = True
+            replacement.write_text("{}", encoding="utf-8")
+            os.replace(replacement, cache_path)
+        return descriptor
+
+    monkeypatch.setattr(os, "open", raced_open)
+
+    with pytest.raises(ApiCacheError, match="raced"):
+        client.call(_request())
+    assert raced is True
+    assert transport.provider_call_count == 1
+
+
+def test_cache_get_rejects_stable_symlink_without_reading_target(
+    tmp_path: Path,
+) -> None:
+    transport = MockProviderTransport()
+    client, _ = _client(tmp_path, transport)
+    first = client.call(_request())
+    cache_path = tmp_path / "cache" / f"{first.request_hash}.json"
+    target = tmp_path / "same-directory-target.json"
+    cache_path.replace(target)
+    try:
+        os.symlink(target, cache_path)
+    except OSError as exc:
+        pytest.skip(f"symlink creation unavailable: {exc}")
+
+    with pytest.raises(ApiCacheError, match="regular file"):
+        client.call(_request())
+    assert transport.provider_call_count == 1
+
+
+def test_cache_put_accepts_identical_concurrent_install(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    metadata, record = _origin_record()
+    cache = FileApiCache(tmp_path / "cache")
+    real_link = os.link
+    raced = False
+
+    def raced_link(source: object, destination: object, **kwargs: object) -> None:
+        nonlocal raced
+        if not raced:
+            raced = True
+            real_link(source, destination, **kwargs)
+            raise FileExistsError
+        real_link(source, destination, **kwargs)
+
+    monkeypatch.setattr(os, "link", raced_link)
+
+    path = cache.put(metadata, record)
+
+    assert raced is True
+    assert path.is_file()
+    assert cache.get(metadata) == record
+    assert not list(cache.root.glob("*.tmp"))
+
+
+def test_cache_put_rejects_divergent_concurrent_install(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    metadata, record = _origin_record()
+    cache = FileApiCache(tmp_path / "cache")
+    raced = False
+
+    def raced_link(source: object, destination: object, **kwargs: object) -> None:
+        nonlocal raced
+        del source, kwargs
+        raced = True
+        Path(destination).write_text("{}", encoding="utf-8")
+        raise FileExistsError
+
+    monkeypatch.setattr(os, "link", raced_link)
+
+    with pytest.raises(ApiCacheError):
+        cache.put(metadata, record)
+    assert raced is True
+    assert not list(cache.root.glob("*.tmp"))
+
+
+def test_cache_put_verifies_destination_after_successful_link_race(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    metadata, record = _origin_record()
+    cache = FileApiCache(tmp_path / "cache")
+    real_link = os.link
+    replacement = tmp_path / "replacement.json"
+
+    def raced_link(source: object, destination: object, **kwargs: object) -> None:
+        real_link(source, destination, **kwargs)
+        replacement.write_text("{}", encoding="utf-8")
+        os.replace(replacement, destination)
+
+    monkeypatch.setattr(os, "link", raced_link)
+
+    with pytest.raises(ApiCacheError):
+        cache.put(metadata, record)
+    assert not list(cache.root.glob("*.tmp"))
+
+
+def test_unsafe_request_metadata_is_rejected_before_any_persistence(
+    tmp_path: Path,
+) -> None:
+    transport = MockProviderTransport()
+    client, _ = _client(tmp_path, transport)
+
+    with pytest.raises(ValueError, match="generation_parameters"):
+        unsafe = ApiRequest(
+            provider="mock",
+            model_identifier="mock-requested-alias",
+            endpoint_identifier="mock://local/p3",
+            prompt_version="p3-test-v1",
+            response_schema_version=P3_SMOKE_SCHEMA_VERSION,
+            payload={"probe": "transport"},
+            generation_parameters={"access_token": "credential"},
+        )
+        client.call(unsafe)
+
+    assert transport.provider_call_count == 0
+    assert not (tmp_path / "cache").exists()
+    assert not (tmp_path / "api_usage.jsonl").exists()
+
+
 def test_retryable_then_nonretryable_preserves_all_counts(tmp_path: Path) -> None:
     transport = SequenceTransport(
         [
@@ -374,6 +637,56 @@ def test_retryable_then_nonretryable_preserves_all_counts(tmp_path: Path) -> Non
         "retryable": False,
         "status_code": None,
     }
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"max_attempts": True},
+        {"max_attempts": 0},
+        {"base_delay_seconds": float("nan")},
+        {"base_delay_seconds": float("inf")},
+        {"base_delay_seconds": True},
+        {"max_delay_seconds": float("nan")},
+        {"max_delay_seconds": -1.0},
+    ],
+)
+def test_retry_policy_rejects_invalid_numeric_configuration(
+    kwargs: dict[str, object],
+) -> None:
+    with pytest.raises((TypeError, ValueError)):
+        RetryPolicy(**kwargs)
+
+
+@pytest.mark.parametrize(
+    ("attempt_count", "retry_count"),
+    [(True, 0), (0, 0), (1, True), (1, -1), (3, 1)],
+)
+def test_retry_result_requires_coherent_exact_counts(
+    attempt_count: object,
+    retry_count: object,
+) -> None:
+    with pytest.raises((TypeError, ValueError), match="count"):
+        RetryResult(
+            value="unused", attempt_count=attempt_count, retry_count=retry_count
+        )
+
+
+@pytest.mark.parametrize(
+    ("attempt_count", "retry_count"),
+    [(True, 0), (0, 0), (1, True), (1, -1), (3, 1)],
+)
+def test_api_call_failure_requires_coherent_exact_counts(
+    attempt_count: object,
+    retry_count: object,
+) -> None:
+    cause = ApiTransportError("safe", code="busy", retryable=True)
+    with pytest.raises((TypeError, ValueError), match="count"):
+        errors.ApiCallFailure(
+            cause,
+            attempt_count=attempt_count,
+            retry_count=retry_count,
+        )
 
 
 def test_schema_failure_after_retry_preserves_transport_counts(tmp_path: Path) -> None:

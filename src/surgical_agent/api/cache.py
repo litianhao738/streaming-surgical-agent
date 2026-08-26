@@ -1,8 +1,11 @@
-"""Atomic cache whose entries bind exact safe request provenance."""
+"""Race-safe cache whose entries bind exact safe request provenance."""
 
 from __future__ import annotations
 
 import json
+import os
+import stat
+import tempfile
 from pathlib import Path
 
 from surgical_agent.api.contracts import (
@@ -11,13 +14,16 @@ from surgical_agent.api.contracts import (
     canonical_json_bytes,
 )
 from surgical_agent.api.errors import ApiCacheError
-from surgical_agent.artifacts.manifest import atomic_write_text
 
 CACHE_SCHEMA_VERSION = "api_cache_entry_v2"
 
 
+def _file_identity(value: os.stat_result) -> tuple[int, int]:
+    return value.st_dev, value.st_ino
+
+
 class FileApiCache:
-    """One immutable, validated JSON envelope per canonical request hash."""
+    """One immutable, descriptor-verified envelope per canonical request hash."""
 
     def __init__(self, root: str | Path) -> None:
         self.root = Path(root).expanduser().resolve()
@@ -29,14 +35,58 @@ class FileApiCache:
             raise ApiCacheError("Cache key must be a lowercase SHA-256 digest")
         return self.root / f"{request_hash}.json"
 
-    def get(self, metadata: CanonicalRequestMetadata) -> ApiResponseRecord | None:
-        path = self.path_for(metadata.request_hash)
-        if not path.exists() and not path.is_symlink():
-            return None
-        if path.is_symlink() or not path.is_file():
-            raise ApiCacheError("Present cache entry is not a regular file")
+    @staticmethod
+    def _read_verified(path: Path) -> str | None:
         try:
-            envelope = json.loads(path.read_text(encoding="utf-8"))
+            before = os.lstat(path)
+        except FileNotFoundError:
+            try:
+                os.lstat(path)
+            except FileNotFoundError:
+                return None
+            raise ApiCacheError("Cache entry raced from absent to present")
+        if not stat.S_ISREG(before.st_mode):
+            raise ApiCacheError("Present cache entry is not a regular file")
+
+        flags = os.O_RDONLY
+        if hasattr(os, "O_BINARY"):
+            flags |= os.O_BINARY
+        if hasattr(os, "O_NOFOLLOW"):
+            flags |= os.O_NOFOLLOW
+        descriptor: int | None = None
+        try:
+            descriptor = os.open(path, flags)
+            opened = os.fstat(descriptor)
+            after = os.lstat(path)
+            if not stat.S_ISREG(opened.st_mode) or not stat.S_ISREG(after.st_mode):
+                raise ApiCacheError("Present cache entry is not a regular file")
+            identities = {
+                _file_identity(before),
+                _file_identity(opened),
+                _file_identity(after),
+            }
+            if len(identities) != 1:
+                raise ApiCacheError("Cache entry raced during verified read")
+            with os.fdopen(descriptor, "r", encoding="utf-8") as stream:
+                descriptor = None
+                return stream.read()
+        except ApiCacheError:
+            raise
+        except (FileNotFoundError, OSError) as exc:
+            raise ApiCacheError(
+                "Cache entry raced or could not be opened safely"
+            ) from exc
+        finally:
+            if descriptor is not None:
+                os.close(descriptor)
+
+    @staticmethod
+    def _parse_envelope(
+        content: str,
+        metadata: CanonicalRequestMetadata,
+    ) -> ApiResponseRecord:
+        try:
+            envelope = json.loads(content)
             if not isinstance(envelope, dict) or set(envelope) != {
                 "schema_version",
                 "request",
@@ -60,30 +110,54 @@ class FileApiCache:
             if not isinstance(response_mapping, dict):
                 raise ApiCacheError("Cache response is not an object")
             response = ApiResponseRecord.from_persisted_mapping(response_mapping)
-            if response.request_hash != metadata.request_hash:
-                raise ApiCacheError("Cache response request hash mismatch")
-            if (
-                response.provider != metadata.provider
-                or response.endpoint_identifier != metadata.endpoint_identifier
-                or response.requested_model_identifier
-                != metadata.requested_model_identifier
-            ):
-                raise ApiCacheError("Cache response identity mismatch")
+            FileApiCache._validate_response_binding(metadata, response)
             return response
         except ApiCacheError:
             raise
-        except (OSError, json.JSONDecodeError, KeyError, TypeError, ValueError) as exc:
+        except (json.JSONDecodeError, KeyError, TypeError, ValueError) as exc:
             raise ApiCacheError("Invalid present cache entry") from exc
 
-    def put(
-        self,
+    @staticmethod
+    def _validate_response_binding(
         metadata: CanonicalRequestMetadata,
         response: ApiResponseRecord,
-    ) -> Path:
+    ) -> None:
         if response.request_hash != metadata.request_hash:
             raise ApiCacheError("Cache response request hash mismatch")
+        if (
+            response.provider != metadata.provider
+            or response.endpoint_identifier != metadata.endpoint_identifier
+            or response.requested_model_identifier
+            != metadata.requested_model_identifier
+        ):
+            raise ApiCacheError("Cache response identity mismatch")
+
+    @staticmethod
+    def _validate_origin(response: ApiResponseRecord) -> None:
+        if (
+            response.cache_hit
+            or response.provider_call_count <= 0
+            or response.retry_count != response.provider_call_count - 1
+            or response.latency_ms is None
+            or response.provider_cost != response.origin_provider_cost
+        ):
+            raise ApiCacheError("Cache can persist only a coherent origin response")
+
+    def get(self, metadata: CanonicalRequestMetadata) -> ApiResponseRecord | None:
         path = self.path_for(metadata.request_hash)
-        content = (
+        content = self._read_verified(path)
+        if content is None:
+            return None
+        response = self._parse_envelope(content, metadata)
+        self._validate_origin(response)
+        return response
+
+    @staticmethod
+    def _render(
+        metadata: CanonicalRequestMetadata,
+        response: ApiResponseRecord,
+    ) -> str:
+        return (
             json.dumps(
                 {
                     "schema_version": CACHE_SCHEMA_VERSION,
@@ -97,18 +171,59 @@ class FileApiCache:
             )
             + "\n"
         )
-        if path.exists() or path.is_symlink():
-            if path.is_symlink() or not path.is_file():
-                raise ApiCacheError("Present cache entry is not a regular file")
-            try:
-                existing = path.read_text(encoding="utf-8")
-            except OSError as exc:
-                raise ApiCacheError("Unable to read existing cache entry") from exc
-            if existing != content:
-                raise ApiCacheError("Refusing to overwrite divergent cache entry")
-            return path
+
+    def put(
+        self,
+        metadata: CanonicalRequestMetadata,
+        response: ApiResponseRecord,
+    ) -> Path:
+        self._validate_response_binding(metadata, response)
+        self._validate_origin(response)
+        content = self._render(metadata, response)
+        path = self.path_for(metadata.request_hash)
         try:
-            atomic_write_text(path, content)
+            self.root.mkdir(parents=True, exist_ok=True)
         except OSError as exc:
-            raise ApiCacheError("Unable to write cache entry") from exc
-        return path
+            raise ApiCacheError("Unable to prepare cache directory") from exc
+
+        descriptor: int | None = None
+        temporary: Path | None = None
+        try:
+            descriptor, temporary_name = tempfile.mkstemp(
+                prefix=f".{metadata.request_hash}.",
+                suffix=".tmp",
+                dir=self.root,
+                text=True,
+            )
+            temporary = Path(temporary_name)
+            with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as stream:
+                descriptor = None
+                stream.write(content)
+                stream.flush()
+                os.fsync(stream.fileno())
+            try:
+                os.link(temporary, path)
+            except FileExistsError:
+                pass
+            except OSError as exc:
+                raise ApiCacheError(
+                    "Unable to install cache entry without overwrite"
+                ) from exc
+            existing = self.get(metadata)
+            if existing is None or canonical_json_bytes(
+                existing.to_persisted_mapping()
+            ) != canonical_json_bytes(response.to_persisted_mapping()):
+                raise ApiCacheError("Refusing divergent concurrent cache entry")
+            return path
+        finally:
+            if descriptor is not None:
+                os.close(descriptor)
+            if temporary is not None:
+                try:
+                    temporary.unlink()
+                except FileNotFoundError:
+                    pass
+                except OSError as exc:
+                    raise ApiCacheError(
+                        "Unable to clean temporary cache entry"
+                    ) from exc
