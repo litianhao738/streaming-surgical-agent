@@ -218,6 +218,7 @@ class PredictionFinalizer:
             alignment_version=sample.alignment_version,
             probabilities=prediction.probabilities,
             trace=trace,
+            score_semantics=prediction.score_semantics,
         )
         event = FinalizedEvent(
             video_id=sample.video_id,

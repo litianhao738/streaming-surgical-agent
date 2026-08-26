@@ -10,6 +10,7 @@ from surgical_agent.data.constants import TASK_CLASS_COUNTS, TASK_ID_BOUNDS
 from surgical_agent.data.schemas import DatasetSplit
 
 PREDICTION_SCHEMA_VERSION = "prediction_record_v1"
+ALLOWED_SCORE_SEMANTICS = frozenset({"probability_v1", "uncalibrated_rank_v1"})
 
 
 def _validate_ids(name: str, values: tuple[int, ...], task: str) -> None:
@@ -31,6 +32,13 @@ def _validate_probabilities(probabilities: Mapping[str, tuple[float, ...]]) -> N
             raise ValueError(f"{task} probabilities must be finite values in [0, 1]")
 
 
+def _validate_score_semantics(value: object) -> None:
+    if not isinstance(value, str) or value not in ALLOWED_SCORE_SEMANTICS:
+        raise ValueError(
+            "score_semantics must be one of probability_v1 or uncalibrated_rank_v1"
+        )
+
+
 @dataclass(frozen=True)
 class InitialPrediction:
     """Validated frame-level hypothesis emitted by a perception backend."""
@@ -43,6 +51,7 @@ class InitialPrediction:
     probabilities: Mapping[str, tuple[float, ...]]
     granularity: str = "frame_multilabel"
     backend: str = "local_smoke"
+    score_semantics: str = "probability_v1"
 
     def __post_init__(self) -> None:
         for name, values, task in (
@@ -57,6 +66,7 @@ class InitialPrediction:
             raise ValueError(f"phase_id must lie in {phase_lower}..{phase_upper}")
         if self.granularity != "frame_multilabel":
             raise ValueError("P2 predictions must declare frame_multilabel granularity")
+        _validate_score_semantics(self.score_semantics)
         _validate_probabilities(self.probabilities)
 
 
@@ -83,10 +93,12 @@ class PredictionRecord:
     trace: tuple[str, ...] = ()
     failure_reason: str | None = None
     schema_version: str = PREDICTION_SCHEMA_VERSION
+    score_semantics: str = "probability_v1"
 
     def __post_init__(self) -> None:
         if not self.run_id or not self.video_id:
             raise ValueError("run_id and video_id must not be empty")
+        _validate_score_semantics(self.score_semantics)
         if self.frame_id < 0:
             raise ValueError("frame_id must be non-negative")
         if not self.causal_frame_ids or self.causal_frame_ids[-1] != self.frame_id:
