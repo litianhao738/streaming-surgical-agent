@@ -2414,6 +2414,28 @@ maximum framework complexity
 maximum number of agents
 ```
 
+## 2026-08-26 Joint Perception single-pass implementation status
+
+- The canonical gold-free Joint Perception core is implemented and locally
+  verified with exact mock/OpenRouter configurations, three ordered synthetic
+  32x32 RGB frames, deterministic evidence, `NeverVerify`, KEEP-only
+  coordination, and paired prediction/evidence persistence.
+- The runner executes the canonical pipeline exactly once and probes the same
+  rebuilt no-prior request through the same cached client. Mock evidence shows
+  one origin provider call and one zero-call/zero-current-cost cache replay.
+- Runtime persistence is allowlisted: usage metadata, image identifiers and
+  hashes, model/request identity, paired prediction/evidence, and manifest.
+  Parsed/raw provider payloads, prompt text, image bytes, credentials, headers,
+  argv, and evaluation targets are not retained.
+- The one authorized real synthetic OpenRouter attempt requested
+  `openai/gpt-5.6-sol` and failed safely with HTTP 404 after exactly one
+  provider call. No returned model, response ID, token/cost, cache-hit, paired
+  artifact, or real-success claim exists for that attempt.
+- No CholecTrack20 image or paper-performance experiment ran. Instance
+  detection, predicted tracking, Gate learning, Specialist verification,
+  deterministic repair coordination, and EventMemory remain outside this
+  implementation slice.
+
 优先：
 
 - dataclass / typed config；

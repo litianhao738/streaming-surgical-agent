@@ -107,6 +107,8 @@ def test_incomplete_disabled_config_fails_contract_validation() -> None:
         ("mode", None),
         ("synthetic_input_required", "false"),
         ("cache_required", 0),
+        ("data_upload_authorized", "false"),
+        ("max_causal_frames", True),
     ),
 )
 def test_config_rejects_coerced_scalar_values(
@@ -116,6 +118,14 @@ def test_config_rejects_coerced_scalar_values(
         ApiConfig.from_mapping(_valid_api_mapping(**{field_name: replacement}))
 
     assert "false" not in str(error.value)
+
+
+@pytest.mark.parametrize("value", (-1, 0, 4, 1.5, "3"))
+def test_config_rejects_causal_frame_limits_outside_exact_integer_range(
+    value: object,
+) -> None:
+    with pytest.raises(ApiContractError, match="max_causal_frames"):
+        ApiConfig.from_mapping(_valid_api_mapping(max_causal_frames=value))
 
 
 @pytest.mark.parametrize(

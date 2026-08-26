@@ -13,6 +13,7 @@ from surgical_agent.data.constants import TASK_CLASS_COUNTS, TASK_ID_BOUNDS
 if TYPE_CHECKING:
     from surgical_agent.api.contracts import ApiResponseRecord
     from surgical_agent.inference.schemas import InitialPrediction
+    from surgical_agent.perception.context_builder import PerceptionContext
 
 
 TASK_NAMES = tuple(TASK_CLASS_COUNTS)
@@ -257,5 +258,5 @@ class JointPerceptionResult:
 class PerceptionBackend(Protocol):
     """Backend boundary for causal context to joint perception results."""
 
-    def predict(self, context: "PerceptionContext") -> JointPerceptionResult:
+    def predict(self, context: PerceptionContext) -> JointPerceptionResult:
         raise NotImplementedError

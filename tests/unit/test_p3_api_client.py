@@ -48,6 +48,23 @@ def _request() -> ApiRequest:
     )
 
 
+def _three_image_request() -> ApiRequest:
+    return ApiRequest(
+        provider="mock",
+        model_identifier="mock-requested-alias",
+        endpoint_identifier="mock://local/p3",
+        prompt_version="p3-test-v1",
+        response_schema_version=P3_SMOKE_SCHEMA_VERSION,
+        payload={"probe": "transport"},
+        images=(
+            ApiImageInput("synthetic:red", "image/png", b"red"),
+            ApiImageInput("synthetic:green", "image/png", b"green"),
+            ApiImageInput("synthetic:blue", "image/png", b"blue"),
+        ),
+        generation_parameters={"temperature": 0.0},
+    )
+
+
 def _client(
     tmp_path: Path,
     transport: object,
@@ -188,6 +205,46 @@ def test_cache_replay_is_validated_and_not_counted_as_provider_call(
         "total_tokens": 19,
         "provider_cost": 0.0,
     }
+
+
+def test_three_image_cache_miss_and_hit_preserve_order_and_zero_replay_cost(
+    tmp_path: Path,
+) -> None:
+    transport = MockProviderTransport(provider_cost=0.25)
+    client, usage = _client(tmp_path, transport)
+    request = _three_image_request()
+
+    first = client.call(request)
+    second = client.call(request)
+
+    assert first.image_count == 3
+    assert first.cache_hit is False
+    assert first.provider_call_count == 1
+    assert second.image_count == 3
+    assert second.cache_hit is True
+    assert second.provider_call_count == 0
+    assert second.provider_cost == 0.0
+    assert first.request_hash == second.request_hash
+    assert transport.provider_call_count == 1
+    rows = usage.records()
+    assert [
+        {"identifier": image["identifier"], "sha256": image["sha256"]}
+        for image in rows[0]["request"]["images"]
+    ] == [
+        {
+            "identifier": "synthetic:red",
+            "sha256": "b1f51a511f1da0cd348b8f8598db32e61cb963e5fc69e2b41485bf99590ed75a",
+        },
+        {
+            "identifier": "synthetic:green",
+            "sha256": "ba4788b226aa8dc2e6dc74248bb9f618cfa8c959e0c26c147be48f6839a0b088",
+        },
+        {
+            "identifier": "synthetic:blue",
+            "sha256": "16477688c0e00699c6cfa4497a3612d7e83c532062b64b250fed8908128ed548",
+        },
+    ]
+    assert rows[1]["request"]["images"] == rows[0]["request"]["images"]
 
 
 def test_retry_count_and_provider_attempts_are_auditable(tmp_path: Path) -> None:
