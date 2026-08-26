@@ -13,7 +13,10 @@ if str(SRC_ROOT) not in sys.path:
 
 from surgical_agent.artifacts.manifest import atomic_write_json
 from surgical_agent.config.loader import load_yaml, resolve_dataset_root
-from surgical_agent.data.portability import verify_single_root
+from surgical_agent.data.portability import (
+    assert_output_outside_dataset_root,
+    verify_single_root,
+)
 
 
 def parser() -> argparse.ArgumentParser:
@@ -37,7 +40,7 @@ def run(args: argparse.Namespace) -> dict[str, object]:
     root = resolve_dataset_root(data_config, cli_root=args.dataset_root)
     report = verify_single_root(root, args.bundle)
     if args.output is not None:
-        atomic_write_json(args.output.expanduser().resolve(), report)
+        atomic_write_json(assert_output_outside_dataset_root(args.output, root), report)
     print("CholecTrack20 single-root portability: PASS")
     return report
 
