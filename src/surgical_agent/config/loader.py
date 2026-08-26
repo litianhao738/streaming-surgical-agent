@@ -9,6 +9,9 @@ from typing import Any
 
 import yaml
 
+from surgical_agent.api.schema import validator_for
+from surgical_agent.config.schema import ApiConfig
+
 
 def load_yaml(path: str | Path) -> dict[str, Any]:
     """Load one YAML mapping without resolving references or touching data."""
@@ -23,6 +26,14 @@ def load_yaml(path: str | Path) -> dict[str, Any]:
     if not isinstance(loaded, dict):
         raise TypeError(f"Expected a YAML mapping in {config_path}")
     return loaded
+
+
+def load_api_config(path: str | Path) -> ApiConfig:
+    """Load a validated API configuration with a known response schema."""
+
+    config = ApiConfig.from_mapping(load_yaml(path))
+    validator_for(config.response_schema_version)
+    return config
 
 
 def deep_merge(
