@@ -14,6 +14,7 @@ from surgical_agent.data.derived_supervision import (
     load_frame_level_ivt_supervision,
     load_image_phase_supervision,
 )
+from surgical_agent.data.dataset import CholecTrack20DatasetAdapter
 from surgical_agent.data.parser import parse_annotation_file
 from surgical_agent.data.schemas import DatasetSplit
 
@@ -149,3 +150,19 @@ def test_derived_manifest_hashes_still_match_read_only_sources() -> None:
     assert _sha256(CHOLEC80_ROOT / "video31-phase.txt") == expected[
         "cholec80_video31_phase"
     ]
+
+
+def test_runtime_routes_need_only_cholectrack20_root(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("CHOLEC80_30_31_ROOT", raising=False)
+    adapter = CholecTrack20DatasetAdapter(DATASET_ROOT)
+    vid30 = next(adapter.iter_video("VID30", max_samples=1))
+    vid31 = next(adapter.iter_video("VID31", max_samples=1))
+    root = DATASET_ROOT.resolve()
+    for sample in (vid30, vid31):
+        for media_ref in sample.inference.media_refs:
+            Path(media_ref).resolve().relative_to(root)
+    Path(vid30.provenance.annotation_source).resolve().relative_to(root)
+    Path(vid31.provenance.phase_source).resolve().relative_to(root)
+    Path(vid31.provenance.frame_action_source).resolve().relative_to(root)

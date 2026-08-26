@@ -1,0 +1,21 @@
+schema_version: cholectrack20_autodl_bundle_v1
+dataset: CholecTrack20
+root_env: CHOLECTRACK20_ROOT
+official_split_video_counts:
+  Training: 10
+  Validation: 2
+  Testing: 8
+required_relative_paths:
+  repair_manifest: repair_manifest.json
+  vid30_repaired: Validation/VID30/vid30_repaired.json
+  vid31_phase_repaired: Training/VID31/vid31_phase_repaired.json
+  vid31_frame_ivt_repaired: Training/VID31/vid31_frame_ivt_repaired.json
+repair_manifest_sha256: c3ebb7e0db734be5f8c8418ac1e85bd54a21281664f623c2dacdfba5842d8d04
+hash_authority: repair_manifest.json
+provenance_or_regeneration_only:
+  - Cholec80
+  - CholecT50
+optional_upstream_environment_variables:
+  - CHOLEC80_30_31_ROOT
+runtime_external_data_roots_allowed: false
+dataset_mutation_allowed: false
