@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass, fields, is_dataclass
+from dataclasses import dataclass, fields, is_dataclass, replace
+from enum import Enum
 from io import BytesIO
+from types import MappingProxyType
 from typing import Any
 
 import torch
@@ -92,6 +94,90 @@ def _require_gold_free(value: object, *, seen: set[int]) -> None:
             _require_gold_free(getattr(value, field.name), seen=seen)
 
 
+def freeze_snapshot(
+    snapshot: Mapping[str, Any],
+    *,
+    name: str,
+) -> Mapping[str, Any]:
+    """Validate and recursively freeze one accepted runtime snapshot."""
+
+    if not isinstance(snapshot, Mapping):
+        raise PerceptionContextError(f"{name} snapshot must be a mapping")
+    require_gold_free(snapshot)
+    return _freeze_snapshot_value(snapshot, active=set())
+
+
+def _freeze_snapshot_value(value: object, *, active: set[int]) -> object:
+    if value is None or isinstance(value, (bool, int, float, str, bytes, Enum)):
+        return value
+
+    if isinstance(value, Mapping):
+        identity = id(value)
+        if identity in active:
+            raise PerceptionContextError("snapshot values must not contain cycles")
+        active.add(identity)
+        try:
+            return MappingProxyType(
+                {
+                    key: _freeze_snapshot_value(nested_value, active=active)
+                    for key, nested_value in value.items()
+                }
+            )
+        finally:
+            active.remove(identity)
+
+    if isinstance(value, (tuple, list)):
+        identity = id(value)
+        if identity in active:
+            raise PerceptionContextError("snapshot values must not contain cycles")
+        active.add(identity)
+        try:
+            return tuple(
+                _freeze_snapshot_value(nested_value, active=active)
+                for nested_value in value
+            )
+        finally:
+            active.remove(identity)
+
+    if isinstance(value, (set, frozenset)):
+        identity = id(value)
+        if identity in active:
+            raise PerceptionContextError("snapshot values must not contain cycles")
+        active.add(identity)
+        try:
+            return frozenset(
+                _freeze_snapshot_value(nested_value, active=active)
+                for nested_value in value
+            )
+        finally:
+            active.remove(identity)
+
+    if is_dataclass(value) and not isinstance(value, type):
+        parameters = value.__dataclass_params__
+        if not parameters.frozen:
+            raise PerceptionContextError("snapshot dataclasses must be frozen")
+        identity = id(value)
+        if identity in active:
+            raise PerceptionContextError("snapshot values must not contain cycles")
+        active.add(identity)
+        try:
+            return replace(
+                value,
+                **{
+                    field.name: _freeze_snapshot_value(
+                        getattr(value, field.name),
+                        active=active,
+                    )
+                    for field in fields(value)
+                    if field.init
+                },
+            )
+        finally:
+            active.remove(identity)
+
+    raise PerceptionContextError("snapshot contains a mutable or unsupported value")
+
+
 def normalize_ordered_frames(frames: Tensor, *, expected_count: int) -> Tensor:
     """Validate and normalize one RGB causal window to ``[T, C, H, W]``."""
 
@@ -154,6 +240,15 @@ def validate_prior(
         raise PerceptionContextError(
             "prior finalized state must be strictly earlier than the target frame"
         )
+    prior_causal_frame_ids = prior_finalized_prediction.causal_frame_ids
+    if any(frame_id >= sample.target_frame_id for frame_id in prior_causal_frame_ids):
+        raise PerceptionContextError(
+            "prior causal frame IDs must be strictly earlier than the target frame"
+        )
+    if tuple(sorted(set(prior_causal_frame_ids))) != prior_causal_frame_ids:
+        raise PerceptionContextError(
+            "prior causal frame IDs must be unique and increasing"
+        )
 
 
 class CausalPerceptionContextBuilder:
@@ -173,8 +268,14 @@ class CausalPerceptionContextBuilder:
         memory_snapshot: Mapping[str, Any],
         prior_finalized_prediction: PredictionRecord | None,
     ) -> PerceptionContext:
-        require_gold_free(workflow_snapshot)
-        require_gold_free(memory_snapshot)
+        frozen_workflow_snapshot = freeze_snapshot(
+            workflow_snapshot,
+            name="workflow",
+        )
+        frozen_memory_snapshot = freeze_snapshot(
+            memory_snapshot,
+            name="memory",
+        )
         expected_count = len(sample.causal_frame_ids)
         if expected_count > self.max_frames:
             raise PerceptionContextError(
@@ -185,6 +286,7 @@ class CausalPerceptionContextBuilder:
             expected_count=expected_count,
         )
         validate_prior(sample, prior_finalized_prediction)
+        ordered_frames = ordered_frames.detach().clone()
         images = tuple(
             ApiImageInput(identifier, "image/png", encode_rgb_png(frame))
             for identifier, frame in zip(sample.media_refs, ordered_frames)
@@ -193,7 +295,7 @@ class CausalPerceptionContextBuilder:
             sample=sample,
             frames=ordered_frames,
             images=images,
-            workflow_snapshot=dict(workflow_snapshot),
-            memory_snapshot=dict(memory_snapshot),
+            workflow_snapshot=frozen_workflow_snapshot,
+            memory_snapshot=frozen_memory_snapshot,
             prior_finalized_prediction=prior_finalized_prediction,
         )

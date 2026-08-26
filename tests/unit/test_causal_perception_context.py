@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from io import BytesIO
 
 import pytest
 import torch
+from PIL import Image
 
 from surgical_agent.data.constants import TASK_CLASS_COUNTS
 from surgical_agent.data.schemas import (
@@ -41,13 +43,14 @@ def prediction_record(
     *,
     frame_id: int,
     video_id: str = "VID01",
+    causal_frame_ids: tuple[int, ...] | None = None,
 ) -> PredictionRecord:
     return PredictionRecord(
         run_id="unit-run",
         video_id=video_id,
         frame_id=frame_id,
         source_split=DatasetSplit.TESTING,
-        causal_frame_ids=(frame_id,),
+        causal_frame_ids=(frame_id,) if causal_frame_ids is None else causal_frame_ids,
         instrument_ids=(0,),
         verb_ids=(0,),
         target_ids=(0,),
@@ -160,6 +163,34 @@ def test_builder_rejects_prior_from_another_video() -> None:
         )
 
 
+def test_builder_rejects_prior_with_future_causal_history() -> None:
+    with pytest.raises(PerceptionContextError, match="strictly earlier"):
+        builder().build(
+            sample=sample(),
+            frames=three_frames(),
+            workflow_snapshot={},
+            memory_snapshot={},
+            prior_finalized_prediction=prediction_record(
+                frame_id=11,
+                causal_frame_ids=(10, 12, 11),
+            ),
+        )
+
+
+def test_builder_rejects_prior_with_unordered_causal_history() -> None:
+    with pytest.raises(PerceptionContextError, match="unique and increasing"):
+        builder().build(
+            sample=sample(),
+            frames=three_frames(),
+            workflow_snapshot={},
+            memory_snapshot={},
+            prior_finalized_prediction=prediction_record(
+                frame_id=11,
+                causal_frame_ids=(10, 9, 11),
+            ),
+        )
+
+
 def test_builder_rejects_frame_count_mismatch() -> None:
     with pytest.raises(PerceptionContextError, match="frame count"):
         builder().build(
@@ -268,3 +299,63 @@ def test_builder_allows_predicted_target_fields_in_snapshot() -> None:
         "target_ids": (1, 2),
         "target_frame_id": 12,
     }
+
+
+@pytest.mark.parametrize("snapshot_name", ["workflow_snapshot", "memory_snapshot"])
+def test_builder_rejects_non_mapping_snapshot_before_pair_conversion(
+    snapshot_name: str,
+) -> None:
+    snapshots: dict[str, object] = {
+        "workflow_snapshot": {},
+        "memory_snapshot": {},
+    }
+    snapshots[snapshot_name] = [("ground_truth", "must not enter context")]
+
+    with pytest.raises(PerceptionContextError, match="must be a mapping"):
+        builder().build(
+            sample=sample(),
+            frames=three_frames(),
+            workflow_snapshot=snapshots["workflow_snapshot"],  # type: ignore[arg-type]
+            memory_snapshot=snapshots["memory_snapshot"],  # type: ignore[arg-type]
+            prior_finalized_prediction=None,
+        )
+
+
+def test_builder_freezes_snapshot_values_against_source_and_consumer_mutation() -> None:
+    workflow_snapshot = {"nested": {"phase": 1}}
+    memory_snapshot = {"events": ["event-1"]}
+    context = builder().build(
+        sample=sample(),
+        frames=three_frames(),
+        workflow_snapshot=workflow_snapshot,
+        memory_snapshot=memory_snapshot,
+        prior_finalized_prediction=None,
+    )
+
+    workflow_snapshot["ground_truth"] = "late mutation"
+    workflow_snapshot["nested"]["phase"] = 2
+    memory_snapshot["events"].append("event-2")
+
+    assert context.workflow_snapshot == {"nested": {"phase": 1}}
+    assert context.memory_snapshot == {"events": ("event-1",)}
+    with pytest.raises(TypeError):
+        context.workflow_snapshot["ground_truth"] = "consumer mutation"  # type: ignore[index]
+    with pytest.raises(TypeError):
+        context.workflow_snapshot["nested"]["phase"] = 2  # type: ignore[index]
+
+
+def test_builder_snapshots_frames_before_encoding_images() -> None:
+    frames = three_frames()
+    context = builder().build(
+        sample=sample(),
+        frames=frames,
+        workflow_snapshot={},
+        memory_snapshot={},
+        prior_finalized_prediction=None,
+    )
+
+    frames.zero_()
+
+    assert context.frames.tolist() == three_frames().tolist()
+    with Image.open(BytesIO(context.images[0].content)) as image:
+        assert image.getpixel((0, 0)) == (255, 0, 0)
