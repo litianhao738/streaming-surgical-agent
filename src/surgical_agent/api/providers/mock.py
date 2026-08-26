@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from datetime import UTC, datetime
 
 from surgical_agent.api.contracts import ApiRequest, ProviderResponse
@@ -20,12 +19,14 @@ class MockProviderTransport:
         returned_model_identifier: str = "mock-model-returned-v1",
         retryable_failures_before_success: int = 0,
         malformed_payload: bool = False,
+        provider_cost: float | None = 0.0,
     ) -> None:
         if retryable_failures_before_success < 0:
             raise ValueError("retryable_failures_before_success must be non-negative")
         self.returned_model_identifier = returned_model_identifier
         self.retryable_failures_before_success = retryable_failures_before_success
         self.malformed_payload = malformed_payload
+        self.provider_cost = provider_cost
         self.provider_call_count = 0
 
     def send(self, request: ApiRequest) -> ProviderResponse:
@@ -52,13 +53,14 @@ class MockProviderTransport:
         )
         return ProviderResponse(
             provider=self.provider,
-            model_identifier=self.returned_model_identifier,
-            raw_response=json.dumps(payload, sort_keys=True),
+            returned_model_identifier=self.returned_model_identifier,
             parsed_payload=payload,
             input_tokens=12,
             output_tokens=7,
+            total_tokens=19,
             image_count=len(request.images),
             provider_request_id=f"mock-request-{self.provider_call_count}",
             timestamp=datetime.now(UTC).isoformat(),
-            estimated_cost=0.0,
+            provider_cost=self.provider_cost,
+            safe_metadata={"finish_reason": "stop"},
         )

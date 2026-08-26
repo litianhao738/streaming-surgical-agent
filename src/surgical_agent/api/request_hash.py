@@ -1,58 +1,67 @@
-"""Canonical multimodal request hashing."""
+"""Canonical multimodal request provenance and hashing."""
 
 from __future__ import annotations
 
 import hashlib
-import json
-from collections.abc import Mapping
-from typing import Any
+from dataclasses import asdict
 
-from surgical_agent.api.contracts import ApiRequest
-
-REQUEST_HASH_VERSION = "api_request_sha256_v1"
-
-
-def _plain_json(value: Any) -> Any:
-    if isinstance(value, Mapping):
-        return {key: _plain_json(item) for key, item in value.items()}
-    if isinstance(value, tuple):
-        return [_plain_json(item) for item in value]
-    return value
+from surgical_agent.api.contracts import (
+    ApiRequest,
+    CanonicalRequestMetadata,
+    ImageProvenance,
+    _freeze_json,
+    canonical_json_bytes,
+    thaw_json,
+)
 
 
-def canonical_request_payload(request: ApiRequest) -> dict[str, Any]:
-    """Return every non-secret field that can affect a provider response."""
+def canonical_request_metadata(request: ApiRequest) -> CanonicalRequestMetadata:
+    """Build the safe provenance and request digest from one canonical body."""
 
-    return {
-        "hash_version": REQUEST_HASH_VERSION,
+    payload = thaw_json(request.payload)
+    generation = thaw_json(request.generation_parameters)
+    image_rows = tuple(
+        ImageProvenance(
+            identifier=image.identifier,
+            mime_type=image.mime_type,
+            size_bytes=len(image.content),
+            sha256=image.sha256,
+        )
+        for image in request.images
+    )
+    payload_bytes = canonical_json_bytes(payload)
+    hash_body = {
         "provider": request.provider,
-        "model_identifier": request.model_identifier,
         "endpoint_identifier": request.endpoint_identifier,
+        "requested_model_identifier": request.model_identifier,
         "prompt_version": request.prompt_version,
         "response_schema_version": request.response_schema_version,
-        "payload": _plain_json(request.payload),
-        "images": [
-            {
-                "identifier": image.identifier,
-                "mime_type": image.mime_type,
-                "sha256": image.sha256,
-                "byte_count": len(image.content),
-            }
-            for image in request.images
-        ],
-        "generation_parameters": _plain_json(request.generation_parameters),
+        "generation_parameters": generation,
+        "payload": payload,
+        "images": [asdict(image) for image in image_rows],
     }
+    request_hash = hashlib.sha256(canonical_json_bytes(hash_body)).hexdigest()
+    return CanonicalRequestMetadata(
+        schema_version="api_request_metadata_v1",
+        provider=request.provider,
+        endpoint_identifier=request.endpoint_identifier,
+        requested_model_identifier=request.model_identifier,
+        prompt_version=request.prompt_version,
+        response_schema_version=request.response_schema_version,
+        generation_parameters=_freeze_json(generation, path="generation_parameters"),
+        payload_sha256=hashlib.sha256(payload_bytes).hexdigest(),
+        images=image_rows,
+        request_hash=request_hash,
+    )
 
 
-def canonical_request_bytes(request: ApiRequest) -> bytes:
-    return json.dumps(
-        canonical_request_payload(request),
-        sort_keys=True,
-        separators=(",", ":"),
-        ensure_ascii=False,
-        allow_nan=False,
-    ).encode("utf-8")
+def canonical_request_hash(request: ApiRequest) -> str:
+    """Return the single canonical request digest."""
+
+    return canonical_request_metadata(request).request_hash
 
 
 def request_sha256(request: ApiRequest) -> str:
-    return hashlib.sha256(canonical_request_bytes(request)).hexdigest()
+    """Compatibility alias retained for existing P3 callers and public tests."""
+
+    return canonical_request_hash(request)

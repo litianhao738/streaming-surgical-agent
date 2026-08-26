@@ -10,19 +10,19 @@ from surgical_agent.api.cache import FileApiCache
 from surgical_agent.api.contracts import (
     ApiRequest,
     ApiResponseRecord,
+    CanonicalRequestMetadata,
     ProviderResponse,
     ProviderTransport,
     ResponseValidator,
     SleepFunction,
 )
 from surgical_agent.api.errors import (
+    ApiCallFailure,
     ApiContractError,
     ApiError,
-    ApiRetryExhausted,
     ApiSchemaError,
-    ApiTransportError,
 )
-from surgical_agent.api.request_hash import request_sha256
+from surgical_agent.api.request_hash import canonical_request_metadata
 from surgical_agent.api.retry import RetryPolicy
 from surgical_agent.api.usage import UsageLedger
 
@@ -57,117 +57,138 @@ class CachedMultimodalApiClient:
         if request.endpoint_identifier != self.transport.endpoint_identifier:
             raise ApiContractError("Request endpoint does not match selected transport")
 
+    def _validate_payload(self, response: ProviderResponse | ApiResponseRecord) -> None:
+        try:
+            self.validator(response.parsed_payload)
+        except ApiError:
+            raise
+        except Exception as exc:
+            raise ApiSchemaError("P3 response validator failed") from exc
+
     def _record(
         self,
         request: ApiRequest,
         response: ProviderResponse,
         *,
-        request_hash: str,
+        metadata: CanonicalRequestMetadata,
         retry_count: int,
+        provider_call_count: int,
         latency_ms: float,
     ) -> ApiResponseRecord:
         if response.provider != request.provider:
             raise ApiContractError("Provider response identity mismatch")
-        if not response.model_identifier:
-            raise ApiSchemaError("Provider response omitted the returned model field")
-        if response.parsed_payload is None:
-            raise ApiSchemaError("Provider response omitted a structured payload")
-        self.validator(response.parsed_payload)
+        self._validate_payload(response)
         return ApiResponseRecord(
             provider=response.provider,
-            requested_model_identifier=request.model_identifier,
-            model_identifier=response.model_identifier,
             endpoint_identifier=request.endpoint_identifier,
-            request_hash=request_hash,
-            raw_response=response.raw_response,
+            request_hash=metadata.request_hash,
+            requested_model_identifier=request.model_identifier,
+            returned_model_identifier=response.returned_model_identifier,
             parsed_payload=response.parsed_payload,
             input_tokens=response.input_tokens,
             output_tokens=response.output_tokens,
+            total_tokens=response.total_tokens,
             image_count=response.image_count,
             latency_ms=latency_ms,
             retry_count=retry_count,
+            provider_call_count=provider_call_count,
             timestamp=response.timestamp or self._now(),
             cache_hit=False,
-            provider_call=True,
             provider_request_id=response.provider_request_id,
-            estimated_cost=response.estimated_cost,
+            provider_cost=response.provider_cost,
+            origin_provider_cost=response.provider_cost,
+            exact_backend_model_identifier=response.exact_backend_model_identifier,
+            exact_identity_evidence_source=response.exact_identity_evidence_source,
+            safe_metadata=response.safe_metadata,
+        )
+
+    def _log_failure(
+        self,
+        metadata: CanonicalRequestMetadata,
+        *,
+        error_code: str,
+        retryable: bool = False,
+        status_code: int | None = None,
+        retry_count: int,
+        provider_call_count: int,
+        latency_ms: float,
+        response: ProviderResponse | ApiResponseRecord | None = None,
+    ) -> None:
+        self.usage.log_failure(
+            metadata,
+            error_code=error_code,
+            retryable=retryable,
+            status_code=status_code,
+            retry_count=retry_count,
+            provider_call_count=provider_call_count,
+            latency_ms=latency_ms,
+            timestamp=self._now(),
+            response=response,
         )
 
     def call(self, request: ApiRequest) -> ApiResponseRecord:
         self._validate_transport_identity(request)
-        digest = request_sha256(request)
+        metadata = canonical_request_metadata(request)
         cache_start = perf_counter()
         try:
-            cached = self.cache.get(digest)
+            cached = self.cache.get(metadata)
         except ApiError as exc:
-            self.usage.log_failure(
-                request,
-                request_hash=digest,
+            self._log_failure(
+                metadata,
                 error_code=exc.code,
                 retry_count=0,
                 provider_call_count=0,
                 latency_ms=(perf_counter() - cache_start) * 1000.0,
-                timestamp=self._now(),
             )
             raise
         if cached is not None:
             try:
-                self.validator(cached.parsed_payload)
+                self._validate_payload(cached)
             except ApiError as exc:
-                self.usage.log_failure(
-                    request,
-                    request_hash=digest,
+                self._log_failure(
+                    metadata,
                     error_code=exc.code,
                     retry_count=0,
                     provider_call_count=0,
                     latency_ms=(perf_counter() - cache_start) * 1000.0,
-                    timestamp=self._now(),
-                    returned_model_identifier=cached.model_identifier,
-                    raw_response=cached.raw_response,
-                    parsed_payload=cached.parsed_payload,
+                    response=cached,
                 )
                 raise
             replay = replace(
                 cached,
                 cache_hit=True,
-                provider_call=False,
-                latency_ms=0.0,
+                provider_call_count=0,
                 retry_count=0,
+                latency_ms=0.0,
+                provider_cost=0.0,
+                origin_provider_cost=(
+                    cached.origin_provider_cost
+                    if cached.origin_provider_cost is not None
+                    else cached.provider_cost
+                ),
             )
-            self.usage.log_success(request, replay)
+            self.usage.log_success(metadata, replay)
             return replay
 
         start = perf_counter()
-        sleep = self.sleep
         try:
-            if sleep is None:
-                retried = self.retry_policy.execute(lambda: self.transport.send(request))
+            if self.sleep is None:
+                retried = self.retry_policy.execute(
+                    lambda: self.transport.send(request)
+                )
             else:
                 retried = self.retry_policy.execute(
-                    lambda: self.transport.send(request), sleep=sleep
+                    lambda: self.transport.send(request), sleep=self.sleep
                 )
-        except ApiRetryExhausted as exc:
-            latency_ms = (perf_counter() - start) * 1000.0
-            self.usage.log_failure(
-                request,
-                request_hash=digest,
+        except ApiCallFailure as exc:
+            self._log_failure(
+                metadata,
                 error_code=exc.cause.code,
+                retryable=exc.cause.retryable,
+                status_code=exc.cause.status_code,
                 retry_count=exc.retry_count,
-                provider_call_count=exc.retry_count + 1,
-                latency_ms=latency_ms,
-                timestamp=self._now(),
-            )
-            raise
-        except ApiTransportError as exc:
-            latency_ms = (perf_counter() - start) * 1000.0
-            self.usage.log_failure(
-                request,
-                request_hash=digest,
-                error_code=exc.code,
-                retry_count=0,
-                provider_call_count=1,
-                latency_ms=latency_ms,
-                timestamp=self._now(),
+                provider_call_count=exc.attempt_count,
+                latency_ms=(perf_counter() - start) * 1000.0,
             )
             raise
 
@@ -176,24 +197,21 @@ class CachedMultimodalApiClient:
             record = self._record(
                 request,
                 retried.value,
-                request_hash=digest,
+                metadata=metadata,
                 retry_count=retried.retry_count,
+                provider_call_count=retried.attempt_count,
                 latency_ms=latency_ms,
             )
-            self.cache.put(record)
+            self.cache.put(metadata, record)
         except ApiError as exc:
-            self.usage.log_failure(
-                request,
-                request_hash=digest,
+            self._log_failure(
+                metadata,
                 error_code=exc.code,
                 retry_count=retried.retry_count,
-                provider_call_count=retried.retry_count + 1,
+                provider_call_count=retried.attempt_count,
                 latency_ms=latency_ms,
-                timestamp=self._now(),
-                returned_model_identifier=retried.value.model_identifier,
-                raw_response=retried.value.raw_response,
-                parsed_payload=retried.value.parsed_payload,
+                response=retried.value,
             )
             raise
-        self.usage.log_success(request, record)
+        self.usage.log_success(metadata, record)
         return record

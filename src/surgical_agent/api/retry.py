@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from typing import Generic, TypeVar
 
 from surgical_agent.api.contracts import SleepFunction
-from surgical_agent.api.errors import ApiRetryExhausted, ApiTransportError
+from surgical_agent.api.errors import ApiCallFailure, ApiTransportError
 
 T = TypeVar("T")
 
@@ -16,6 +16,7 @@ T = TypeVar("T")
 @dataclass(frozen=True)
 class RetryResult(Generic[T]):
     value: T
+    attempt_count: int
     retry_count: int
 
 
@@ -37,15 +38,23 @@ class RetryPolicy:
         *,
         sleep: SleepFunction = time.sleep,
     ) -> RetryResult[T]:
+        attempts = 0
         retries = 0
         while True:
+            attempts += 1
             try:
-                return RetryResult(value=operation(), retry_count=retries)
+                return RetryResult(
+                    value=operation(),
+                    attempt_count=attempts,
+                    retry_count=retries,
+                )
             except ApiTransportError as exc:
-                if not exc.retryable:
-                    raise
-                if retries >= self.max_attempts - 1:
-                    raise ApiRetryExhausted(exc, retry_count=retries) from exc
+                if not exc.retryable or attempts >= self.max_attempts:
+                    raise ApiCallFailure(
+                        exc,
+                        attempt_count=attempts,
+                        retry_count=retries,
+                    ) from exc
                 delay = min(
                     self.base_delay_seconds * (2**retries),
                     self.max_delay_seconds,
