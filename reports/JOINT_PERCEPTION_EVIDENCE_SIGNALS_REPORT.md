@@ -1,6 +1,6 @@
 # Joint Perception and Evidence Signals Completion Report
 
-Status: `CORE_COMPLETE_REAL_SMOKE_FAILED_PROVIDER_404`
+Status: `CORE_COMPLETE_REAL_SMOKE_INCOMPLETE_PARSE_FAILURE`
 
 ## Delivered
 
@@ -19,6 +19,12 @@ Status: `CORE_COMPLETE_REAL_SMOKE_FAILED_PROVIDER_404`
 - Added explicit three-image cached-client accounting coverage, strict config
   bool/int edge coverage, and the repository-wide Ruff annotation fix in
   `perception/contracts.py`.
+- The exact OpenRouter generation contract emits only `max_tokens: 4096`,
+  retains `provider.require_parameters: true`, and omits unsupported
+  `temperature`/`top_p`. Provider-facing schema output omits `uniqueItems`;
+  the local semantic parser still rejects duplicate selected IDs.
+- A real origin response must include exact non-null input/output/total token
+  counts and finite non-negative cost before parsing or paired persistence.
 
 ## TDD Evidence
 
@@ -104,11 +110,28 @@ Sanitized evidence:
 - runtime persisted only the sanitized usage ledger; no raw body, parsed
   payload, prompt, image bytes, headers, argument vector, or credential.
 
-OpenRouter's public model catalog listed the requested model and advertised
-image/structured-output support at review time. Without retaining or exposing
-the provider body, the strongest safe diagnosis is that no eligible route or
-resource was available for this exact request/account at that moment. No retry
-or second paid smoke was attempted.
+This HTTP 404 attempt is incomplete evidence. The sanitized record does not
+establish whether the cause was routing, account state, endpoint behavior,
+model availability, or request compatibility, so no causal or transient-error
+diagnosis is claimed. No retry or second paid smoke was attempted in that run.
+
+### Fix Round 1 authorized attempt
+
+After the unsupported generation/schema keywords were removed and the real
+accounting completion gate was added, exactly one fresh authorized invocation
+ran under ID `task10_fix1_real_20260827`. It ended with the safe category
+`parse_failure`, one provider call, zero retries, and request hash
+`602ff5f3af06cc40d0dedb4ed314cf05947fbc3a64b9d1a59939a2f63a31362d`.
+The request retained the same three ordered image hashes listed above.
+
+The transport only reports `parse_failure` after a success-class HTTP response
+cannot be normalized into the required completion/usage contract. The raw body
+is intentionally discarded, so the evidence cannot distinguish response
+shape, finish state, structured content, or usage-field causes. Returned model,
+response ID, input/output/total tokens, and provider cost are unavailable. The
+completion gate therefore did not permit a success artifact, manifest, paired
+prediction/evidence, or cache replay. No retry was made. Runtime allowlist and
+full-token tracked/runtime secret scans were clean.
 
 ## Boundaries and Concerns
 
@@ -117,5 +140,7 @@ or second paid smoke was attempted.
   `paper_metric_eligible: false`.
 - Instance detection, predicted tracking, the learned Gate, Specialist calls,
   repair coordination, and EventMemory remain outside this slice.
-- The runnable mock/core path is complete. Real-provider evidence remains a
-  failed smoke, not a success and not an exact-backend-identity claim.
+- The runnable mock/core path is complete. Both real-provider attempts remain
+  incomplete: the earlier HTTP 404 and Fix Round 1 parse failure are not
+  successes, not transient-failure diagnoses, and not exact-backend-identity
+  claims.

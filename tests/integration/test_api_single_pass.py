@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import base64
+import hashlib
 import json
 import subprocess
 import sys
@@ -19,6 +21,7 @@ from surgical_agent.api.errors import (
     ApiContractError,
     ApiTransportError,
 )
+from surgical_agent.api.providers.openrouter import HttpResponse, OpenRouterTransport
 from surgical_agent.config.loader import load_api_config, load_yaml
 from surgical_agent.perception.schema import (
     JOINT_PERCEPTION_SCHEMA_VERSION,
@@ -69,6 +72,10 @@ class CountingOpenRouterTransport:
 
     def __init__(self) -> None:
         self.call_count = 0
+        self.input_tokens: int | None = 101
+        self.output_tokens: int | None = 37
+        self.total_tokens: int | None = 138
+        self.provider_cost: float | None = 0.00125
 
     def send(self, request: ApiRequest) -> ProviderResponse:
         self.call_count += 1
@@ -76,13 +83,13 @@ class CountingOpenRouterTransport:
             provider=self.provider,
             returned_model_identifier="openai/gpt-5.6-sol:injected",
             parsed_payload=_joint_payload(),
-            input_tokens=101,
-            output_tokens=37,
-            total_tokens=138,
+            input_tokens=self.input_tokens,
+            output_tokens=self.output_tokens,
+            total_tokens=self.total_tokens,
             image_count=len(request.images),
             provider_request_id="injected-response-1",
             timestamp=datetime.now(UTC).isoformat(),
-            provider_cost=0.00125,
+            provider_cost=self.provider_cost,
             safe_metadata={},
         )
 
@@ -144,7 +151,7 @@ def test_joint_configs_freeze_exact_single_pass_identity_and_policy() -> None:
         "requested_model_identifier": "openai/gpt-5.6-sol",
         "prompt_version": "joint_perception_frame_v1",
         "response_schema_version": "joint_perception_frame_v1",
-        "generation_parameters": {"max_output_tokens": 4096, "temperature": 0.0},
+        "generation_parameters": {"max_output_tokens": 4096},
         "provider_options": {"timeout_seconds": 120.0},
         "synthetic_input_required": True,
         "cache_required": True,
@@ -287,6 +294,121 @@ def test_injected_real_single_pass_uses_one_provider_call_and_reports_identity(
     assert secret_text not in _persisted_text(tmp_path / "run")
 
 
+def test_actual_openrouter_transport_sends_exact_joint_request_body(
+    tmp_path: Path,
+) -> None:
+    captured: dict[str, object] = {}
+
+    def sender(
+        url: str,
+        headers: object,
+        body: bytes,
+        timeout_seconds: float,
+    ) -> HttpResponse:
+        del headers
+        captured.update(url=url, body=body, timeout_seconds=timeout_seconds)
+        response = {
+            "id": "injected-http-response-1",
+            "object": "chat.completion",
+            "model": "openai/gpt-5.6-sol:injected-http",
+            "choices": [
+                {
+                    "finish_reason": "stop",
+                    "message": {"content": json.dumps(_joint_payload())},
+                }
+            ],
+            "usage": {
+                "prompt_tokens": 101,
+                "completion_tokens": 37,
+                "total_tokens": 138,
+                "cost": 0.00125,
+            },
+        }
+        return HttpResponse(
+            status_code=200,
+            headers={},
+            body=json.dumps(response).encode("utf-8"),
+        )
+
+    secret = SecretValue(
+        "-".join(  # noqa: FLY002 - keep scan fixture non-contiguous
+            ("actual", "transport", "credential")
+        )
+    )
+    transport = OpenRouterTransport(
+        api_key=secret,
+        endpoint_identifier="https://openrouter.ai/api/v1/chat/completions",
+        sender=sender,
+        timeout_seconds=120.0,
+    )
+
+    artifact = run_single_pass(
+        config=load_api_config(REAL_CONFIG),
+        output_dir=tmp_path / "run",
+        api_key=secret,
+        transport=transport,
+        run_id="actual-openrouter-body",
+    )
+
+    sent = json.loads(captured["body"])
+    content = sent["messages"][1]["content"]
+    encoded_images = [item["image_url"]["url"] for item in content[1:]]
+    ordered_hashes = [
+        hashlib.sha256(base64.b64decode(url.split(",", 1)[1])).hexdigest()
+        for url in encoded_images
+    ]
+    assert captured["url"] == "https://openrouter.ai/api/v1/chat/completions"
+    assert captured["timeout_seconds"] == 120.0
+    assert sent["model"] == "openai/gpt-5.6-sol"
+    assert sent["max_tokens"] == 4096
+    assert "temperature" not in sent
+    assert "top_p" not in sent
+    assert sent["provider"] == {"require_parameters": True}
+    assert sent["response_format"]["type"] == "json_schema"
+    assert sent["response_format"]["json_schema"]["strict"] is True
+    assert len(encoded_images) == 3
+    assert ordered_hashes == [row["sha256"] for row in EXPECTED_IMAGES]
+    assert artifact["first"]["provider_call_count"] == 1
+    assert artifact["second"]["provider_call_count"] == 0
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        pytest.param("input_tokens", None, id="missing-input-tokens"),
+        pytest.param("output_tokens", None, id="missing-output-tokens"),
+        pytest.param("total_tokens", None, id="missing-total-tokens"),
+        pytest.param("provider_cost", None, id="missing-provider-cost"),
+    ],
+)
+def test_real_single_pass_rejects_incomplete_accounting_before_pair_completion(
+    tmp_path: Path,
+    field: str,
+    value: object,
+) -> None:
+    transport = CountingOpenRouterTransport()
+    setattr(transport, field, value)
+    output_dir = tmp_path / "run"
+
+    with pytest.raises(ApiContractError, match="accounting"):
+        run_single_pass(
+            config=load_api_config(REAL_CONFIG),
+            output_dir=output_dir,
+            api_key=SecretValue(
+                "-".join(  # noqa: FLY002 - keep scan fixture non-contiguous
+                    ("incomplete", "accounting", "credential")
+                )
+            ),
+            transport=transport,
+            run_id="incomplete-accounting",
+        )
+
+    assert not (output_dir / "single_pass_artifact.json").exists()
+    assert not (output_dir / "manifest.json").exists()
+    assert not (output_dir / "predictions/SYNTHETIC01.jsonl").exists()
+    assert not (output_dir / "evidence/SYNTHETIC01.jsonl").exists()
+
+
 def test_real_single_pass_never_retries_the_authorized_provider_call(
     tmp_path: Path,
 ) -> None:
@@ -348,7 +470,7 @@ def test_mock_rejects_credential_before_output_mutation(tmp_path: Path) -> None:
         replace(load_api_config(MOCK_CONFIG), max_causal_frames=2),
         replace(
             load_api_config(MOCK_CONFIG),
-            generation_parameters={"max_output_tokens": 4096, "temperature": 0.5},
+            generation_parameters={"max_output_tokens": 4096, "temperature": 0.0},
         ),
         replace(
             load_api_config(MOCK_CONFIG),

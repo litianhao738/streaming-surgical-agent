@@ -7,7 +7,6 @@ prompt_version: joint_perception_frame_v1
 response_schema_version: joint_perception_frame_v1
 generation_parameters:
   max_output_tokens: 4096
-  temperature: 0.0
 provider_options:
   timeout_seconds: 120.0
 synthetic_input_required: true

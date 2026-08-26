@@ -2423,6 +2423,14 @@ maximum number of agents
 - The runner executes the canonical pipeline exactly once and probes the same
   rebuilt no-prior request through the same cached client. Mock evidence shows
   one origin provider call and one zero-call/zero-current-cost cache replay.
+- Its OpenRouter body retains strict structured output and
+  `provider.require_parameters: true`, emits only `max_tokens: 4096`, and
+  omits unsupported `temperature`, `top_p`, and provider-facing
+  `uniqueItems`. Duplicate selected IDs remain rejected by local semantic
+  validation.
+- A real origin response cannot reach response parsing or paired persistence
+  unless input/output/total token counts are exact non-null integers and
+  provider cost is finite, non-null, and non-negative.
 - Runtime persistence is allowlisted: usage metadata, image identifiers and
   hashes, model/request identity, paired prediction/evidence, and manifest.
   Parsed/raw provider payloads, prompt text, image bytes, credentials, headers,
@@ -2430,7 +2438,17 @@ maximum number of agents
 - The one authorized real synthetic OpenRouter attempt requested
   `openai/gpt-5.6-sol` and failed safely with HTTP 404 after exactly one
   provider call. No returned model, response ID, token/cost, cache-hit, paired
-  artifact, or real-success claim exists for that attempt.
+  artifact, or real-success claim exists for that attempt. The attempt is
+  incomplete: sanitized evidence cannot distinguish routing, account,
+  endpoint, model-availability, or request-compatibility causes, and does not
+  justify a transient-error diagnosis.
+- After Fix Round 1 removed unsupported generation/schema keywords, exactly
+  one fresh authorized attempt reached a success-class HTTP response but
+  failed safe normalization with `parse_failure` after one provider call and
+  zero retries. Because the raw body is discarded, no exact response-shape,
+  structured-content, finish-state, or usage-field diagnosis is possible.
+  Returned model, response ID, complete token/cost accounting, cache replay,
+  and paired artifacts remain unavailable; real evidence is still incomplete.
 - No CholecTrack20 image or paper-performance experiment ran. Instance
   detection, predicted tracking, Gate learning, Specialist verification,
   deterministic repair coordination, and EventMemory remain outside this

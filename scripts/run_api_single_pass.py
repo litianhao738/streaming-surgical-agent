@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import math
 import re
 import subprocess
 import sys
@@ -21,7 +22,7 @@ import torch
 
 from surgical_agent.api.cache import FileApiCache
 from surgical_agent.api.client import CachedMultimodalApiClient
-from surgical_agent.api.contracts import ProviderTransport
+from surgical_agent.api.contracts import ApiRequest, ProviderResponse, ProviderTransport
 from surgical_agent.api.credentials import (
     SecretValue,
     assert_secret_absent,
@@ -118,11 +119,9 @@ def _require_exact_config(config: ApiConfig, *, has_credential: bool) -> None:
         raise ApiContractError("single pass requires the exact response schema")
     generation = dict(config.generation_parameters)
     if (
-        set(generation) != {"max_output_tokens", "temperature"}
+        set(generation) != {"max_output_tokens"}
         or type(generation["max_output_tokens"]) is not int
         or generation["max_output_tokens"] != 4096
-        or type(generation["temperature"]) is not float
-        or generation["temperature"] != 0.0
     ):
         raise ApiContractError("single pass requires the exact generation settings")
     if config.synthetic_input_required is not True:
@@ -178,6 +177,38 @@ def _require_transport_identity(
         raise ApiContractError("transport provider does not match config")
     if transport.endpoint_identifier != config.endpoint_identifier:
         raise ApiContractError("transport endpoint does not match config")
+
+
+def _require_complete_real_accounting(response: ProviderResponse) -> None:
+    token_counts = (
+        response.input_tokens,
+        response.output_tokens,
+        response.total_tokens,
+    )
+    if any(type(value) is not int or value < 0 for value in token_counts):
+        raise ApiContractError("real single-pass accounting is incomplete")
+    cost = response.provider_cost
+    if (
+        not isinstance(cost, (int, float))
+        or isinstance(cost, bool)
+        or not math.isfinite(float(cost))
+        or cost < 0
+    ):
+        raise ApiContractError("real single-pass accounting is incomplete")
+
+
+class _RealAccountingTransport:
+    """Fail before parsing/persistence when an origin response lacks accounting."""
+
+    def __init__(self, transport: ProviderTransport) -> None:
+        self._transport = transport
+        self.provider = transport.provider
+        self.endpoint_identifier = transport.endpoint_identifier
+
+    def send(self, request: ApiRequest) -> ProviderResponse:
+        response = self._transport.send(request)
+        _require_complete_real_accounting(response)
+        return response
 
 
 def _synthetic_input() -> tuple[InferenceSample, torch.Tensor]:
@@ -290,8 +321,13 @@ def run_single_pass(
     sample, frames = _synthetic_input()
 
     with tempfile.TemporaryDirectory(prefix="joint-perception-cache-") as cache_root:
+        client_transport = (
+            _RealAccountingTransport(selected_transport)
+            if config.mode == "real"
+            else selected_transport
+        )
         client = CachedMultimodalApiClient(
-            transport=selected_transport,
+            transport=client_transport,
             cache=FileApiCache(cache_root),
             usage=usage,
             validator=validator,

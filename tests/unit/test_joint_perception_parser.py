@@ -78,6 +78,8 @@ def mutate(payload: dict[str, Any], mutation: str) -> dict[str, Any]:
         value["verb"]["topk"][:2] = value["verb"]["topk"][1::-1]
     elif mutation == "duplicate_id":
         value["target"]["topk"][1]["id"] = 0
+    elif mutation == "duplicate_selected_id":
+        value["target"]["selected_ids"] = [2, 2]
     elif mutation == "selected_not_ranked":
         value["ivt"]["selected_ids"] = [99]
     elif mutation == "unknown_id":
@@ -122,6 +124,7 @@ def test_parser_reconstructs_dense_scores_and_selected_sets() -> None:
         "wrong_count",
         "unsorted_scores",
         "duplicate_id",
+        "duplicate_selected_id",
         "selected_not_ranked",
         "unknown_id",
         "bad_evidence_code",
@@ -165,6 +168,25 @@ def test_joint_schema_is_registered_without_replacing_p3_registry_behavior() -> 
     assert schema["additionalProperties"] is False
     assert schema["properties"]["phase"]["required"] == ["selected_id", "topk"]
     assert validator_for(JOINT_PERCEPTION_SCHEMA_VERSION) is not None
+
+
+def test_provider_facing_joint_schema_omits_unsupported_unique_items() -> None:
+    """Duplicate rejection remains semantic because provider schemas omit this keyword."""
+
+    def mappings(value: object) -> list[dict[str, Any]]:
+        found: list[dict[str, Any]] = []
+        if isinstance(value, dict):
+            found.append(value)
+            for child in value.values():
+                found.extend(mappings(child))
+        elif isinstance(value, list):
+            for child in value:
+                found.extend(mappings(child))
+        return found
+
+    schema = schema_for(JOINT_PERCEPTION_SCHEMA_VERSION)
+
+    assert all("uniqueItems" not in mapping for mapping in mappings(schema))
 
 
 def test_public_schema_module_imports_in_a_clean_interpreter() -> None:

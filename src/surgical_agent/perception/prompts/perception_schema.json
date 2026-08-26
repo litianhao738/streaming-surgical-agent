@@ -7,7 +7,7 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "selected_ids": {"type": "array", "items": {"type": "integer", "minimum": 0, "maximum": 6}, "uniqueItems": true},
+        "selected_ids": {"type": "array", "items": {"type": "integer", "minimum": 0, "maximum": 6}},
         "topk": {"type": "array", "minItems": 7, "maxItems": 7, "items": {"type": "object", "additionalProperties": false, "properties": {"id": {"type": "integer", "minimum": 0, "maximum": 6}, "score": {"type": "number", "minimum": 0, "maximum": 1}}, "required": ["id", "score"]}}
       },
       "required": ["selected_ids", "topk"]
@@ -16,7 +16,7 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "selected_ids": {"type": "array", "items": {"type": "integer", "minimum": 0, "maximum": 9}, "uniqueItems": true},
+        "selected_ids": {"type": "array", "items": {"type": "integer", "minimum": 0, "maximum": 9}},
         "topk": {"type": "array", "minItems": 10, "maxItems": 10, "items": {"type": "object", "additionalProperties": false, "properties": {"id": {"type": "integer", "minimum": 0, "maximum": 9}, "score": {"type": "number", "minimum": 0, "maximum": 1}}, "required": ["id", "score"]}}
       },
       "required": ["selected_ids", "topk"]
@@ -25,7 +25,7 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "selected_ids": {"type": "array", "items": {"type": "integer", "minimum": 0, "maximum": 14}, "uniqueItems": true},
+        "selected_ids": {"type": "array", "items": {"type": "integer", "minimum": 0, "maximum": 14}},
         "topk": {"type": "array", "minItems": 15, "maxItems": 15, "items": {"type": "object", "additionalProperties": false, "properties": {"id": {"type": "integer", "minimum": 0, "maximum": 14}, "score": {"type": "number", "minimum": 0, "maximum": 1}}, "required": ["id", "score"]}}
       },
       "required": ["selected_ids", "topk"]
@@ -34,7 +34,7 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "selected_ids": {"type": "array", "items": {"type": "integer", "minimum": 0, "maximum": 99}, "uniqueItems": true},
+        "selected_ids": {"type": "array", "items": {"type": "integer", "minimum": 0, "maximum": 99}},
         "topk": {"type": "array", "minItems": 20, "maxItems": 20, "items": {"type": "object", "additionalProperties": false, "properties": {"id": {"type": "integer", "minimum": 0, "maximum": 99}, "score": {"type": "number", "minimum": 0, "maximum": 1}}, "required": ["id", "score"]}}
       },
       "required": ["selected_ids", "topk"]
