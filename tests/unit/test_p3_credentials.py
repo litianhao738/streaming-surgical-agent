@@ -50,6 +50,8 @@ def test_exact_secret_scan_reports_only_the_path(tmp_path: Path) -> None:
     leaked.write_text(f'{{"value":"{needle}"}}', encoding="utf-8")
     with pytest.raises(RuntimeError) as caught:
         assert_secret_absent(secret, (leaked,))
-    expected_message = f"credential value found in persisted files: {sorted([str(leaked)])}"
+    expected_message = (
+        f"credential value found in persisted files: {sorted([str(leaked)])}"
+    )
     assert str(caught.value) == expected_message
     assert needle not in str(caught.value)
