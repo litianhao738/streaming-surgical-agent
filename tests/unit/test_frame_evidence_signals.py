@@ -36,6 +36,7 @@ def _prediction(
     target_ids: tuple[int, ...] = (1,),
     triplet_ids: tuple[int, ...] = (0,),
     phase_id: int = 1,
+    score_semantics: str = "uncalibrated_rank_v1",
 ) -> InitialPrediction:
     return InitialPrediction(
         instrument_ids=instrument_ids,
@@ -47,6 +48,7 @@ def _prediction(
             task: (0.0,) * class_count
             for task, class_count in TASK_CLASS_COUNTS.items()
         },
+        score_semantics=score_semantics,
     )
 
 
@@ -142,10 +144,12 @@ def _extractor(
 
 
 def test_candidate_ambiguity_is_one_minus_top_two_margin() -> None:
-    profile = _extractor().extract(_context(), _result(scores=(0.7, 0.4)))
+    profile = _extractor().extract(
+        _context(), _result(scores=(0.9, 0.6666666666666667))
+    )
 
     assert profile.task_values["instrument"]["candidate_ambiguity"] == EvidenceValue(
-        0.7, True, "joint_rank_margin", 12
+        0.7666666666666667, True, "joint_rank_margin", 12
     )
 
 
@@ -156,6 +160,39 @@ def test_missing_ranking_evidence_keeps_ambiguity_unavailable() -> None:
 
     assert profile.task_values["instrument"]["candidate_ambiguity"].value is None
     assert profile.task_values["instrument"]["candidate_ambiguity"].available is False
+
+
+def test_ranked_evidence_requires_uncalibrated_rank_score_semantics() -> None:
+    result = _result(prediction=_prediction(score_semantics="probability_v1"))
+
+    with pytest.raises(ValueError, match="uncalibrated_rank_v1"):
+        _extractor().extract(_context(), result)
+
+
+def test_non_null_confidence_requires_uncalibrated_rank_score_semantics() -> None:
+    result = _result(
+        prediction=_prediction(score_semantics="probability_v1"),
+        scores=(),
+        confidence=0.8,
+    )
+
+    with pytest.raises(ValueError, match="uncalibrated_rank_v1"):
+        _extractor().extract(_context(), result)
+
+
+def test_local_unavailable_probability_semantics_remain_supported() -> None:
+    profile = _extractor().extract(
+        _context(),
+        _result(
+            prediction=_prediction(score_semantics="probability_v1"),
+            scores=(),
+            confidence=None,
+            source="local_smoke",
+        ),
+    )
+
+    assert profile.task_values["instrument"]["candidate_ambiguity"].available is False
+    assert profile.task_values["phase"]["self_reported_uncertainty"].available is False
 
 
 def test_ivt_internal_conflict_is_fraction_of_selected_inconsistent_triplets() -> None:
@@ -220,10 +257,15 @@ def test_phase_anomaly_uses_only_the_configured_frozen_graph() -> None:
 
 
 def test_self_reported_uncertainty_is_one_minus_confidence_or_unavailable() -> None:
-    reported = _extractor().extract(_context(), _result(confidence=0.8))
+    reported = _extractor().extract(
+        _context(), _result(confidence=0.12345678901234567)
+    )
     absent = _extractor().extract(_context(), _result(confidence=None))
 
-    assert reported.task_values["phase"]["self_reported_uncertainty"].value == 0.2
+    assert (
+        reported.task_values["phase"]["self_reported_uncertainty"].value
+        == 0.8765432109876543
+    )
     assert absent.task_values["phase"]["self_reported_uncertainty"].available is False
 
 

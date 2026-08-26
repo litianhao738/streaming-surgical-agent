@@ -9,7 +9,11 @@ from types import MappingProxyType
 
 from surgical_agent.data.constants import TASK_ID_BOUNDS
 from surgical_agent.perception.context_builder import PerceptionContext
-from surgical_agent.perception.contracts import JointPerceptionResult, RankedCandidate
+from surgical_agent.perception.contracts import (
+    JointPerceptionResult,
+    PerceptionEvidence,
+    RankedCandidate,
+)
 from surgical_agent.research.signals.contracts import (
     EvidenceProfile,
     EvidenceValue,
@@ -87,6 +91,7 @@ class FrameEvidenceSignalExtractor:
 
         prediction = result.prediction
         raw_evidence = result.raw_evidence
+        _validate_evidence_score_semantics(prediction.score_semantics, raw_evidence)
         task_values: dict[str, dict[str, EvidenceValue]] = {
             task: {
                 "candidate_ambiguity": _ambiguity(
@@ -134,6 +139,26 @@ class FrameEvidenceSignalExtractor:
         )
 
 
+def _validate_evidence_score_semantics(
+    score_semantics: str,
+    raw_evidence: PerceptionEvidence,
+) -> None:
+    if score_semantics == "uncalibrated_rank_v1":
+        return
+    if (
+        raw_evidence.source == "local_smoke"
+        and all(not candidates for candidates in raw_evidence.ranked_candidates.values())
+        and all(
+            confidence is None
+            for confidence in raw_evidence.self_reported_confidence.values()
+        )
+    ):
+        return
+    raise ValueError(
+        "rank-bearing evidence requires score_semantics=uncalibrated_rank_v1"
+    )
+
+
 def _ambiguity(
     candidates: tuple[RankedCandidate, ...], source_max_frame_id: int
 ) -> EvidenceValue:
@@ -141,7 +166,7 @@ def _ambiguity(
         return unavailable("joint_rank_margin", source_max_frame_id)
     margin = candidates[0].score - candidates[1].score
     return EvidenceValue(
-        round(1.0 - min(max(margin, 0.0), 1.0), 12),
+        1.0 - min(max(margin, 0.0), 1.0),
         True,
         "joint_rank_margin",
         source_max_frame_id,
@@ -221,7 +246,7 @@ def _self_reported_uncertainty(
     if confidence is None:
         return unavailable("joint_self_reported_confidence", source_max_frame_id)
     return EvidenceValue(
-        round(1.0 - confidence, 12),
+        1.0 - confidence,
         True,
         "joint_self_reported_confidence",
         source_max_frame_id,
