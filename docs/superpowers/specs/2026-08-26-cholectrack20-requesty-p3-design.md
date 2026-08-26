@@ -1,5 +1,11 @@
 # CholecTrack20 Single-Root Portability and Requesty P3 Design
 
+> Provider amendment: the user explicitly replaced the Requesty boundary with
+> OpenRouter and required removal of the old Requesty runtime code. The active
+> implementation uses `https://openrouter.ai/api/v1/chat/completions` with
+> `openai/gpt-5.6-sol`. Requesty-specific sections below are retained only as
+> historical design context and are not an active runtime contract.
+
 **Status:** Approved in chat on 2026-08-26; implementation has not started.
 
 ## Purpose

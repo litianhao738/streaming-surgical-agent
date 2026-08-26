@@ -14,7 +14,7 @@ from surgical_agent.api.contracts import (
 from surgical_agent.api.credentials import SecretValue
 from surgical_agent.api.errors import ApiContractError
 from surgical_agent.api.providers.mock import MockProviderTransport
-from surgical_agent.api.providers.requesty import RequestyTransport
+from surgical_agent.api.providers.openrouter import OpenRouterTransport
 from surgical_agent.api.schema import validator_for
 from surgical_agent.config.schema import ApiConfig
 
@@ -53,7 +53,7 @@ def _require_timeout(value: object) -> float:
         or float(value) <= 0
     ):
         raise ApiContractError(
-            "Requesty timeout_seconds must be a positive finite number"
+            "API timeout_seconds must be a positive finite number"
         )
     return float(value)
 
@@ -92,15 +92,15 @@ def build_transport(
             MockProviderTransport.from_config(effective, options),
         )
 
-    if effective.provider == "requesty":
+    if effective.provider == "openrouter":
         if api_key is None:
-            raise ApiContractError("Requesty provider requires a credential")
+            raise ApiContractError("OpenRouter provider requires a credential")
         timeout = _require_timeout(
             effective.provider_options.get("timeout_seconds", 60.0)
         )
         return _require_transport_identity(
             effective,
-            RequestyTransport(
+            OpenRouterTransport(
                 api_key=api_key,
                 endpoint_identifier=effective.endpoint_identifier,
                 timeout_seconds=timeout,

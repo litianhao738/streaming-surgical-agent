@@ -1,5 +1,12 @@
 # CholecTrack20 Portability and Requesty P3 Implementation Plan
 
+> Provider amendment: the user explicitly replaced the Requesty boundary with
+> OpenRouter and required removal of the old Requesty runtime code. The active
+> implementation uses `configs/api/openrouter.yaml`,
+> `src/surgical_agent/api/providers/openrouter.py`, and model
+> `openai/gpt-5.6-sol`. Requesty-specific steps below are historical execution
+> records rather than current runtime instructions.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (- [ ]) syntax for tracking.
 
 **Goal:** Prove CholecTrack20 runs from one relocatable data root, complete the provider-neutral Requesty Responses P3 path, run a real synthetic multimodal structured smoke, and report an evidence-based P3 PASS or PARTIAL verdict without entering P4.

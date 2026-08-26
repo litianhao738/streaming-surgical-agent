@@ -17,7 +17,7 @@ def _runtime_raw_key(*, padding: str, length: int = 32) -> str:
 
 def test_api_key_file_splits_only_the_first_equals(tmp_path: Path) -> None:
     path = tmp_path / "key.txt"
-    key_name = "REQUESTY_API_" + "KEY"
+    key_name = "OPENROUTER_API_" + "KEY"
     key_value = "alpha" + "=beta"
     path.write_text(f"{key_name}={key_value}\n", encoding="utf-8")
     secret = load_api_key_file(path)
@@ -37,6 +37,36 @@ def test_api_key_file_accepts_long_raw_padded_key(
     secret = load_api_key_file(path)
 
     assert secret.reveal() == raw_key
+
+
+def test_api_key_file_accepts_openrouter_key_before_documentation(
+    tmp_path: Path,
+) -> None:
+    raw_key = "sk-or-v1-" + "x" * 64
+    path = tmp_path / "key.txt"
+    path.write_text(
+        raw_key
+        + "\n\nExample:\n"
+        + "fetch('https://openrouter.ai/api/v1/chat/completions', {})\n",
+        encoding="utf-8",
+    )
+
+    secret = load_api_key_file(path)
+
+    assert secret.reveal() == raw_key
+
+
+def test_api_key_file_rejects_multiple_openrouter_keys(tmp_path: Path) -> None:
+    first = "sk-or-v1-" + "x" * 64
+    second = "sk-or-v1-" + "y" * 64
+    path = tmp_path / "key.txt"
+    path.write_text(f"{first}\n{second}\n", encoding="utf-8")
+
+    with pytest.raises(ValueError) as caught:
+        load_api_key_file(path)
+
+    assert first not in str(caught.value)
+    assert second not in str(caught.value)
 
 
 def test_api_key_file_rejects_short_raw_padded_key(tmp_path: Path) -> None:
@@ -70,7 +100,7 @@ def test_api_key_file_rejects_malformed_raw_key_without_echoing_content(
 
 def test_api_key_file_rejects_empty_assignment(tmp_path: Path) -> None:
     path = tmp_path / "key.txt"
-    key_name = "REQUESTY_API_" + "KEY"
+    key_name = "OPENROUTER_API_" + "KEY"
     path.write_text(f"{key_name}=\n", encoding="utf-8")
 
     with pytest.raises(ValueError):
@@ -88,7 +118,7 @@ def test_api_key_file_errors_never_include_file_content(tmp_path: Path) -> None:
 
 def test_api_key_inputs_are_mutually_exclusive(tmp_path: Path) -> None:
     path = tmp_path / "key.txt"
-    key_name = "REQUESTY_API_" + "KEY"
+    key_name = "OPENROUTER_API_" + "KEY"
     file_value = "val" + "ue"
     direct_value = "dir" + "ect"
     path.write_text(f"{key_name}={file_value}\n", encoding="utf-8")

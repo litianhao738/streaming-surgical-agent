@@ -48,7 +48,7 @@ def test_p3_mock_smoke_uses_synthetic_image_cache_retry_and_usage(
     assert artifact["p4_prediction_granularity"] == "DEFERRED_NOT_FROZEN_BY_P3"
 
 
-def test_real_flag_rejects_non_requesty_config_before_any_transport_call(
+def test_real_flag_rejects_disabled_config_before_any_transport_call(
     tmp_path: Path,
 ) -> None:
     completed = subprocess.run(

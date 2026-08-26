@@ -138,9 +138,9 @@ def _validate_mode(config: ApiConfig, *, real: bool, has_credential: bool) -> No
     config.require_enabled()
     config.validate()
     if real:
-        if config.mode != "real" or config.provider != "requesty":
+        if config.mode != "real" or config.provider != "openrouter":
             raise ApiContractError(
-                "real smoke requires the Requesty real configuration"
+                "real smoke requires the OpenRouter real configuration"
             )
         if not has_credential:
             raise ApiContractError("real smoke requires exactly one credential input")

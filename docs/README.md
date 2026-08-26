@@ -33,10 +33,12 @@ construction and verification, use the Codex implementation specification.
 - P0: `PASS`.
 - P1: `PASS_WITH_EXPLICIT_PARTIAL_SUPERVISION`.
 - P2: `PASS`; local masked train/infer/checkpoint/artifact smoke completed.
-- P3: `PARTIAL`; provider-neutral client/cache/hash/retry/usage and mock
-  synthetic-image smoke completed, real API identity smoke remains `BLOCKED`.
+- P3: `PARTIAL`; provider-neutral client/cache/hash/retry/usage, mock smoke,
+  and the real OpenRouter `openai/gpt-5.6-sol` synthetic-image smoke completed.
+  Exact immutable backend identity remains unavailable; see
+  [P3 OpenRouter evidence](P3_OPENROUTER_SMOKE.md).
 - Canonical implementation package: `src/surgical_agent/`.
 - Compatibility-only namespace: `src/streaming_surgical_agent/`.
 - Active data contract: `<resolved dataset root>/repair_manifest.json`.
-- Deferred hard gates: exact API identity at P3, prediction/evaluation granularity before P4, and
+- Deferred hard gates: exact backend API identity at P3, prediction/evaluation granularity before P4, and
   canonical per-sample Gate error at P9.

@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Iterable
 from pathlib import Path
+
+_OPENROUTER_KEY = re.compile(r"sk-or-v1-[A-Za-z0-9_-]{20,}\Z")
 
 
 class SecretValue:
@@ -28,6 +31,11 @@ def load_api_key_file(path: str | Path) -> SecretValue:
     source = Path(path).expanduser().resolve()
     text = source.read_text(encoding="utf-8")
     lines = text.splitlines()
+    nonempty_lines = [line.strip() for line in lines if line.strip()]
+    if nonempty_lines and _OPENROUTER_KEY.fullmatch(nonempty_lines[0]):
+        if any(_OPENROUTER_KEY.fullmatch(line) for line in nonempty_lines[1:]):
+            raise ValueError("API key file contains multiple OpenRouter credentials")
+        return SecretValue(nonempty_lines[0])
     if len(lines) != 1 or "=" not in lines[0]:
         raise ValueError("API key file must contain one NAME=value line")
     line = lines[0]

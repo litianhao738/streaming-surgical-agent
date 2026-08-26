@@ -114,7 +114,7 @@ def test_declared_local_data_and_backbone_profiles_are_explicit() -> None:
     assert data_config["root"] is None
     assert data_config["root_env"] == "CHOLECTRACK20_ROOT"
     assert data_config["root_portability"] == "portable_external_dataset"
-    assert api_config["declared_model_name"] == "GPT-5.6 Terra"
+    assert api_config["declared_model_name"] == "GPT-5.6 Sol via OpenRouter"
     assert api_config["model_identifier"] is None
     assert api_config["model_identifier_status"].startswith("BLOCKED_")
 

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import math
 from dataclasses import fields
 
 import pytest
@@ -258,17 +257,6 @@ def test_canonical_metadata_revalidates_generation_parameter_allowlist() -> None
     ("safe_metadata", "error_match"),
     [
         ({"authorization": "credential"}, "safe_metadata"),
-        ({"requesty_request_id": "Bearer credential text"}, "requesty_request_id"),
-        ({"requesty_latency_ms": True}, "requesty_latency_ms"),
-        ({"requesty_latency_ms": math.inf}, "requesty_latency_ms"),
-        ({"requesty_cache_status": "authorization"}, "requesty_cache_status"),
-        ({"requesty_provider": "openai/gpt"}, "requesty_provider"),
-        ({"requesty_request_id": "req_Bearer_SECRET123"}, "requesty_request_id"),
-        ({"requesty_request_id": "req_authorization_1"}, "requesty_request_id"),
-        ({"requesty_request_id": "req_token_1"}, "requesty_request_id"),
-        ({"requesty_request_id": "req_secret_1"}, "requesty_request_id"),
-        ({"requesty_request_id": "req_api_key_1"}, "requesty_request_id"),
-        ({"requesty_request_id": "sk-proj-secret"}, "requesty_request_id"),
         ({"finish_reason": "provider error detail"}, "finish_reason"),
         ({"finish_reason": {"nested": "stop"}}, "finish_reason"),
     ],
@@ -291,16 +279,10 @@ def test_response_accepts_normalized_safe_metadata_fields() -> None:
         provider="mock",
         returned_model_identifier="returned-model",
         parsed_payload={},
-        safe_metadata={
-            "finish_reason": "stop",
-            "requesty_provider": "openai",
-            "requesty_cache_status": "miss",
-            "requesty_latency_ms": 12.5,
-            "requesty_request_id": "req_gateway_1",
-        },
+        safe_metadata={"finish_reason": "stop"},
     )
 
-    assert response.safe_metadata["requesty_cache_status"] == "miss"
+    assert response.safe_metadata["finish_reason"] == "stop"
 
 
 @pytest.mark.parametrize(

@@ -21,10 +21,13 @@ _P3_SMOKE_JSON_SCHEMA = {
     "type": "object",
     "additionalProperties": False,
     "properties": {
-        "schema_version": {"const": P3_SMOKE_SCHEMA_VERSION},
+        "schema_version": {
+            "type": "string",
+            "const": P3_SMOKE_SCHEMA_VERSION,
+        },
         "message": {"type": "string", "minLength": 1},
         "image_observed": {"type": "boolean"},
-        "structured": {"const": True},
+        "structured": {"type": "boolean", "const": True},
     },
     "required": sorted(P3_SMOKE_ALLOWED_KEYS),
 }

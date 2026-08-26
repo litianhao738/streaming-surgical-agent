@@ -159,11 +159,13 @@ class ApiConfig:
         )
         if self.mode not in {"mock", "real"}:
             raise ApiContractError("API mode must be mock or real")
-        if self.provider == "requesty":
+        if self.provider == "openrouter":
             if self.mode != "real":
-                raise ApiContractError("Requesty requires real mode")
-            if self.endpoint_identifier != "https://router.requesty.ai/v1/responses":
-                raise ApiContractError("Requesty endpoint is not approved")
+                raise ApiContractError("OpenRouter requires real mode")
+            if self.endpoint_identifier != (
+                "https://openrouter.ai/api/v1/chat/completions"
+            ):
+                raise ApiContractError("OpenRouter endpoint is not approved")
         if self.provider == "mock" and self.mode != "mock":
             raise ApiContractError("mock provider requires mock mode")
 

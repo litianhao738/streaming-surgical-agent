@@ -1,4 +1,4 @@
-"""Requesty Responses API transport with an injected HTTP boundary."""
+"""OpenRouter Chat Completions transport."""
 
 from __future__ import annotations
 
@@ -26,16 +26,13 @@ class HttpResponse:
 
 
 class HttpSender(Protocol):
-    """Send one JSON request and return its raw response."""
-
     def __call__(
         self,
         url: str,
         headers: Mapping[str, str],
         body: bytes,
         timeout_seconds: float,
-    ) -> HttpResponse:
-        """Return a response or raise timeout/connection exceptions."""
+    ) -> HttpResponse: ...
 
 
 def urllib_send_json(
@@ -63,59 +60,56 @@ def urllib_send_json(
 
 
 def http_failure(status_code: int) -> ApiTransportError:
-    """Map HTTP statuses to the P3 retry taxonomy without body detail."""
+    """Map HTTP statuses without retaining the provider response body."""
 
     if status_code in {401, 403}:
         return ApiTransportError(
-            "Requesty authentication failed",
+            "OpenRouter authentication failed",
             code="authentication",
             retryable=False,
             status_code=status_code,
         )
+    if status_code == 402:
+        return ApiTransportError(
+            "OpenRouter payment required",
+            code="payment_required",
+            retryable=False,
+            status_code=status_code,
+        )
+    if status_code == 408:
+        return ApiTransportError(
+            "OpenRouter request timed out",
+            code="timeout",
+            retryable=True,
+            status_code=status_code,
+        )
     if status_code == 429:
         return ApiTransportError(
-            "Requesty rate limit", code="rate_limit", retryable=True, status_code=status_code
+            "OpenRouter rate limit",
+            code="rate_limit",
+            retryable=True,
+            status_code=status_code,
         )
     if 500 <= status_code <= 599:
         return ApiTransportError(
-            "Requesty provider failure",
+            "OpenRouter provider failure",
             code="provider_5xx",
             retryable=True,
             status_code=status_code,
         )
     if 400 <= status_code <= 499:
         return ApiTransportError(
-            "Requesty request failed",
+            "OpenRouter request failed",
             code="provider_4xx",
             retryable=False,
             status_code=status_code,
         )
     return ApiTransportError(
-        "Requesty returned an unexpected HTTP status",
+        "OpenRouter returned an unexpected HTTP status",
         code="unexpected_http_status",
         retryable=False,
         status_code=status_code,
     )
-
-
-def extract_output_text(response: Mapping[str, Any]) -> str:
-    """Require the one output text value from a completed Responses result."""
-
-    output = response.get("output")
-    if not isinstance(output, list):
-        raise TypeError("output must be a list")
-    texts = [
-        item["text"]
-        for message in output
-        if isinstance(message, Mapping) and message.get("type") == "message"
-        for item in message.get("content", [])
-        if isinstance(item, Mapping)
-        and item.get("type") == "output_text"
-        and isinstance(item.get("text"), str)
-    ]
-    if len(texts) != 1:
-        raise ValueError("response must contain one output_text")
-    return texts[0]
 
 
 def _integer_usage(usage: Mapping[str, Any], name: str) -> int:
@@ -125,38 +119,10 @@ def _integer_usage(usage: Mapping[str, Any], name: str) -> int:
     return value
 
 
-def _safe_headers(headers: Mapping[str, str]) -> dict[str, Any]:
-    """Normalize only documented, contract-safe Requesty response headers."""
+class OpenRouterTransport:
+    """P3 OpenRouter transport for one synthetic image."""
 
-    lowered = {
-        key.lower(): value
-        for key, value in headers.items()
-        if isinstance(key, str) and isinstance(value, str)
-    }
-    metadata: dict[str, Any] = {}
-    if lowered.get("x-requesty-provider") == "openai":
-        metadata["requesty_provider"] = "openai"
-    request_id = lowered.get("x-requesty-request-id")
-    if request_id is not None:
-        metadata["requesty_request_id"] = request_id
-    cache = lowered.get("x-requesty-cache")
-    if cache is not None:
-        metadata["requesty_cache_status"] = cache.lower()
-    latency = lowered.get("x-requesty-latency-ms")
-    if latency is not None:
-        try:
-            parsed_latency = float(latency)
-        except ValueError:
-            pass
-        else:
-            metadata["requesty_latency_ms"] = parsed_latency
-    return metadata
-
-
-class RequestyTransport:
-    """P3 Requesty Responses transport for exactly one synthetic image."""
-
-    provider = "requesty"
+    provider = "openrouter"
 
     def __init__(
         self,
@@ -185,14 +151,22 @@ class RequestyTransport:
 
     def _validate_request(self, request: ApiRequest) -> None:
         if request.provider != self.provider:
-            raise ApiContractError("Request provider does not match Requesty transport")
+            raise ApiContractError(
+                "Request provider does not match OpenRouter transport"
+            )
         if request.endpoint_identifier != self.endpoint_identifier:
-            raise ApiContractError("Request endpoint does not match Requesty transport")
+            raise ApiContractError(
+                "Request endpoint does not match OpenRouter transport"
+            )
         if len(request.images) != 1:
-            raise ApiContractError("Requesty requires exactly one synthetic image")
+            raise ApiContractError(
+                "OpenRouter requires exactly one synthetic image"
+            )
         input_text = request.payload.get("input_text")
         if not isinstance(input_text, str) or not input_text.strip():
-            raise ApiContractError("Requesty requires non-empty payload input_text")
+            raise ApiContractError(
+                "OpenRouter requires non-empty payload input_text"
+            )
 
     def _request_body(self, request: ApiRequest) -> bytes:
         image = request.images[0]
@@ -201,42 +175,56 @@ class RequestyTransport:
         permitted_parameters = {
             key: thaw_json(value)
             for key, value in request.generation_parameters.items()
-            if key in {"max_output_tokens", "temperature", "top_p", "reasoning"}
+            if key in {"temperature", "top_p", "reasoning"}
         }
+        max_output_tokens = request.generation_parameters.get("max_output_tokens")
+        if max_output_tokens is not None:
+            permitted_parameters["max_tokens"] = thaw_json(max_output_tokens)
         body = {
             "model": request.model_identifier,
-            "instructions": (
-                "Return only the requested P3 transport-probe JSON. "
-                "Do not emit surgical predictions or P4 instance fields."
-            ),
-            "input": [
+            "messages": [
+                {
+                    "role": "system",
+                    "content": (
+                        "Return only the requested P3 transport-probe JSON. "
+                        "Do not emit surgical predictions or P4 instance fields."
+                    ),
+                },
                 {
                     "role": "user",
                     "content": [
-                        {"type": "input_text", "text": input_text},
+                        {"type": "text", "text": input_text},
                         {
-                            "type": "input_image",
-                            "image_url": (
-                                f"data:{image.mime_type};base64,"
-                                f"{base64.b64encode(image.content).decode('ascii')}"
-                            ),
+                            "type": "image_url",
+                            "image_url": {
+                                "url": (
+                                    f"data:{image.mime_type};base64,"
+                                    f"{base64.b64encode(image.content).decode('ascii')}"
+                                )
+                            },
                         },
                     ],
-                }
+                },
             ],
-            "text": {
-                "format": {
-                    "type": "json_schema",
+            "response_format": {
+                "type": "json_schema",
+                "json_schema": {
                     "name": "p3_multimodal_smoke",
                     "strict": True,
                     "schema": schema_for(request.response_schema_version),
-                }
+                },
             },
+            "provider": {"require_parameters": True},
+            "stream": False,
             **permitted_parameters,
         }
-        return json.dumps(body, allow_nan=False, separators=(",", ":")).encode("utf-8")
+        return json.dumps(body, allow_nan=False, separators=(",", ":")).encode(
+            "utf-8"
+        )
 
     def send(self, request: ApiRequest) -> ProviderResponse:
+        """Send one OpenRouter request."""
+
         self._validate_request(request)
         body = self._request_body(request)
         headers = {
@@ -246,15 +234,22 @@ class RequestyTransport:
         }
         try:
             raw_response = self.sender(
-                self.endpoint_identifier, headers, body, self.timeout_seconds
+                self.endpoint_identifier,
+                headers,
+                body,
+                self.timeout_seconds,
             )
         except TimeoutError:
             raise ApiTransportError(
-                "Requesty request timed out", code="timeout", retryable=True
+                "OpenRouter request timed out",
+                code="timeout",
+                retryable=True,
             ) from None
         except (urllib.error.URLError, OSError):
             raise ApiTransportError(
-                "Requesty connection failed", code="connection", retryable=True
+                "OpenRouter connection failed",
+                code="connection",
+                retryable=True,
             ) from None
         finally:
             del body
@@ -264,15 +259,27 @@ class RequestyTransport:
             decoded = json.loads(raw_response.body.decode("utf-8"))
             if not isinstance(decoded, Mapping):
                 raise TypeError("response must be an object")
-            if decoded.get("object") != "response" or decoded.get("status") != "completed":
-                raise ValueError("response is not completed")
+            if decoded.get("object") != "chat.completion":
+                raise ValueError("response is not a chat completion")
             response_id = decoded.get("id")
             returned_model = decoded.get("model")
             if not isinstance(response_id, str) or not response_id:
                 raise ValueError("response id is invalid")
             if not isinstance(returned_model, str) or not returned_model:
                 raise ValueError("response model is invalid")
-            parsed_payload = json.loads(extract_output_text(decoded))
+            choices = decoded.get("choices")
+            if not isinstance(choices, list) or len(choices) != 1:
+                raise ValueError("response must contain one choice")
+            choice = choices[0]
+            if not isinstance(choice, Mapping) or choice.get("finish_reason") != "stop":
+                raise ValueError("response choice is incomplete")
+            message = choice.get("message")
+            if not isinstance(message, Mapping):
+                raise TypeError("response message is invalid")
+            output_text = message.get("content")
+            if not isinstance(output_text, str) or not output_text:
+                raise ValueError("response content is invalid")
+            parsed_payload = json.loads(output_text)
             if not isinstance(parsed_payload, Mapping):
                 raise TypeError("output JSON must be an object")
             usage = decoded.get("usage")
@@ -289,17 +296,19 @@ class RequestyTransport:
                 provider=self.provider,
                 returned_model_identifier=returned_model,
                 parsed_payload=parsed_payload,
-                input_tokens=_integer_usage(usage, "input_tokens"),
-                output_tokens=_integer_usage(usage, "output_tokens"),
+                input_tokens=_integer_usage(usage, "prompt_tokens"),
+                output_tokens=_integer_usage(usage, "completion_tokens"),
                 total_tokens=_integer_usage(usage, "total_tokens"),
                 image_count=1,
                 provider_request_id=response_id,
-                provider_cost=(None if cost is None else float(cost)),
+                provider_cost=None if cost is None else float(cost),
                 exact_backend_model_identifier=None,
                 exact_identity_evidence_source=None,
-                safe_metadata=_safe_headers(raw_response.headers),
+                safe_metadata={},
             )
         except (TypeError, ValueError, UnicodeDecodeError, json.JSONDecodeError):
             raise ApiTransportError(
-                "Requesty response parsing failed", code="parse_failure", retryable=False
+                "OpenRouter response parsing failed",
+                code="parse_failure",
+                retryable=False,
             ) from None

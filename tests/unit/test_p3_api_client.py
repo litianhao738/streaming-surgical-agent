@@ -860,11 +860,11 @@ def test_success_cache_and_usage_persist_only_allowlisted_safe_fields(
 
 def _verdict_record(**changes: object) -> ApiResponseRecord:
     values: dict[str, object] = {
-        "provider": "requesty",
-        "endpoint_identifier": "https://router.requesty.ai/v1/responses",
+        "provider": "openrouter",
+        "endpoint_identifier": "https://openrouter.ai/api/v1/chat/completions",
         "request_hash": "a" * 64,
-        "requested_model_identifier": "openai-responses/gpt-5.6-sol",
-        "returned_model_identifier": "openai-responses/gpt-5.6-sol",
+        "requested_model_identifier": "openai/gpt-5.6-sol",
+        "returned_model_identifier": "openai/gpt-5.6-sol",
         "parsed_payload": {
             "schema_version": P3_SMOKE_SCHEMA_VERSION,
             "message": "ok",
@@ -885,7 +885,7 @@ def _verdict_record(**changes: object) -> ApiResponseRecord:
         "origin_provider_cost": None,
         "exact_backend_model_identifier": None,
         "exact_identity_evidence_source": None,
-        "safe_metadata": {"requesty_provider": "openai"},
+        "safe_metadata": {},
     }
     values.update(changes)
     return ApiResponseRecord(**values)

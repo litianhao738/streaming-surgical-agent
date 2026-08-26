@@ -5,7 +5,7 @@ import pytest
 from surgical_agent.api.credentials import SecretValue
 from surgical_agent.api.errors import ApiContractError, ApiSchemaError
 from surgical_agent.api.providers.mock import MockProviderTransport
-from surgical_agent.api.providers.requesty import RequestyTransport
+from surgical_agent.api.providers.openrouter import OpenRouterTransport
 from surgical_agent.api.registry import build_transport, build_validator
 from surgical_agent.api.schema import (
     P3_SMOKE_ALLOWED_KEYS,
@@ -22,9 +22,9 @@ def _valid_api_mapping(**changes: object) -> dict[str, object]:
     raw: dict[str, object] = {
         "enabled": True,
         "mode": "real",
-        "provider": "requesty",
-        "endpoint_identifier": "https://router.requesty.ai/v1/responses",
-        "requested_model_identifier": "openai-responses/gpt-5.6-sol",
+        "provider": "openrouter",
+        "endpoint_identifier": "https://openrouter.ai/api/v1/chat/completions",
+        "requested_model_identifier": "openai/gpt-5.6-sol",
         "prompt_version": "p3_transport_probe_v1",
         "response_schema_version": P3_SMOKE_SCHEMA_VERSION,
         "generation_parameters": {"max_output_tokens": 128},
@@ -36,15 +36,36 @@ def _valid_api_mapping(**changes: object) -> dict[str, object]:
     return raw
 
 
-def test_requesty_config_is_effective_and_non_secret() -> None:
-    config = load_api_config(Path("configs/api/requesty.yaml"))
+def test_openrouter_config_is_effective_and_non_secret() -> None:
+    config = load_api_config(Path("configs/api/openrouter.yaml"))
 
     assert config.enabled is True
     assert config.mode == "real"
-    assert config.provider == "requesty"
-    assert config.endpoint_identifier == "https://router.requesty.ai/v1/responses"
-    assert config.requested_model_identifier == "openai-responses/gpt-5.6-sol"
+    assert config.provider == "openrouter"
+    assert config.endpoint_identifier == (
+        "https://openrouter.ai/api/v1/chat/completions"
+    )
+    assert config.requested_model_identifier == "openai/gpt-5.6-sol"
     assert not hasattr(config, "api_key")
+
+
+def test_registry_routes_openrouter_with_secret() -> None:
+    config = ApiConfig.from_mapping(_valid_api_mapping())
+
+    transport = build_transport(config, api_key=SecretValue("test-secret"))
+
+    assert isinstance(transport, OpenRouterTransport)
+    assert transport.provider == "openrouter"
+    assert transport.endpoint_identifier == config.endpoint_identifier
+
+
+def test_openrouter_config_rejects_unapproved_endpoint() -> None:
+    with pytest.raises(ApiContractError, match="endpoint"):
+        ApiConfig.from_mapping(
+            _valid_api_mapping(
+                endpoint_identifier="https://example.invalid/chat/completions"
+            )
+        )
 
 
 def test_disabled_config_fails_before_transport_construction() -> None:
@@ -60,7 +81,7 @@ def test_incomplete_disabled_config_fails_contract_validation() -> None:
             {
                 "enabled": False,
                 "mode": "real",
-                "provider": "requesty",
+                "provider": "openrouter",
             }
         )
 
@@ -146,6 +167,12 @@ def test_schema_registry_returns_a_defensive_schema_copy() -> None:
         "schema_version",
         "structured",
     ]
+
+
+def test_strict_schema_declares_type_for_every_property() -> None:
+    schema = schema_for(P3_SMOKE_SCHEMA_VERSION)
+
+    assert all("type" in definition for definition in schema["properties"].values())
 
 
 def test_p3_validator_rejects_extra_and_p4_fields() -> None:
@@ -244,15 +271,15 @@ def test_registry_routes_effective_mock_config_and_validator() -> None:
     assert build_validator(config) is validate_p3_smoke_payload
 
 
-def test_registry_routes_requesty_with_secret_and_configured_timeout() -> None:
-    config = load_api_config(Path("configs/api/requesty.yaml"))
+def test_registry_routes_openrouter_with_configured_timeout() -> None:
+    config = load_api_config(Path("configs/api/openrouter.yaml"))
 
     transport = build_transport(
         config,
         api_key=SecretValue("test-secret"),
     )
 
-    assert isinstance(transport, RequestyTransport)
+    assert isinstance(transport, OpenRouterTransport)
     assert transport.provider == config.provider
     assert transport.endpoint_identifier == config.endpoint_identifier
     assert transport.timeout_seconds == 60.0
@@ -284,7 +311,9 @@ def test_mock_config_rejects_coerced_override_values(
 
 
 @pytest.mark.parametrize("timeout", [True, "60", 0, -1, float("nan")])
-def test_requesty_config_rejects_coerced_or_invalid_timeout(timeout: object) -> None:
+def test_openrouter_config_rejects_coerced_or_invalid_timeout(
+    timeout: object,
+) -> None:
     with pytest.raises((ApiContractError, TypeError, ValueError)):
         config = ApiConfig.from_mapping(
             _valid_api_mapping(provider_options={"timeout_seconds": timeout})
@@ -292,7 +321,7 @@ def test_requesty_config_rejects_coerced_or_invalid_timeout(timeout: object) -> 
         build_transport(config, api_key=SecretValue("test-secret"))
 
 
-def test_registry_rejects_mock_credential_and_requesty_missing_credential() -> None:
+def test_registry_rejects_mock_credential_and_openrouter_missing_credential() -> None:
     mock = ApiConfig.from_mapping(
         _valid_api_mapping(
             mode="mock",
@@ -300,12 +329,12 @@ def test_registry_rejects_mock_credential_and_requesty_missing_credential() -> N
             endpoint_identifier="mock://local/p3",
         )
     )
-    requesty = load_api_config(Path("configs/api/requesty.yaml"))
+    openrouter = load_api_config(Path("configs/api/openrouter.yaml"))
 
     with pytest.raises(ApiContractError, match="credential"):
         build_transport(mock, api_key=SecretValue("not-for-mock"))
     with pytest.raises(ApiContractError, match="credential"):
-        build_transport(requesty, api_key=None)
+        build_transport(openrouter, api_key=None)
 
 
 def test_registry_rejects_transport_endpoint_provider_mismatch() -> None:
@@ -313,7 +342,7 @@ def test_registry_rejects_transport_endpoint_provider_mismatch() -> None:
         _valid_api_mapping(
             mode="mock",
             provider="mock",
-            endpoint_identifier="https://router.requesty.ai/v1/responses",
+            endpoint_identifier="https://openrouter.ai/api/v1/chat/completions",
         )
     )
 

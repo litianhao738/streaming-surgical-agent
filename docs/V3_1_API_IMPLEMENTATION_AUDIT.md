@@ -20,7 +20,7 @@ Specialist verification, workflow model, EventMemory, or paper evaluation.
 | Partial-label semantics | PASS FOR TRAINING | Task-wise masks are frozen; official negative-sentinel wording remains unknown |
 | Gold-free boundary | PASS | Inference and evaluation target types are structurally separate |
 | P2 Local Smoke | PASS | Real masked step, checkpoint reload, canonical rollout, evaluation, and atomic artifacts passed |
-| P3 API infrastructure | PARTIAL | Mock client/hash/cache/retry/usage/schema smoke passes; real API identity smoke is BLOCKED |
+| P3 API infrastructure | PARTIAL | Mock and real OpenRouter `openai/gpt-5.6-sol` multimodal structured smoke pass; exact immutable backend identity is unavailable |
 | P4-P12 | NOT STARTED / PHASE-GATED | No later research stage has passed |
 
 P2 is an engineering baseline, not a scientific-performance baseline. VID30 remains a documented
@@ -121,9 +121,12 @@ evidence, was not copied into the repository, and is represented as `REDACTED_NO
 ## Phase Decision
 
 P1 is closed as `PASS_WITH_EXPLICIT_PARTIAL_SUPERVISION`; P2 Local Smoke is closed as `PASS`.
-P3 mock infrastructure is implemented but the phase cannot pass without a sanitized real API
-provenance smoke. P4 cannot
-start until prediction and evaluation granularity/matching are frozen from P2 evidence. P9 cannot
+P3 mock infrastructure and a real OpenRouter `openai/gpt-5.6-sol` multimodal
+structured-response smoke are implemented. P3 remains `PARTIAL` only because
+the response did not expose an immutable exact-backend identity and independent
+identity evidence. The real transport, response schema, first-call accounting,
+and second-call cache replay are operational. P4 cannot start until prediction
+and evaluation granularity/matching are frozen from P2 evidence. P9 cannot
 start until the canonical per-sample task error contract is approved and implemented in the
 single EvaluationEngine.
 

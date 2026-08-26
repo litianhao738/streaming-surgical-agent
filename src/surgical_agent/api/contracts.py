@@ -5,7 +5,6 @@ from __future__ import annotations
 import hashlib
 import json
 import math
-import re
 from collections.abc import Callable, Mapping
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
@@ -205,25 +204,9 @@ def freeze_generation_parameters(value: object) -> Mapping[str, Any]:
 _SAFE_METADATA_KEYS = frozenset(
     {
         "finish_reason",
-        "requesty_cache_status",
-        "requesty_latency_ms",
-        "requesty_provider",
-        "requesty_request_id",
     }
 )
 _FINISH_REASONS = frozenset({"content_filter", "length", "stop", "tool_calls"})
-_REQUESTY_CACHE_STATUSES = frozenset({"bypass", "hit", "miss", "unknown"})
-_REQUESTY_REQUEST_ID_PATTERN = re.compile(
-    r"(?:chatcmpl|req|request|resp)[-_][A-Za-z0-9._-]{1,120}"
-)
-_UNSAFE_REQUEST_ID_MARKERS = (
-    "api_key",
-    "authorization",
-    "bearer",
-    "key",
-    "secret",
-    "token",
-)
 
 
 def freeze_safe_metadata(
@@ -241,33 +224,10 @@ def freeze_safe_metadata(
         raise ValueError(f"{path} contains unsafe key or unknown field")
     result: dict[str, Any] = {}
     for key, item in mapping.items():
-        if key == "finish_reason":
-            if not isinstance(item, str) or item not in _FINISH_REASONS:
-                raise ValueError(f"{path}.finish_reason is invalid")
-        elif key == "requesty_cache_status":
-            if not isinstance(item, str) or item not in _REQUESTY_CACHE_STATUSES:
-                raise ValueError(f"{path}.requesty_cache_status is invalid")
-        elif key == "requesty_latency_ms":
-            if (
-                not isinstance(item, (int, float))
-                or isinstance(item, bool)
-                or not math.isfinite(float(item))
-                or item < 0
-            ):
-                raise ValueError(f"{path}.requesty_latency_ms is invalid")
-        elif key == "requesty_provider":
-            if item != "openai":
-                raise ValueError(f"{path}.requesty_provider is invalid")
-        elif key == "requesty_request_id":
-            if not isinstance(item, str):
-                raise ValueError(f"{path}.requesty_request_id is invalid")
-            lowered = item.lower()
-            if (
-                _REQUESTY_REQUEST_ID_PATTERN.fullmatch(item) is None
-                or any(marker in lowered for marker in _UNSAFE_REQUEST_ID_MARKERS)
-                or lowered.startswith(("sk-", "sk_"))
-            ):
-                raise ValueError(f"{path}.requesty_request_id is invalid")
+        if key == "finish_reason" and (
+            not isinstance(item, str) or item not in _FINISH_REASONS
+        ):
+            raise ValueError(f"{path}.finish_reason is invalid")
         result[key] = item
     return MappingProxyType(result)
 
