@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from collections.abc import Mapping
 from dataclasses import asdict
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Protocol
 
 from surgical_agent.inference.schemas import PredictionRecord
 from surgical_agent.inference.writer import (
@@ -20,6 +21,14 @@ from surgical_agent.research.signals.contracts import (
     EvidenceRecord,
     EvidenceValue,
 )
+
+_SAFE_VIDEO_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*\Z")
+_WINDOWS_RESERVED_NAMES = frozenset(
+    {"CON", "PRN", "AUX", "NUL"}
+    | {f"COM{index}" for index in range(1, 10)}
+    | {f"LPT{index}" for index in range(1, 10)}
+)
+_ALLOWED_METADATA_KEYS = frozenset({"paper_metric_eligible"})
 
 
 class FrameResultSink(Protocol):
@@ -36,17 +45,41 @@ def prediction_record_sha256(record: PredictionRecord) -> str:
     """Hash every serialized prediction field using canonical JSON."""
 
     payload = json.dumps(
-        asdict(record),
+        _prediction_payload(record),
         default=json_default,
         sort_keys=True,
         separators=(",", ":"),
         ensure_ascii=True,
+        allow_nan=False,
     ).encode("utf-8")
     return hashlib.sha256(payload).hexdigest()
 
 
 def _prediction_payload(record: PredictionRecord) -> dict[str, object]:
-    return asdict(record)
+    return {
+        "run_id": record.run_id,
+        "video_id": record.video_id,
+        "frame_id": record.frame_id,
+        "source_split": record.source_split,
+        "causal_frame_ids": tuple(record.causal_frame_ids),
+        "instrument_ids": tuple(record.instrument_ids),
+        "verb_ids": tuple(record.verb_ids),
+        "target_ids": tuple(record.target_ids),
+        "triplet_ids": tuple(record.triplet_ids),
+        "phase_id": record.phase_id,
+        "granularity": record.granularity,
+        "backend": record.backend,
+        "gate_action": record.gate_action,
+        "verification_status": record.verification_status,
+        "alignment_version": record.alignment_version,
+        "probabilities": {
+            task: tuple(values) for task, values in record.probabilities.items()
+        },
+        "trace": tuple(record.trace),
+        "failure_reason": record.failure_reason,
+        "schema_version": record.schema_version,
+        "score_semantics": record.score_semantics,
+    }
 
 
 def _evidence_value_payload(value: EvidenceValue) -> dict[str, object]:
@@ -82,6 +115,7 @@ def _jsonl(payloads: list[dict[str, object]]) -> str:
             default=json_default,
             sort_keys=True,
             ensure_ascii=True,
+            allow_nan=False,
         )
         + "\n"
         for payload in payloads
@@ -95,6 +129,7 @@ def _json_document(payload: Mapping[str, object]) -> str:
         sort_keys=True,
         indent=2,
         ensure_ascii=True,
+        allow_nan=False,
     ) + "\n"
 
 
@@ -104,6 +139,7 @@ def _canonical_mapping_sha256(payload: Mapping[str, object]) -> str:
         sort_keys=True,
         separators=(",", ":"),
         ensure_ascii=True,
+        allow_nan=False,
     ).encode("utf-8")
     return hashlib.sha256(serialized).hexdigest()
 
@@ -120,6 +156,7 @@ class FrameResultWriter:
         self.evidence_dir = self.output_dir / "evidence"
         self.manifest_path = self.output_dir / "manifest.json"
         self.status_path = self.output_dir / "run_status.json"
+        self._require_fresh_owned_tree()
         self._predictions: list[PredictionRecord] = []
         self._evidence_records: list[EvidenceRecord] = []
         self._sample_ids: set[tuple[str, int]] = set()
@@ -152,6 +189,7 @@ class FrameResultWriter:
             raise ArtifactWriteError("Prediction and evidence sample identity mismatch")
         if sample_id in self._sample_ids:
             raise ArtifactWriteError(f"Duplicate frame result sample: {sample_id}")
+        prediction_path, evidence_path = self._video_paths(prediction.video_id)
 
         evidence_record = EvidenceRecord(
             run_id=self.run_id,
@@ -193,8 +231,6 @@ class FrameResultWriter:
                 "frame_id": prediction.frame_id,
             },
         }
-        prediction_path = self.predictions_dir / f"{prediction.video_id}.jsonl"
-        evidence_path = self.evidence_dir / f"{prediction.video_id}.jsonl"
         try:
             atomic_write_text(self.status_path, _json_document(incomplete_status))
             atomic_write_text(prediction_path, prediction_content)
@@ -210,13 +246,16 @@ class FrameResultWriter:
         self._sample_ids.add(sample_id)
         return evidence_record
 
-    def finalize(self, metadata: dict[str, Any]) -> Path:
+    def finalize(
+        self, metadata: Mapping[str, object] | None = None
+    ) -> Path:
         if self._finalized:
             raise ArtifactWriteError("Writer was already finalized")
         if self._write_failed:
             raise ArtifactWriteError("Cannot finalize an incomplete failed run")
         if not self._predictions:
             raise ArtifactWriteError("Cannot finalize an empty frame-result run")
+        normalized_metadata = _normalize_metadata(metadata)
 
         try:
             videos = self._verify_and_hash_persisted_records()
@@ -230,7 +269,7 @@ class FrameResultWriter:
             "run_id": self.run_id,
             "record_count": len(self._predictions),
             "videos": videos,
-            "metadata": metadata,
+            "metadata": normalized_metadata,
         }
         complete_status = {
             "schema_version": "frame_result_run_status_v1",
@@ -248,6 +287,59 @@ class FrameResultWriter:
             raise ArtifactWriteError(f"Frame result finalization failed: {error}") from error
         self._finalized = True
         return self.manifest_path
+
+    def _require_fresh_owned_tree(self) -> None:
+        stale_artifacts = [
+            path
+            for path in (self.status_path, self.manifest_path)
+            if path.exists()
+        ]
+        try:
+            for directory in (self.predictions_dir, self.evidence_dir):
+                if directory.exists():
+                    stale_artifacts.extend(directory.rglob("*.jsonl"))
+        except OSError as error:
+            raise ArtifactWriteError(
+                f"Cannot verify fresh frame-result output tree: {error}"
+            ) from error
+        if stale_artifacts:
+            raise ArtifactWriteError(
+                "FrameResultWriter requires a fresh output tree; owned artifact "
+                f"already exists: {stale_artifacts[0]}"
+            )
+
+    def _video_paths(self, video_id: str) -> tuple[Path, Path]:
+        if (
+            not _SAFE_VIDEO_ID.fullmatch(video_id)
+            or video_id.endswith(".")
+            or video_id.split(".", 1)[0].upper() in _WINDOWS_RESERVED_NAMES
+        ):
+            raise ArtifactWriteError(
+                "video_id must be one safe filename component using letters, "
+                "digits, dot, underscore, or hyphen"
+            )
+        prediction_root = self.predictions_dir.resolve()
+        evidence_root = self.evidence_dir.resolve()
+        if (
+            prediction_root != self.output_dir / "predictions"
+            or evidence_root != self.output_dir / "evidence"
+            or prediction_root == evidence_root
+        ):
+            raise ArtifactWriteError(
+                "Prediction and evidence directories must be distinct children "
+                "of the output directory"
+            )
+        prediction_path = (prediction_root / f"{video_id}.jsonl").resolve()
+        evidence_path = (evidence_root / f"{video_id}.jsonl").resolve()
+        if (
+            prediction_path.parent != prediction_root
+            or evidence_path.parent != evidence_root
+            or prediction_path == evidence_path
+        ):
+            raise ArtifactWriteError(
+                "video_id did not resolve to distinct prediction and evidence files"
+            )
+        return prediction_path, evidence_path
 
     def _verify_and_hash_persisted_records(self) -> dict[str, dict[str, object]]:
         prediction_samples = {
@@ -268,8 +360,7 @@ class FrameResultWriter:
         video_manifests: dict[str, dict[str, object]] = {}
         video_ids = sorted({record.video_id for record in self._predictions})
         for video_id in video_ids:
-            prediction_path = self.predictions_dir / f"{video_id}.jsonl"
-            evidence_path = self.evidence_dir / f"{video_id}.jsonl"
+            prediction_path, evidence_path = self._video_paths(video_id)
             persisted_predictions = _read_jsonl(prediction_path)
             persisted_evidence = _read_jsonl(evidence_path)
             persisted_prediction_samples = _payload_samples(persisted_predictions)
@@ -317,7 +408,7 @@ class FrameResultWriter:
 
 def _read_jsonl(path: Path) -> list[dict[str, object]]:
     payloads = [
-        json.loads(line)
+        json.loads(line, parse_constant=_reject_nonfinite_json)
         for line in path.read_text(encoding="utf-8").splitlines()
         if line
     ]
@@ -343,4 +434,31 @@ def _payload_samples(
 
 
 def _json_round_trip(payload: object) -> object:
-    return json.loads(json.dumps(payload, default=json_default))
+    return json.loads(
+        json.dumps(payload, default=json_default, allow_nan=False),
+        parse_constant=_reject_nonfinite_json,
+    )
+
+
+def _reject_nonfinite_json(value: str) -> object:
+    raise ValueError(f"non-finite JSON value is not allowed: {value}")
+
+
+def _normalize_metadata(
+    metadata: Mapping[str, object] | None,
+) -> dict[str, bool]:
+    if metadata is None:
+        return {}
+    if not isinstance(metadata, Mapping):
+        raise ArtifactWriteError("metadata must be a mapping when provided")
+    unknown_keys = set(metadata) - _ALLOWED_METADATA_KEYS
+    if unknown_keys:
+        raise ArtifactWriteError(
+            f"metadata contains unsupported keys: {sorted(unknown_keys)!r}"
+        )
+    if "paper_metric_eligible" not in metadata:
+        return {}
+    paper_metric_eligible = metadata["paper_metric_eligible"]
+    if type(paper_metric_eligible) is not bool:
+        raise ArtifactWriteError("paper_metric_eligible metadata must be a real bool")
+    return {"paper_metric_eligible": paper_metric_eligible}

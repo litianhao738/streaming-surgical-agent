@@ -6,6 +6,7 @@ import hashlib
 import json
 from dataclasses import replace
 from pathlib import Path
+from types import MappingProxyType
 
 import pytest
 
@@ -122,6 +123,83 @@ def test_prediction_hash_includes_score_semantics() -> None:
 
 
 @pytest.mark.parametrize(
+    "video_id",
+    [
+        ".",
+        "..",
+        "../escape",
+        "..\\escape",
+        "../evidence/collision",
+        "VID02/other",
+        "VID02\\other",
+        "/absolute",
+        "C:drive-relative",
+        "C:\\absolute",
+        "VID02\nresponse",
+    ],
+)
+def test_writer_rejects_unsafe_video_ids_before_any_owned_write(
+    tmp_path: Path, video_id: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    writer = FrameResultWriter(tmp_path, run_id="run")
+
+    def reject_any_write(path: Path, content: str) -> None:
+        raise AssertionError(f"unsafe identity reached atomic write: {path}")
+
+    monkeypatch.setattr(frame_writer_module, "atomic_write_text", reject_any_write)
+
+    with pytest.raises(ArtifactWriteError, match="video_id"):
+        writer.write(
+            _prediction(video_id=video_id),
+            _evidence(video_id=video_id),
+        )
+
+    assert not (tmp_path / "run_status.json").exists()
+    assert not tuple(tmp_path.rglob("*.jsonl"))
+
+
+@pytest.mark.parametrize(
+    "relative_path",
+    [
+        "run_status.json",
+        "manifest.json",
+        "predictions/VID02.jsonl",
+        "evidence/VID02.jsonl",
+    ],
+)
+def test_writer_requires_a_fresh_owned_artifact_tree(
+    tmp_path: Path, relative_path: str
+) -> None:
+    stale_path = tmp_path / relative_path
+    stale_path.parent.mkdir(parents=True, exist_ok=True)
+    stale_path.write_text("stale\n", encoding="utf-8")
+
+    with pytest.raises(ArtifactWriteError, match="fresh"):
+        FrameResultWriter(tmp_path, run_id="run")
+
+    assert stale_path.read_text(encoding="utf-8") == "stale\n"
+
+
+def test_mapping_proxy_probabilities_hash_write_and_finalize(tmp_path: Path) -> None:
+    base = _prediction()
+    prediction = replace(
+        base,
+        probabilities=MappingProxyType(dict(base.probabilities)),
+    )
+    writer = FrameResultWriter(tmp_path, run_id="run")
+
+    evidence_record = writer.write(prediction, _evidence())
+    manifest_path = writer.finalize({"paper_metric_eligible": False})
+
+    persisted_prediction = _json_lines(tmp_path / "predictions/VID02.jsonl")[0]
+    assert evidence_record.prediction_sha256 == prediction_record_sha256(prediction)
+    assert persisted_prediction["probabilities"]["phase"] == [0.0] * 7
+    assert json.loads(manifest_path.read_text(encoding="utf-8"))["status"] == (
+        "COMPLETE"
+    )
+
+
+@pytest.mark.parametrize(
     ("prediction", "evidence", "message"),
     [
         (_prediction(video_id="VID30"), _evidence(), "identity"),
@@ -225,6 +303,56 @@ def test_finalize_rejects_an_empty_run(tmp_path: Path) -> None:
 
     with pytest.raises(ArtifactWriteError, match="empty"):
         writer.finalize({})
+
+
+@pytest.mark.parametrize(
+    "metadata_key",
+    ["api_key", "secret", "raw_response", "ground_truth"],
+)
+def test_finalize_rejects_unknown_or_sensitive_metadata_keys_before_manifest_write(
+    tmp_path: Path, metadata_key: str
+) -> None:
+    writer = FrameResultWriter(tmp_path, run_id="run")
+    writer.write(_prediction(), _evidence())
+
+    with pytest.raises(ArtifactWriteError, match="metadata"):
+        writer.finalize({metadata_key: "do-not-persist"})
+
+    assert not (tmp_path / "manifest.json").exists()
+    assert json.loads((tmp_path / "run_status.json").read_text())["status"] == (
+        "INCOMPLETE"
+    )
+
+
+@pytest.mark.parametrize("invalid_flag", [0, 1, "false", None, float("nan")])
+def test_finalize_requires_a_real_boolean_paper_metric_flag(
+    tmp_path: Path, invalid_flag: object
+) -> None:
+    writer = FrameResultWriter(tmp_path, run_id="run")
+    writer.write(_prediction(), _evidence())
+
+    with pytest.raises(ArtifactWriteError, match="paper_metric_eligible"):
+        writer.finalize({"paper_metric_eligible": invalid_flag})
+
+    assert not (tmp_path / "manifest.json").exists()
+
+
+def test_finalize_rejects_non_finite_json_in_persisted_records(tmp_path: Path) -> None:
+    writer = FrameResultWriter(tmp_path, run_id="run")
+    writer.write(_prediction(), _evidence())
+    prediction_path = tmp_path / "predictions/VID02.jsonl"
+    prediction_text = prediction_path.read_text(encoding="utf-8")
+    prediction_path.write_text(
+        prediction_text.replace("0.0", "NaN", 1),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ArtifactWriteError, match="non-finite JSON"):
+        writer.finalize({})
+
+    assert json.loads((tmp_path / "run_status.json").read_text())["status"] == (
+        "INCOMPLETE"
+    )
 
 
 @pytest.mark.parametrize("tamper", ["sample", "hash"])
