@@ -10,6 +10,7 @@ from pathlib import Path
 import pytest
 import yaml
 
+import surgical_agent.data.portability as portability
 from surgical_agent.data.portability import (
     PortabilityError,
     assert_output_outside_dataset_root,
@@ -17,6 +18,8 @@ from surgical_agent.data.portability import (
     validate_bundle,
     verify_single_root,
 )
+from surgical_agent.data.schemas import DatasetSplit
+from surgical_agent.data.splits import SplitManifestEntry
 
 
 @pytest.fixture
@@ -107,6 +110,54 @@ def test_bundle_validation_rejects_contradictory_runtime_contract(
 
     with pytest.raises(PortabilityError, match=message):
         validate_bundle(bundle)
+
+
+def test_bundle_validation_rejects_different_well_formed_manifest_hash() -> None:
+    bundle = deepcopy(_valid_bundle())
+    bundle["repair_manifest_sha256"] = "0" * 64
+
+    with pytest.raises(PortabilityError, match="repair_manifest_sha256"):
+        validate_bundle(bundle)
+
+
+def test_preflight_rejects_external_official_path_before_adapter_construction(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "dataset"
+    root.mkdir()
+    external_annotation = tmp_path / "outside" / "vid01.json"
+    entry = SplitManifestEntry(
+        video_id="VID01",
+        split=DatasetSplit.TRAINING,
+        source="test",
+        available_modalities=("annotation_json", "png_frames"),
+        annotation_file=str(external_annotation),
+        media_source=str(root / "Training" / "VID01" / "Frames"),
+    )
+    monkeypatch.setattr(portability, "load_yaml", lambda _: _valid_bundle())
+    monkeypatch.setattr(
+        portability,
+        "discover_official_split_manifest",
+        lambda _: (entry,),
+    )
+    monkeypatch.setattr(
+        portability,
+        "load_derived_supervision_manifest",
+        lambda *_args, **_kwargs: object(),
+    )
+
+    def adapter_must_not_be_constructed(*_args: object, **_kwargs: object) -> object:
+        raise AssertionError("adapter construction must follow containment preflight")
+
+    monkeypatch.setattr(
+        portability,
+        "CholecTrack20DatasetAdapter",
+        adapter_must_not_be_constructed,
+    )
+
+    with pytest.raises(PortabilityError, match="outside"):
+        portability.verify_single_root(root, tmp_path / "bundle.yaml")
 
 
 def test_output_destination_rejects_dataset_descendant_without_writing(

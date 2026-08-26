@@ -12,6 +12,7 @@ from surgical_agent.data.derived_supervision import load_derived_supervision_man
 from surgical_agent.data.splits import discover_official_split_manifest
 
 BUNDLE_SCHEMA_VERSION = "cholectrack20_autodl_bundle_v1"
+REPAIR_MANIFEST_SHA256 = "c3ebb7e0db734be5f8c8418ac1e85bd54a21281664f623c2dacdfba5842d8d04"
 EXPECTED_BUNDLE_KEYS = frozenset(
     {
         "schema_version",
@@ -127,15 +128,11 @@ def validate_bundle(bundle: dict[str, object]) -> dict[str, object]:
         if bundle[key] is not False:
             raise PortabilityError(f"bundle {key} must be false")
 
-    manifest_hash = bundle["repair_manifest_sha256"]
-    if not isinstance(manifest_hash, str) or len(manifest_hash) != 64:
-        raise PortabilityError("bundle repair_manifest_sha256 must be a SHA-256 hex string")
-    try:
-        int(manifest_hash, 16)
-    except ValueError as exc:
-        raise PortabilityError(
-            "bundle repair_manifest_sha256 must be a SHA-256 hex string"
-        ) from exc
+    _require_exact_bundle_value(
+        bundle,
+        "repair_manifest_sha256",
+        REPAIR_MANIFEST_SHA256,
+    )
 
     for role, relative in EXPECTED_REQUIRED_RELATIVE_PATHS.items():
         path = Path(relative)
@@ -170,13 +167,20 @@ def verify_single_root(
         root,
         role="repair_manifest",
     )
+    official_runtime_paths: dict[str, Path] = {}
+    for entry in entries:
+        official_runtime_paths[f"{entry.video_id}:annotation"] = Path(
+            entry.annotation_file
+        )
+        official_runtime_paths[f"{entry.video_id}:media"] = Path(entry.media_source)
+    for role, path in official_runtime_paths.items():
+        assert_within_root(path, root, role=role)
+        if not path.exists():
+            raise PortabilityError(f"required runtime path is missing: {role}")
+
     derived = load_derived_supervision_manifest(
         repair_path,
         dataset_root_override=root,
-    )
-    adapter = CholecTrack20DatasetAdapter(
-        root,
-        derived_manifest_path=repair_path,
     )
     split_counts = Counter(entry.split.value for entry in entries)
     expected_counts = {
@@ -188,10 +192,10 @@ def verify_single_root(
     if len(entries) != 20 or len({entry.video_id for entry in entries}) != 20:
         raise PortabilityError("official bundle must contain 20 unique videos")
 
-    runtime_paths: dict[str, Path] = {"repair_manifest": repair_path}
-    for entry in entries:
-        runtime_paths[f"{entry.video_id}:annotation"] = Path(entry.annotation_file)
-        runtime_paths[f"{entry.video_id}:media"] = Path(entry.media_source)
+    runtime_paths: dict[str, Path] = {
+        "repair_manifest": repair_path,
+        **official_runtime_paths,
+    }
 
     vid30 = derived.video("VID30")
     vid31 = derived.video("VID31")
@@ -217,7 +221,7 @@ def verify_single_root(
         if not path.exists():
             raise PortabilityError(f"required runtime path is missing: {role}")
 
-    expected_manifest_hash = str(bundle["repair_manifest_sha256"])
+    expected_manifest_hash = REPAIR_MANIFEST_SHA256
     if sha256_file(repair_path) != expected_manifest_hash:
         raise PortabilityError("repair_manifest SHA-256 mismatch")
 
@@ -250,6 +254,10 @@ def verify_single_root(
     if observed_materialized != required_relative:
         raise PortabilityError("materialized paths do not match the bundle contract")
 
+    adapter = CholecTrack20DatasetAdapter(
+        root,
+        derived_manifest_path=repair_path,
+    )
     sampled_records = (
         *adapter.collect(("VID02", "VID31"), samples_per_video=1),
         *tuple(adapter.iter_video("VID30", max_samples=1)),
