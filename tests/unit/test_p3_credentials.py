@@ -10,6 +10,11 @@ from surgical_agent.api.credentials import (
 )
 
 
+def _runtime_raw_key(*, padding: str, length: int = 32) -> str:
+    prefix = "".join(chr(value) for value in (82, 65, 87, 45, 75, 69, 89, 45))
+    return prefix + "x" * (length - len(prefix) - len(padding)) + padding
+
+
 def test_api_key_file_splits_only_the_first_equals(tmp_path: Path) -> None:
     path = tmp_path / "key.txt"
     key_name = "REQUESTY_API_" + "KEY"
@@ -19,6 +24,57 @@ def test_api_key_file_splits_only_the_first_equals(tmp_path: Path) -> None:
     assert secret.reveal() == key_value
     assert str(secret) == "<redacted>"
     assert repr(secret) == "SecretValue(<redacted>)"
+
+
+@pytest.mark.parametrize("padding", ("=", "=="))
+def test_api_key_file_accepts_long_raw_padded_key(
+    tmp_path: Path, padding: str
+) -> None:
+    raw_key = _runtime_raw_key(padding=padding)
+    path = tmp_path / "key.txt"
+    path.write_text(raw_key + "\n", encoding="utf-8")
+
+    secret = load_api_key_file(path)
+
+    assert secret.reveal() == raw_key
+
+
+def test_api_key_file_rejects_short_raw_padded_key(tmp_path: Path) -> None:
+    raw_key = _runtime_raw_key(padding="=", length=31)
+    path = tmp_path / "key.txt"
+    path.write_text(raw_key + "\n", encoding="utf-8")
+
+    with pytest.raises(ValueError):
+        load_api_key_file(path)
+
+
+@pytest.mark.parametrize(
+    "raw_key",
+    (
+        _runtime_raw_key(padding="===", length=35),
+        _runtime_raw_key(padding="=", length=32)[:-1] + " \t=",
+        _runtime_raw_key(padding="=", length=32)[:-1],
+    ),
+)
+def test_api_key_file_rejects_malformed_raw_key_without_echoing_content(
+    tmp_path: Path, raw_key: str
+) -> None:
+    path = tmp_path / "key.txt"
+    path.write_text(raw_key + "\n", encoding="utf-8")
+
+    with pytest.raises(ValueError) as caught:
+        load_api_key_file(path)
+
+    assert raw_key not in str(caught.value)
+
+
+def test_api_key_file_rejects_empty_assignment(tmp_path: Path) -> None:
+    path = tmp_path / "key.txt"
+    key_name = "REQUESTY_API_" + "KEY"
+    path.write_text(f"{key_name}=\n", encoding="utf-8")
+
+    with pytest.raises(ValueError):
+        load_api_key_file(path)
 
 
 def test_api_key_file_errors_never_include_file_content(tmp_path: Path) -> None:

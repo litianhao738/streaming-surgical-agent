@@ -30,7 +30,40 @@ def load_api_key_file(path: str | Path) -> SecretValue:
     lines = text.splitlines()
     if len(lines) != 1 or "=" not in lines[0]:
         raise ValueError("API key file must contain one NAME=value line")
-    name, value = lines[0].split("=", 1)
+    line = lines[0]
+    first_equals = line.find("=")
+    prefix = line[:first_equals]
+    suffix = line[first_equals + 1 :]
+
+    trailing_padding = len(line) - len(line.rstrip("="))
+    if trailing_padding in (1, 2):
+        body = line[:-trailing_padding]
+        if (
+            len(line) >= 32
+            and "=" not in body
+            and not any(
+                character.isspace() or ord(character) < 32 or ord(character) == 127
+                for character in line
+            )
+        ):
+            return SecretValue(line)
+
+    # A long delimiter-free prefix followed only by padding-like characters is
+    # a malformed raw credential, not a NAME=value assignment.
+    if (
+        len(line) >= 32
+        and "=" not in prefix
+        and all(
+            character == "="
+            or character.isspace()
+            or ord(character) < 32
+            or ord(character) == 127
+            for character in suffix
+        )
+    ):
+        raise ValueError("API key file contains malformed credential padding")
+
+    name, value = line.split("=", 1)
     if not name.strip() or not value:
         raise ValueError("API key file must contain one non-empty NAME=value line")
     return SecretValue(value)
