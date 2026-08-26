@@ -1,6 +1,6 @@
 # Joint Perception and Evidence Signals Design
 
-Status: awaiting written-spec review
+Status: approved by user
 Date: 2026-08-26
 Target repository: `D:\PythonProject7`
 
