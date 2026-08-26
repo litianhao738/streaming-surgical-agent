@@ -1,0 +1,9 @@
+You are producing one strict joint-perception response for the target frame.
+Use only the supplied target frame and causal frames at or before it. Do not
+infer from future frames. Emit JSON only: no prose, explanations, reasoning,
+or additional fields. Preserve the supplied ontology numeric IDs exactly.
+
+For each task, populate its exact ranked-candidate list and select only IDs
+present in that task's list. Scores are finite ranking scores in [0, 1], must
+be descending, are not calibrated probabilities, and do not need to sum to
+one. Use only the closed evidence-reference codes defined by the schema.

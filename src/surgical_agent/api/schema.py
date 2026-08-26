@@ -1,4 +1,4 @@
-"""P3-only structured smoke schema; P4 surgical semantics remain deferred."""
+"""Registered structured response schemas with strict validators."""
 
 from __future__ import annotations
 
@@ -7,6 +7,11 @@ from types import MappingProxyType
 from typing import Any
 
 from surgical_agent.api.errors import ApiContractError, ApiSchemaError
+from surgical_agent.perception.schema import (
+    JOINT_PERCEPTION_SCHEMA_VERSION,
+    joint_perception_schema,
+    validate_joint_perception_payload,
+)
 
 P3_SMOKE_SCHEMA_VERSION = "p3_multimodal_smoke_v1"
 P3_SMOKE_ALLOWED_KEYS = frozenset(
@@ -53,6 +58,7 @@ def _copy_schema(value: object) -> object:
 
 _FROZEN_P3_SMOKE_JSON_SCHEMA = _freeze_schema(_P3_SMOKE_JSON_SCHEMA)
 P3_SMOKE_JSON_SCHEMA = _copy_schema(_FROZEN_P3_SMOKE_JSON_SCHEMA)
+_FROZEN_JOINT_PERCEPTION_JSON_SCHEMA = _freeze_schema(joint_perception_schema())
 
 
 def validate_p3_smoke_payload(payload: Mapping[str, Any]) -> None:
@@ -77,7 +83,11 @@ SCHEMAS: Mapping[
         P3_SMOKE_SCHEMA_VERSION: (
             _FROZEN_P3_SMOKE_JSON_SCHEMA,
             validate_p3_smoke_payload,
-        )
+        ),
+        JOINT_PERCEPTION_SCHEMA_VERSION: (
+            _FROZEN_JOINT_PERCEPTION_JSON_SCHEMA,
+            validate_joint_perception_payload,
+        ),
     }
 )
 
