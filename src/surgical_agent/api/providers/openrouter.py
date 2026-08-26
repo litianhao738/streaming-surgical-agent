@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 import json
+import math
 import re
 import urllib.error
 import urllib.request
@@ -118,6 +119,14 @@ def _integer_usage(usage: Mapping[str, Any], name: str) -> int:
     if not isinstance(value, int) or isinstance(value, bool) or value < 0:
         raise ValueError("usage is invalid")
     return value
+
+
+def _response_error(code: str) -> ApiTransportError:
+    return ApiTransportError(
+        "OpenRouter response failed a safe parsing stage",
+        code=code,
+        retryable=False,
+    )
 
 
 class OpenRouterTransport:
@@ -282,8 +291,18 @@ class OpenRouterTransport:
             if not isinstance(choices, list) or len(choices) != 1:
                 raise ValueError("response must contain one choice")
             choice = choices[0]
-            if not isinstance(choice, Mapping) or choice.get("finish_reason") != "stop":
-                raise ValueError("response choice is incomplete")
+            if not isinstance(choice, Mapping):
+                raise TypeError("response choice is invalid")
+        except (TypeError, ValueError, UnicodeDecodeError, json.JSONDecodeError):
+            raise _response_error("response_envelope_invalid") from None
+
+        finish_reason = choice.get("finish_reason")
+        if finish_reason == "length":
+            raise _response_error("completion_length")
+        if finish_reason != "stop":
+            raise _response_error("completion_nonstop")
+
+        try:
             message = choice.get("message")
             if not isinstance(message, Mapping):
                 raise TypeError("response message is invalid")
@@ -293,6 +312,10 @@ class OpenRouterTransport:
             parsed_payload = json.loads(output_text)
             if not isinstance(parsed_payload, Mapping):
                 raise TypeError("output JSON must be an object")
+        except (TypeError, ValueError, json.JSONDecodeError):
+            raise _response_error("response_content_invalid") from None
+
+        try:
             usage = decoded.get("usage")
             if not isinstance(usage, Mapping):
                 raise TypeError("usage must be an object")
@@ -300,16 +323,24 @@ class OpenRouterTransport:
             if cost is not None and (
                 not isinstance(cost, (int, float))
                 or isinstance(cost, bool)
+                or not math.isfinite(float(cost))
                 or cost < 0
             ):
                 raise ValueError("usage cost is invalid")
+            input_tokens = _integer_usage(usage, "prompt_tokens")
+            output_tokens = _integer_usage(usage, "completion_tokens")
+            total_tokens = _integer_usage(usage, "total_tokens")
+        except (OverflowError, TypeError, ValueError):
+            raise _response_error("response_usage_invalid") from None
+
+        try:
             return ProviderResponse(
                 provider=self.provider,
                 returned_model_identifier=returned_model,
                 parsed_payload=parsed_payload,
-                input_tokens=_integer_usage(usage, "prompt_tokens"),
-                output_tokens=_integer_usage(usage, "completion_tokens"),
-                total_tokens=_integer_usage(usage, "total_tokens"),
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+                total_tokens=total_tokens,
                 image_count=len(request.images),
                 provider_request_id=response_id,
                 provider_cost=None if cost is None else float(cost),
@@ -317,9 +348,5 @@ class OpenRouterTransport:
                 exact_identity_evidence_source=None,
                 safe_metadata={},
             )
-        except (TypeError, ValueError, UnicodeDecodeError, json.JSONDecodeError):
-            raise ApiTransportError(
-                "OpenRouter response parsing failed",
-                code="parse_failure",
-                retryable=False,
-            ) from None
+        except (TypeError, ValueError):
+            raise _response_error("response_content_invalid") from None

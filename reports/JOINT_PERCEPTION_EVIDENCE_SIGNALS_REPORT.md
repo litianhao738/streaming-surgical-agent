@@ -1,6 +1,6 @@
 # Joint Perception and Evidence Signals Completion Report
 
-Status: `CORE_COMPLETE_REAL_SMOKE_INCOMPLETE_PARSE_FAILURE`
+Status: `CORE_AND_REAL_SINGLE_PASS_COMPLETE`
 
 ## Delivered
 
@@ -19,10 +19,11 @@ Status: `CORE_COMPLETE_REAL_SMOKE_INCOMPLETE_PARSE_FAILURE`
 - Added explicit three-image cached-client accounting coverage, strict config
   bool/int edge coverage, and the repository-wide Ruff annotation fix in
   `perception/contracts.py`.
-- The exact OpenRouter generation contract emits only `max_tokens: 4096`,
-  retains `provider.require_parameters: true`, and omits unsupported
-  `temperature`/`top_p`. Provider-facing schema output omits `uniqueItems`;
-  the local semantic parser still rejects duplicate selected IDs.
+- The exact OpenRouter generation contract emits `max_tokens: 4096` and
+  `reasoning: {effort: low}`, retains `provider.require_parameters: true`, and
+  omits unsupported `temperature`/`top_p`. Provider-facing schema output omits
+  `uniqueItems`; the local semantic parser still rejects duplicate selected
+  IDs.
 - A real origin response must include exact non-null input/output/total token
   counts and finite non-negative cost before parsing or paired persistence.
 
@@ -124,14 +125,39 @@ ran under ID `task10_fix1_real_20260827`. It ended with the safe category
 `602ff5f3af06cc40d0dedb4ed314cf05947fbc3a64b9d1a59939a2f63a31362d`.
 The request retained the same three ordered image hashes listed above.
 
-The transport only reports `parse_failure` after a success-class HTTP response
-cannot be normalized into the required completion/usage contract. The raw body
-is intentionally discarded, so the evidence cannot distinguish response
-shape, finish state, structured content, or usage-field causes. Returned model,
-response ID, input/output/total tokens, and provider cost are unavailable. The
-completion gate therefore did not permit a success artifact, manifest, paired
-prediction/evidence, or cache replay. No retry was made. Runtime allowlist and
-full-token tracked/runtime secret scans were clean.
+At that time, the transport reported the catch-all `parse_failure` after a
+success-class HTTP response could not be normalized into the required
+completion/usage contract. The raw body was intentionally discarded, so the
+evidence cannot distinguish response shape, finish state, structured content,
+or usage-field causes. Returned model, response ID, input/output/total tokens,
+and provider cost are unavailable. The completion gate therefore did not
+permit a success artifact, manifest, paired prediction/evidence, or cache
+replay. No retry was made. Runtime allowlist and full-token tracked/runtime
+secret scans were clean.
+
+### Fix Round 2 authorized success
+
+After adding the supported low-effort reasoning parameter and content-free
+parse-stage taxonomy, exactly one fresh authorized invocation ran under ID
+`task10_fix2_real_20260827`. It succeeded without retry:
+
+- requested and returned model: `openai/gpt-5.6-sol`;
+- response ID: `gen-1787773419-a1u2Eb5T9mmHQmO2zw1w`;
+- request hash:
+  `321dfc79c1fb77acb4c8219de2931733ea5867f3ecffb4f647b32ed59300ef3a`;
+- first request: cache miss, one provider call, zero retries, 609 input tokens,
+  1027 output tokens, 1636 total tokens, cost `0.011488`;
+- rebuilt no-prior request: identical hash, cache hit, zero provider calls,
+  zero retries, and zero current provider cost;
+- ordered image hashes matched all three deterministic synthetic frames;
+- exactly one paired prediction/evidence record and a one-record final
+  manifest were written with `paper_metric_eligible: false`;
+- runtime allowlist and full-token tracked/runtime secret scans were clean.
+
+No raw response/body, parsed provider payload, prompt, image bytes, refusal,
+headers, credential, or argument vector was retained. The earlier HTTP 404 and
+catch-all parse failure remain historical incomplete attempts and are not
+reinterpreted as successes.
 
 ## Boundaries and Concerns
 
@@ -140,7 +166,7 @@ full-token tracked/runtime secret scans were clean.
   `paper_metric_eligible: false`.
 - Instance detection, predicted tracking, the learned Gate, Specialist calls,
   repair coordination, and EventMemory remain outside this slice.
-- The runnable mock/core path is complete. Both real-provider attempts remain
-  incomplete: the earlier HTTP 404 and Fix Round 1 parse failure are not
-  successes, not transient-failure diagnoses, and not exact-backend-identity
-  claims.
+- The runnable mock/core path and the Fix Round 2 real synthetic single pass
+  are complete. The earlier HTTP 404 and Fix Round 1 parse failure remain
+  incomplete historical attempts, without transient-failure diagnoses or
+  exact-backend-identity claims.

@@ -260,39 +260,116 @@ def test_openrouter_network_failures_are_safe_and_retryable(
 
 
 @pytest.mark.parametrize(
-    "mutation",
+    ("mutation", "expected_code", "untrusted_value"),
     [
-        "malformed_json",
-        "wrong_object",
-        "missing_choice",
-        "invalid_output_json",
-        "negative_tokens",
+        pytest.param(
+            "malformed_json",
+            "response_envelope_invalid",
+            "malformed-envelope-detail",
+            id="malformed-json-envelope",
+        ),
+        pytest.param(
+            "wrong_object",
+            "response_envelope_invalid",
+            "untrusted-object-kind",
+            id="wrong-object-envelope",
+        ),
+        pytest.param(
+            "missing_choice",
+            "response_envelope_invalid",
+            "untrusted-choice-detail",
+            id="missing-choice-envelope",
+        ),
+        pytest.param(
+            "completion_length",
+            "completion_length",
+            "untrusted-length-detail",
+            id="length-completion",
+        ),
+        pytest.param(
+            "completion_nonstop",
+            "completion_nonstop",
+            "untrusted-finish-value",
+            id="other-nonstop-completion",
+        ),
+        pytest.param(
+            "null_content",
+            "response_content_invalid",
+            "untrusted-refusal-detail",
+            id="null-content",
+        ),
+        pytest.param(
+            "list_content",
+            "response_content_invalid",
+            "untrusted-list-content",
+            id="list-content",
+        ),
+        pytest.param(
+            "invalid_output_json",
+            "response_content_invalid",
+            "untrusted-invalid-json-content",
+            id="invalid-json-content",
+        ),
+        pytest.param(
+            "missing_usage",
+            "response_usage_invalid",
+            "untrusted-usage-detail",
+            id="missing-usage",
+        ),
+        pytest.param(
+            "negative_tokens",
+            "response_usage_invalid",
+            "untrusted-token-detail",
+            id="bad-usage",
+        ),
     ],
 )
-def test_openrouter_parse_failures_are_typed_and_nonretryable(
+def test_openrouter_parse_failures_use_safe_stage_taxonomy(
     mutation: str,
+    expected_code: str,
+    untrusted_value: str,
 ) -> None:
     response = deepcopy(success_response())
     if mutation == "malformed_json":
-        body = b"{"
+        body = f"{{{untrusted_value}".encode()
     else:
         if mutation == "wrong_object":
-            response["object"] = "chat.completion.chunk"
+            response["object"] = untrusted_value
         elif mutation == "missing_choice":
             response["choices"] = []
+            response["untrusted"] = untrusted_value
+        elif mutation == "completion_length":
+            response["choices"][0]["finish_reason"] = "length"  # type: ignore[index]
+            response["choices"][0]["untrusted"] = untrusted_value  # type: ignore[index]
+        elif mutation == "completion_nonstop":
+            response["choices"][0]["finish_reason"] = untrusted_value  # type: ignore[index]
+        elif mutation == "null_content":
+            response["choices"][0]["message"] = {  # type: ignore[index]
+                "content": None,
+                "refusal": untrusted_value,
+            }
+        elif mutation == "list_content":
+            response["choices"][0]["message"]["content"] = [  # type: ignore[index]
+                {"type": "text", "text": untrusted_value}
+            ]
         elif mutation == "invalid_output_json":
-            response["choices"][0]["message"]["content"] = "not-json"  # type: ignore[index]
-        else:
+            response["choices"][0]["message"]["content"] = untrusted_value  # type: ignore[index]
+        elif mutation == "missing_usage":
+            response.pop("usage")
+            response["untrusted"] = untrusted_value
+        elif mutation == "negative_tokens":
             response["usage"]["prompt_tokens"] = -1  # type: ignore[index]
+            response["usage"]["untrusted"] = untrusted_value  # type: ignore[index]
+        else:
+            raise AssertionError(f"unknown mutation: {mutation}")
         body = json.dumps(response).encode()
 
     with pytest.raises(ApiTransportError) as caught:
         openrouter_transport_returning(200, body).send(sample_request_value())
 
-    assert (caught.value.code, caught.value.retryable) == (
-        "parse_failure",
-        False,
-    )
+    assert (caught.value.code, caught.value.retryable) == (expected_code, False)
+    rendered = f"{caught.value!s} {caught.value!r}"
+    assert untrusted_value not in rendered
 
 
 @pytest.mark.parametrize(

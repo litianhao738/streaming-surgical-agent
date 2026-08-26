@@ -2424,10 +2424,10 @@ maximum number of agents
   rebuilt no-prior request through the same cached client. Mock evidence shows
   one origin provider call and one zero-call/zero-current-cost cache replay.
 - Its OpenRouter body retains strict structured output and
-  `provider.require_parameters: true`, emits only `max_tokens: 4096`, and
-  omits unsupported `temperature`, `top_p`, and provider-facing
-  `uniqueItems`. Duplicate selected IDs remain rejected by local semantic
-  validation.
+  `provider.require_parameters: true`, emits `max_tokens: 4096` with
+  `reasoning: {effort: low}`, and omits unsupported `temperature`, `top_p`,
+  and provider-facing `uniqueItems`. Duplicate selected IDs remain rejected
+  by local semantic validation.
 - A real origin response cannot reach response parsing or paired persistence
   unless input/output/total token counts are exact non-null integers and
   provider cost is finite, non-null, and non-negative.
@@ -2449,6 +2449,14 @@ maximum number of agents
   structured-content, finish-state, or usage-field diagnosis is possible.
   Returned model, response ID, complete token/cost accounting, cache replay,
   and paired artifacts remain unavailable; real evidence is still incomplete.
+- Fix Round 2 replaces that broad category with fixed, content-free stages for
+  invalid envelopes, length/non-stop completions, invalid content, and invalid
+  usage. Exactly one fresh authorized low-reasoning attempt then succeeded:
+  requested/returned model `openai/gpt-5.6-sol`, response ID
+  `gen-1787773419-a1u2Eb5T9mmHQmO2zw1w`, 609 input/1027 output/1636 total
+  tokens, and provider cost `0.011488`. Its rebuilt request had the identical
+  hash and replayed from cache with zero current calls/cost; all three ordered
+  hashes, paired files, and the final one-record manifest were verified.
 - No CholecTrack20 image or paper-performance experiment ran. Instance
   detection, predicted tracking, Gate learning, Specialist verification,
   deterministic repair coordination, and EventMemory remain outside this

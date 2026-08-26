@@ -119,9 +119,11 @@ def _require_exact_config(config: ApiConfig, *, has_credential: bool) -> None:
         raise ApiContractError("single pass requires the exact response schema")
     generation = dict(config.generation_parameters)
     if (
-        set(generation) != {"max_output_tokens"}
+        set(generation) != {"max_output_tokens", "reasoning"}
         or type(generation["max_output_tokens"]) is not int
         or generation["max_output_tokens"] != 4096
+        or not isinstance(generation["reasoning"], Mapping)
+        or dict(generation["reasoning"]) != {"effort": "low"}
     ):
         raise ApiContractError("single pass requires the exact generation settings")
     if config.synthetic_input_required is not True:

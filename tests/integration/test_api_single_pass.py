@@ -151,7 +151,10 @@ def test_joint_configs_freeze_exact_single_pass_identity_and_policy() -> None:
         "requested_model_identifier": "openai/gpt-5.6-sol",
         "prompt_version": "joint_perception_frame_v1",
         "response_schema_version": "joint_perception_frame_v1",
-        "generation_parameters": {"max_output_tokens": 4096},
+        "generation_parameters": {
+            "max_output_tokens": 4096,
+            "reasoning": {"effort": "low"},
+        },
         "provider_options": {"timeout_seconds": 120.0},
         "synthetic_input_required": True,
         "cache_required": True,
@@ -361,6 +364,7 @@ def test_actual_openrouter_transport_sends_exact_joint_request_body(
     assert captured["timeout_seconds"] == 120.0
     assert sent["model"] == "openai/gpt-5.6-sol"
     assert sent["max_tokens"] == 4096
+    assert sent["reasoning"] == {"effort": "low"}
     assert "temperature" not in sent
     assert "top_p" not in sent
     assert sent["provider"] == {"require_parameters": True}
@@ -468,6 +472,10 @@ def test_mock_rejects_credential_before_output_mutation(tmp_path: Path) -> None:
         replace(load_api_config(MOCK_CONFIG), cache_required=False),
         replace(load_api_config(MOCK_CONFIG), data_upload_authorized=True),
         replace(load_api_config(MOCK_CONFIG), max_causal_frames=2),
+        replace(
+            load_api_config(MOCK_CONFIG),
+            generation_parameters={"max_output_tokens": 4096},
+        ),
         replace(
             load_api_config(MOCK_CONFIG),
             generation_parameters={"max_output_tokens": 4096, "temperature": 0.0},
