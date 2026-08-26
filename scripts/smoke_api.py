@@ -31,7 +31,7 @@ from surgical_agent.api.credentials import (
     assert_secret_absent,
     resolve_api_key,
 )
-from surgical_agent.api.errors import ApiContractError, ApiError
+from surgical_agent.api.errors import ApiCallFailure, ApiContractError, ApiError
 from surgical_agent.api.registry import (
     build_transport,
     build_validator,
@@ -283,6 +283,8 @@ def run(args: argparse.Namespace) -> Path:
 
 
 def _safe_error_category(exc: BaseException) -> str:
+    if isinstance(exc, ApiCallFailure):
+        return exc.cause.code
     if isinstance(exc, ApiError):
         return exc.code
     if isinstance(exc, UnicodeError):
