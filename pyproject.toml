@@ -30,6 +30,7 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 "surgical_agent.perception.prompts" = ["*.txt", "*.json"]
+"surgical_agent.research.signals.resources" = ["*.csv"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
