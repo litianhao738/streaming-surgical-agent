@@ -13,9 +13,11 @@ Status: `CORE_AND_REAL_SINGLE_PASS_COMPLETE`
   `FrameEvidenceSignalExtractor`, disabled candidates/Specialists,
   `NeverVerify`, `NoOpCoordinator`, no-op causal stores,
   `PredictionFinalizer`, and a fresh `FrameResultWriter`.
-- The same client replays a rebuilt no-prior request from an ephemeral cache;
-  the pipeline is not run twice and no parsed provider payload is retained in
-  the run directory.
+- The same client replays a rebuilt no-prior request from the run-owned,
+  hash-addressed `api_cache`; the pipeline is not run twice. The cache retains
+  only canonical safe request metadata and the validated parsed structured
+  response needed for reconstruction, never the raw provider response, prompt,
+  image bytes, credential, headers, refusal, or argument vector.
 - Added explicit three-image cached-client accounting coverage, strict config
   bool/int edge coverage, and the repository-wide Ruff annotation fix in
   `perception/contracts.py`.
@@ -62,6 +64,20 @@ D:\PythonProject7\.venv-p2\Scripts\python.exe -m pytest tests/integration/test_a
 18 passed in 8.83s
 ```
 
+Persistent-cache regression RED on `c8f8005`:
+
+```text
+KeyError: 'cache_provenance'
+AssertionError: expected one api_cache/<request_hash>.json entry, observed []
+2 failed in 3.15s
+```
+
+After moving the immutable cache envelope under the run destination:
+
+```text
+2 passed in 3.08s
+```
+
 The inherited three-image cache/config characterization tests passed before
 runner implementation: `12 passed in 0.56s`.
 
@@ -74,8 +90,9 @@ runner implementation: `12 passed in 0.56s`.
 - Python: `3.11.7`.
 - Key packages: Torch `2.13.0+cpu`, Pillow `12.3.0`, PyYAML `6.0.3`, pytest
   `9.1.1`, Ruff `0.16.4`.
-- Final focused API/integration surface: `121 passed, 1 skipped in 11.55s`.
-- Final repository suite: `562 passed, 13 skipped in 21.01s`.
+- Final focused cache/client/request-hash and integration surface:
+  `149 passed, 1 skipped in 11.87s`.
+- Final repository suite: `563 passed, 13 skipped in 21.47s`.
 - Ruff after the final behavior change: `All checks passed!`.
 - Full-token tracked-source secret scan returned no match (`git grep` exit 1).
   The literal prefix command in the plan also matches inherited safe docs,
@@ -161,6 +178,22 @@ No raw response/body, parsed provider payload, prompt, image bytes, refusal,
 headers, credential, or argument vector was retained. The earlier HTTP 404 and
 catch-all parse failure remain historical incomplete attempts and are not
 reinterpreted as successes.
+
+### Persistent cache completion
+
+The final local-only correction replaces the runner's temporary cache with one
+immutable `api_cache/<request_hash>.json` envelope under each completed run.
+The success artifact records the cache schema, relative directory and entry
+path, and the identical canonical request hash. Integration coverage rebuilds
+the original request metadata, loads the envelope through `FileApiCache.get`,
+then replays it through a separately constructed client with zero mock
+transport calls, zero retries, and zero current provider cost.
+
+The cache envelope intentionally retains the already validated parsed
+structured response so that replay is possible. It does not retain the API
+key, raw provider response/body, system or input prompt, image bytes, headers,
+refusal, or argument vector. No real API call was made for this correction;
+the Fix Round 2 real evidence above remains historical and unchanged.
 
 ## Boundaries and Concerns
 

@@ -7,7 +7,6 @@ import math
 import re
 import subprocess
 import sys
-import tempfile
 from collections.abc import Mapping
 from datetime import UTC, datetime
 from pathlib import Path
@@ -20,7 +19,7 @@ if str(SRC_ROOT) not in sys.path:
 
 import torch
 
-from surgical_agent.api.cache import FileApiCache
+from surgical_agent.api.cache import CACHE_SCHEMA_VERSION, FileApiCache
 from surgical_agent.api.client import CachedMultimodalApiClient
 from surgical_agent.api.contracts import ApiRequest, ProviderResponse, ProviderTransport
 from surgical_agent.api.credentials import (
@@ -331,68 +330,72 @@ def run_single_pass(
     request_builder = JointPerceptionRequestBuilder(config=config)
     sample, frames = _synthetic_input()
 
-    with tempfile.TemporaryDirectory(prefix="joint-perception-cache-") as cache_root:
-        client_transport = (
-            _RealAccountingTransport(selected_transport)
-            if config.mode == "real"
-            else selected_transport
-        )
-        client = CachedMultimodalApiClient(
-            transport=client_transport,
-            cache=FileApiCache(cache_root),
-            usage=usage,
-            validator=validator,
-            retry_policy=RetryPolicy(
-                max_attempts=1,
-                base_delay_seconds=0.0,
-                max_delay_seconds=0.0,
+    cache = FileApiCache(destination / "api_cache")
+    client_transport = (
+        _RealAccountingTransport(selected_transport)
+        if config.mode == "real"
+        else selected_transport
+    )
+    client = CachedMultimodalApiClient(
+        transport=client_transport,
+        cache=cache,
+        usage=usage,
+        validator=validator,
+        retry_policy=RetryPolicy(
+            max_attempts=1,
+            base_delay_seconds=0.0,
+            max_delay_seconds=0.0,
+        ),
+        sleep=lambda _seconds: None,
+    )
+    pipeline = CanonicalStreamingPipeline(
+        PipelineComponents(
+            context_builder=context_builder,
+            perception=JointApiVlm(
+                client=client,
+                request_builder=request_builder,
+                data_upload_authorized=config.data_upload_authorized,
             ),
-            sleep=lambda _seconds: None,
+            candidate_generator=DisabledCandidateGenerator(),
+            signal_extractor=FrameEvidenceSignalExtractor(),
+            gate_policy=NeverVerify(),
+            specialist_registry=DisabledSpecialistRegistry(),
+            coordinator=NoOpCoordinator(),
+            finalizer=PredictionFinalizer(),
+            workflow_store=NoOpCausalStore("workflow"),
+            event_memory=NoOpCausalStore("memory"),
+            result_sink=writer,
         )
-        pipeline = CanonicalStreamingPipeline(
-            PipelineComponents(
-                context_builder=context_builder,
-                perception=JointApiVlm(
-                    client=client,
-                    request_builder=request_builder,
-                    data_upload_authorized=config.data_upload_authorized,
-                ),
-                candidate_generator=DisabledCandidateGenerator(),
-                signal_extractor=FrameEvidenceSignalExtractor(),
-                gate_policy=NeverVerify(),
-                specialist_registry=DisabledSpecialistRegistry(),
-                coordinator=NoOpCoordinator(),
-                finalizer=PredictionFinalizer(),
-                workflow_store=NoOpCausalStore("workflow"),
-                event_memory=NoOpCausalStore("memory"),
-                result_sink=writer,
-            )
-        )
-        pipeline_result = pipeline.run(sample, frames, run_id=effective_run_id)
-        first_rows = usage.records()
-        if len(first_rows) != 1:
-            raise ApiContractError("pipeline must produce exactly one logical API call")
+    )
+    pipeline_result = pipeline.run(sample, frames, run_id=effective_run_id)
+    first_rows = usage.records()
+    if len(first_rows) != 1:
+        raise ApiContractError("pipeline must produce exactly one logical API call")
 
-        probe_context = context_builder.build(
-            sample,
-            frames,
-            workflow_snapshot={},
-            memory_snapshot={},
-            prior_finalized_prediction=None,
-        )
-        probe_request = request_builder.build(probe_context)
-        probe_metadata = canonical_request_metadata(probe_request)
-        if first_rows[0]["request_hash"] != probe_metadata.request_hash:
-            raise ApiContractError(
-                "rebuilt no-prior request differs from pipeline request"
-            )
-        client.call(probe_request)
+    probe_context = context_builder.build(
+        sample,
+        frames,
+        workflow_snapshot={},
+        memory_snapshot={},
+        prior_finalized_prediction=None,
+    )
+    probe_request = request_builder.build(probe_context)
+    probe_metadata = canonical_request_metadata(probe_request)
+    if first_rows[0]["request_hash"] != probe_metadata.request_hash:
+        raise ApiContractError("rebuilt no-prior request differs from pipeline request")
+    client.call(probe_request)
 
     rows = usage.records()
     if len(rows) != 2:
         raise ApiContractError("single pass requires one call and one cache probe")
     first, second = rows
     _assert_call_contract(first, second)
+    cache_path = cache.path_for(probe_metadata.request_hash)
+    cache_files = sorted(cache.root.glob("*.json"))
+    if cache_files != [cache_path] or not cache_path.is_file():
+        raise ApiContractError(
+            "single pass must persist exactly one canonical cache envelope"
+        )
     image_rows = [
         {"identifier": image.identifier, "sha256": image.sha256}
         for image in probe_metadata.images
@@ -425,6 +428,12 @@ def run_single_pass(
         "model_returned": first["returned_model_identifier"],
         "response_id": first["provider_request_id"],
         "request_hash": first["request_hash"],
+        "cache_provenance": {
+            "schema_version": CACHE_SCHEMA_VERSION,
+            "directory": "api_cache",
+            "entry_file": cache_path.relative_to(destination).as_posix(),
+            "request_hash": first["request_hash"],
+        },
         "causal_frame_ids": list(sample.causal_frame_ids),
         "frame_tensor_shape": list(frames.shape),
         "images": image_rows,

@@ -13,7 +13,9 @@ from pathlib import Path
 
 import pytest
 
-from scripts.run_api_single_pass import run_single_pass
+from scripts.run_api_single_pass import _synthetic_input, run_single_pass
+from surgical_agent.api.cache import FileApiCache
+from surgical_agent.api.client import CachedMultimodalApiClient
 from surgical_agent.api.contracts import ApiRequest, ProviderResponse
 from surgical_agent.api.credentials import SecretValue
 from surgical_agent.api.errors import (
@@ -21,8 +23,15 @@ from surgical_agent.api.errors import (
     ApiContractError,
     ApiTransportError,
 )
+from surgical_agent.api.providers.mock import MockProviderTransport
 from surgical_agent.api.providers.openrouter import HttpResponse, OpenRouterTransport
+from surgical_agent.api.registry import build_validator
+from surgical_agent.api.request_hash import canonical_request_metadata
+from surgical_agent.api.retry import RetryPolicy
+from surgical_agent.api.usage import UsageLedger
 from surgical_agent.config.loader import load_api_config, load_yaml
+from surgical_agent.perception.context_builder import CausalPerceptionContextBuilder
+from surgical_agent.perception.joint_api_vlm import JointPerceptionRequestBuilder
 from surgical_agent.perception.schema import (
     JOINT_PERCEPTION_SCHEMA_VERSION,
     TASK_LAYOUT,
@@ -251,9 +260,19 @@ def test_single_pass_mock_writes_one_safe_prediction_evidence_pair(
     assert manifest["record_count"] == 1
     assert manifest["metadata"] == {"paper_metric_eligible": False}
     assert _read_json(output_dir / artifact["artifact_file"]) == artifact
-    assert not (output_dir / "api_cache").exists()
+    assert artifact["cache_provenance"] == {
+        "schema_version": "api_cache_entry_v2",
+        "directory": "api_cache",
+        "entry_file": f"api_cache/{artifact['request_hash']}.json",
+        "request_hash": artifact["request_hash"],
+    }
+    assert (output_dir / artifact["cache_provenance"]["entry_file"]).is_file()
 
-    persisted = _persisted_text(output_dir).lower()
+    persisted = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in sorted(output_dir.rglob("*"))
+        if path.is_file() and "api_cache" not in path.relative_to(output_dir).parts
+    ).lower()
     for forbidden in (
         "raw_response",
         "parsed_payload",
@@ -267,6 +286,93 @@ def test_single_pass_mock_writes_one_safe_prediction_evidence_pair(
         "evaluation_target",
     ):
         assert forbidden not in persisted
+
+
+def test_mock_single_pass_cache_is_safe_and_replays_with_a_fresh_client(
+    tmp_path: Path,
+) -> None:
+    config = load_api_config(MOCK_CONFIG)
+    output_dir = tmp_path / "run"
+    artifact = run_single_pass(
+        config=config,
+        output_dir=output_dir,
+        api_key=None,
+        run_id="persistent-cache",
+    )
+    sample, frames = _synthetic_input()
+    context_builder = CausalPerceptionContextBuilder(max_frames=3)
+    request_builder = JointPerceptionRequestBuilder(config=config)
+    request = request_builder.build(
+        context_builder.build(
+            sample,
+            frames,
+            workflow_snapshot={},
+            memory_snapshot={},
+            prior_finalized_prediction=None,
+        )
+    )
+    metadata = canonical_request_metadata(request)
+    cache = FileApiCache(output_dir / "api_cache")
+    cache_files = sorted((output_dir / "api_cache").glob("*.json"))
+
+    assert metadata.request_hash == artifact["request_hash"]
+    assert cache_files == [
+        output_dir / "api_cache" / f"{metadata.request_hash}.json"
+    ]
+    envelope = _read_json(cache_files[0])
+    assert set(envelope) == {"schema_version", "request", "response"}
+    assert envelope["schema_version"] == "api_cache_entry_v2"
+    assert envelope["request"] == metadata.to_mapping()
+    cached = cache.get(metadata)
+    assert cached is not None
+    assert cached.request_hash == metadata.request_hash
+    assert cached.cache_hit is False
+    assert cached.provider_call_count == 1
+
+    cache_text = cache_files[0].read_text(encoding="utf-8").lower()
+    assert "parsed_payload" in cache_text
+    for forbidden in (
+        "api_key",
+        "raw_response",
+        "system_text",
+        "input_text",
+        "authorization",
+        "bearer ",
+        '"headers"',
+        "refusal",
+        "data:image",
+        "base64",
+        "ivbor",
+    ):
+        assert forbidden not in cache_text
+
+    replay_transport = MockProviderTransport()
+    replay_usage = UsageLedger(tmp_path / "fresh_client/api_usage.jsonl")
+    replay_client = CachedMultimodalApiClient(
+        transport=replay_transport,
+        cache=FileApiCache(output_dir / "api_cache"),
+        usage=replay_usage,
+        validator=build_validator(config),
+        retry_policy=RetryPolicy(
+            max_attempts=1,
+            base_delay_seconds=0.0,
+            max_delay_seconds=0.0,
+        ),
+        sleep=lambda _seconds: None,
+    )
+
+    replay = replay_client.call(request)
+
+    assert replay.request_hash == metadata.request_hash
+    assert replay.cache_hit is True
+    assert replay.provider_call_count == 0
+    assert replay.retry_count == 0
+    assert replay.provider_cost == 0.0
+    assert replay_transport.provider_call_count == 0
+    replay_rows = replay_usage.records()
+    assert len(replay_rows) == 1
+    assert replay_rows[0]["cache_hit"] is True
+    assert replay_rows[0]["provider_call_count"] == 0
 
 
 def test_injected_real_single_pass_uses_one_provider_call_and_reports_identity(

@@ -2432,9 +2432,11 @@ maximum number of agents
   unless input/output/total token counts are exact non-null integers and
   provider cost is finite, non-null, and non-negative.
 - Runtime persistence is allowlisted: usage metadata, image identifiers and
-  hashes, model/request identity, paired prediction/evidence, and manifest.
-  Parsed/raw provider payloads, prompt text, image bytes, credentials, headers,
-  argv, and evaluation targets are not retained.
+  hashes, model/request identity, paired prediction/evidence, manifest, and one
+  immutable `api_cache/<request_hash>.json` envelope. The cache contains exact
+  canonical request metadata and the validated parsed structured response for
+  replay. Raw provider payload/body, prompt text, image bytes, credentials,
+  headers, refusal, argv, and evaluation targets are not retained.
 - The one authorized real synthetic OpenRouter attempt requested
   `openai/gpt-5.6-sol` and failed safely with HTTP 404 after exactly one
   provider call. No returned model, response ID, token/cost, cache-hit, paired
