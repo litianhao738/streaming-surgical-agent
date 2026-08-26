@@ -7,24 +7,24 @@ from pathlib import Path
 
 import torch
 
-from surgical_agent.data.dataset import (
-    CurrentFrameTensorDataset,
-    ResolvedSample,
-)
+from surgical_agent.data.dataset import ResolvedSample
+from surgical_agent.data.schemas import InferenceSample
 from surgical_agent.evaluation.evaluator import EvaluationEngine, SampleSmokeMetrics
+from surgical_agent.inference.frame_result_writer import FrameResultWriter
 from surgical_agent.inference.schemas import PredictionRecord
-from surgical_agent.inference.writer import PredictionWriter
 from surgical_agent.models.baseline import LocalSmokeModel
+from surgical_agent.perception.context_builder import CausalPerceptionContextBuilder
+from surgical_agent.research.signals.frame_evidence import (
+    FrameEvidenceSignalExtractor,
+)
 from surgical_agent.systems.pipeline import (
     CanonicalStreamingPipeline,
     DisabledCandidateGenerator,
     DisabledSpecialistRegistry,
-    FramesOnlyContextBuilder,
     LocalSmokePerception,
     NeverVerify,
     NoOpCausalStore,
     NoOpCoordinator,
-    NoOpSignalExtractor,
     PipelineComponents,
     PredictionFinalizer,
 )
@@ -38,6 +38,19 @@ class BaselineRunResult:
     manifest_path: Path
 
 
+def _load_causal_frames(sample: InferenceSample, *, image_size: int) -> torch.Tensor:
+    import numpy as np
+    from PIL import Image
+
+    frames: list[torch.Tensor] = []
+    for media_ref in sample.media_refs:
+        with Image.open(Path(media_ref)) as image:
+            rgb = image.convert("RGB").resize((image_size, image_size))
+            array = np.asarray(rgb, dtype=np.float32) / 255.0
+        frames.append(torch.from_numpy(array).permute(2, 0, 1).contiguous())
+    return torch.stack(frames)
+
+
 class P2BaselineSystem:
     """Application layer that keeps runtime prediction and offline GT evaluation split."""
 
@@ -46,7 +59,7 @@ class P2BaselineSystem:
         model: LocalSmokeModel,
         *,
         device: torch.device,
-        writer: PredictionWriter,
+        writer: FrameResultWriter,
         image_size: int = 96,
     ) -> None:
         self.writer = writer
@@ -54,17 +67,17 @@ class P2BaselineSystem:
         self.evaluator = EvaluationEngine()
         self.pipeline = CanonicalStreamingPipeline(
             PipelineComponents(
-                context_builder=FramesOnlyContextBuilder(),
+                context_builder=CausalPerceptionContextBuilder(),
                 perception=LocalSmokePerception(model, device=device),
                 candidate_generator=DisabledCandidateGenerator(),
-                signal_extractor=NoOpSignalExtractor(),
+                signal_extractor=FrameEvidenceSignalExtractor(),
                 gate_policy=NeverVerify(),
                 specialist_registry=DisabledSpecialistRegistry(),
                 coordinator=NoOpCoordinator(),
                 finalizer=PredictionFinalizer(),
                 workflow_store=NoOpCausalStore("workflow"),
                 event_memory=NoOpCausalStore("memory"),
-                prediction_writer=writer,
+                result_sink=writer,
             )
         )
 
@@ -75,14 +88,15 @@ class P2BaselineSystem:
         run_id: str,
         manifest_metadata: dict[str, object],
     ) -> BaselineRunResult:
-        dataset = CurrentFrameTensorDataset(records, image_size=self.image_size)
         predictions: list[PredictionRecord] = []
         sample_metrics: list[SampleSmokeMetrics] = []
-        for index, resolved in enumerate(records):
-            tensor_sample = dataset[index]
+        for resolved in records:
             runtime_result = self.pipeline.run(
                 resolved.inference,
-                tensor_sample.image.unsqueeze(0),
+                _load_causal_frames(
+                    resolved.inference,
+                    image_size=self.image_size,
+                ),
                 run_id=run_id,
             )
             predictions.append(runtime_result.prediction)
@@ -95,7 +109,16 @@ class P2BaselineSystem:
                     )
                 )
         metric_summary = self.evaluator.summarize(tuple(sample_metrics))
-        manifest_path = self.writer.finalize(manifest_metadata)
+        paired_manifest_metadata = (
+            {
+                "paper_metric_eligible": manifest_metadata[
+                    "paper_metric_eligible"
+                ]
+            }
+            if "paper_metric_eligible" in manifest_metadata
+            else {}
+        )
+        manifest_path = self.writer.finalize(paired_manifest_metadata)
         return BaselineRunResult(
             predictions=tuple(predictions),
             sample_metrics=tuple(sample_metrics),

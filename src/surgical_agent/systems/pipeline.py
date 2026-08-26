@@ -11,8 +11,17 @@ from torch import Tensor
 
 from surgical_agent.data.schemas import InferenceSample
 from surgical_agent.inference.engine import require_inference_sample
+from surgical_agent.inference.frame_result_writer import FrameResultSink
 from surgical_agent.inference.schemas import InitialPrediction, PredictionRecord
 from surgical_agent.models.baseline import LocalSmokeModel, decode_frame_logits
+from surgical_agent.perception.context_builder import PerceptionContext
+from surgical_agent.perception.contracts import (
+    ApiCallProvenance,
+    JointPerceptionResult,
+    PerceptionBackend,
+    PerceptionEvidence,
+)
+from surgical_agent.research.signals.contracts import EvidenceProfile
 
 
 class PipelineContractError(RuntimeError):
@@ -59,13 +68,85 @@ class FinalizedEvent:
 @dataclass(frozen=True)
 class PipelineRunResult:
     prediction: PredictionRecord
+    evidence: EvidenceProfile
     event: FinalizedEvent
     runtime_trace: tuple[str, ...]
 
 
-class PredictionSink(Protocol):
-    def write(self, record: PredictionRecord) -> None:
-        """Persist one runtime record or raise an artifact error."""
+class ContextBuilder(Protocol):
+    def build(
+        self,
+        sample: InferenceSample,
+        frames: Tensor,
+        *,
+        workflow_snapshot: Mapping[str, Any],
+        memory_snapshot: Mapping[str, Any],
+        prior_finalized_prediction: PredictionRecord | None,
+    ) -> PerceptionContext:
+        raise NotImplementedError
+
+
+class CandidateGenerator(Protocol):
+    def build(self, prediction: InitialPrediction) -> CandidateTrace:
+        raise NotImplementedError
+
+
+class EvidenceSignalExtractor(Protocol):
+    def extract(
+        self,
+        context: PerceptionContext,
+        result: JointPerceptionResult,
+    ) -> EvidenceProfile:
+        raise NotImplementedError
+
+
+class GatePolicy(Protocol):
+    def decide(self, signals: EvidenceProfile) -> GateDecision:
+        raise NotImplementedError
+
+
+class SpecialistRegistry(Protocol):
+    enabled_scopes: tuple[str, ...]
+
+    def verify(
+        self,
+        scope: str,
+        prediction: InitialPrediction,
+    ) -> InitialPrediction:
+        raise NotImplementedError
+
+
+class Coordinator(Protocol):
+    def coordinate(
+        self,
+        prediction: InitialPrediction,
+        decision: GateDecision,
+    ) -> InitialPrediction:
+        raise NotImplementedError
+
+
+class Finalizer(Protocol):
+    def finalize(
+        self,
+        *,
+        run_id: str,
+        sample: InferenceSample,
+        prediction: InitialPrediction,
+        decision: GateDecision,
+        trace: tuple[str, ...],
+    ) -> tuple[PredictionRecord, FinalizedEvent]:
+        raise NotImplementedError
+
+
+class CausalStore(Protocol):
+    def reset(self, video_id: str) -> None:
+        raise NotImplementedError
+
+    def snapshot(self) -> Mapping[str, Any]:
+        raise NotImplementedError
+
+    def update(self, event: FinalizedEvent) -> None:
+        raise NotImplementedError
 
 
 class FramesOnlyContextBuilder:
@@ -103,14 +184,20 @@ class LocalSmokePerception:
         self.device = device
         self.threshold = threshold
 
-    def predict(self, context: ContextBundle) -> InitialPrediction:
+    def predict(self, context: PerceptionContext) -> JointPerceptionResult:
         self.model.eval()
         with torch.no_grad():
-            logits = self.model(context.frames.to(self.device))
+            logits = self.model(context.frames.unsqueeze(0).to(self.device))
         decoded = decode_frame_logits(logits, threshold=self.threshold)
         if len(decoded) != 1:
             raise PipelineContractError("Canonical per-sample runner expects batch size 1")
-        return decoded[0]
+        return JointPerceptionResult(
+            prediction=decoded[0],
+            raw_evidence=PerceptionEvidence.local_unavailable(
+                context.sample.target_frame_id
+            ),
+            api_provenance=ApiCallProvenance.local(),
+        )
 
 
 class DisabledCandidateGenerator:
@@ -119,18 +206,8 @@ class DisabledCandidateGenerator:
         return CandidateTrace(status="DISABLED_TRACEABLE")
 
 
-class NoOpSignalExtractor:
-    def extract(
-        self,
-        prediction: InitialPrediction,
-        candidates: CandidateTrace,
-    ) -> Mapping[str, float]:
-        del prediction, candidates
-        return {}
-
-
 class NeverVerify:
-    def decide(self, signals: Mapping[str, float]) -> GateDecision:
+    def decide(self, signals: EvidenceProfile) -> GateDecision:
         del signals
         return GateDecision(
             action="ACCEPT",
@@ -231,17 +308,17 @@ class PredictionFinalizer:
 
 @dataclass(frozen=True)
 class PipelineComponents:
-    context_builder: FramesOnlyContextBuilder
-    perception: LocalSmokePerception
-    candidate_generator: DisabledCandidateGenerator
-    signal_extractor: NoOpSignalExtractor
-    gate_policy: NeverVerify
-    specialist_registry: DisabledSpecialistRegistry
-    coordinator: NoOpCoordinator
-    finalizer: PredictionFinalizer
-    workflow_store: NoOpCausalStore
-    event_memory: NoOpCausalStore
-    prediction_writer: PredictionSink
+    context_builder: ContextBuilder
+    perception: PerceptionBackend
+    candidate_generator: CandidateGenerator
+    signal_extractor: EvidenceSignalExtractor
+    gate_policy: GatePolicy
+    specialist_registry: SpecialistRegistry
+    coordinator: Coordinator
+    finalizer: Finalizer
+    workflow_store: CausalStore
+    event_memory: CausalStore
+    result_sink: FrameResultSink
 
 
 class CanonicalStreamingPipeline:
@@ -250,10 +327,16 @@ class CanonicalStreamingPipeline:
     def __init__(self, components: PipelineComponents) -> None:
         self.components = components
         self._active_video_id: str | None = None
+        self._prior_finalized_prediction: PredictionRecord | None = None
+
+    @property
+    def prior_finalized_prediction(self) -> PredictionRecord | None:
+        return self._prior_finalized_prediction
 
     def _reset_for_video(self, video_id: str) -> None:
         self.components.workflow_store.reset(video_id)
         self.components.event_memory.reset(video_id)
+        self._prior_finalized_prediction = None
         self._active_video_id = video_id
 
     def run(
@@ -282,39 +365,60 @@ class CanonicalStreamingPipeline:
             frames,
             workflow_snapshot=workflow_snapshot,
             memory_snapshot=memory_snapshot,
+            prior_finalized_prediction=self._prior_finalized_prediction,
         )
         trace.append("04_causal_context_built")
-        initial = self.components.perception.predict(context)
+        perception_result = self.components.perception.predict(context)
+        if not isinstance(perception_result, JointPerceptionResult):
+            raise PipelineContractError(
+                "Perception backend must return a JointPerceptionResult"
+            )
         trace.append("05_perception_validated")
+        evidence = self.components.signal_extractor.extract(
+            context,
+            perception_result,
+        )
+        if not isinstance(evidence, EvidenceProfile):
+            raise PipelineContractError(
+                "Evidence signal extractor must return an EvidenceProfile"
+            )
+        trace.append("06_evidence_profile_built")
+        initial = perception_result.prediction
         candidates = self.components.candidate_generator.build(initial)
-        signals = self.components.signal_extractor.extract(initial, candidates)
-        trace.append("06_candidates_and_signals_built")
-        decision = self.components.gate_policy.decide(signals)
-        trace.append(f"07_gate_{decision.action.lower()}")
+        del candidates
+        trace.append("07_candidates_built")
+        decision = self.components.gate_policy.decide(evidence)
+        trace.append(f"08_gate_{decision.action.lower()}")
         if decision.action == "VERIFY":
             if decision.scope not in self.components.specialist_registry.enabled_scopes:
                 raise PipelineContractError("Gate selected a disabled Specialist scope")
             initial = self.components.specialist_registry.verify(decision.scope, initial)
-            trace.extend(("08_specialist_routed", "09_specialist_result_validated"))
+            trace.extend(("09_specialist_routed", "10_specialist_result_validated"))
         else:
-            trace.extend(("08_specialist_skipped", "09_keep_initial_prediction"))
+            trace.extend(("09_specialist_skipped", "10_keep_initial_prediction"))
         coordinated = self.components.coordinator.coordinate(initial, decision)
-        trace.append("10_coordinator_keep")
+        if coordinated is not initial:
+            raise PipelineContractError(
+                "KEEP coordination must preserve prediction object identity"
+            )
+        trace.append("11_coordinator_keep")
         record, event = self.components.finalizer.finalize(
             run_id=run_id,
             sample=sample,
             prediction=coordinated,
             decision=decision,
-            trace=(*trace, "11_prediction_finalized"),
+            trace=(*trace, "12_prediction_finalized"),
         )
-        trace.append("11_prediction_finalized")
-        self.components.prediction_writer.write(record)
-        trace.append("12_prediction_persisted")
+        trace.append("12_prediction_finalized")
+        self.components.result_sink.write(record, evidence)
+        trace.append("13_result_pair_persisted")
         self.components.workflow_store.update(event)
         self.components.event_memory.update(event)
-        trace.append("13_prior_state_committed")
+        self._prior_finalized_prediction = record
+        trace.append("14_prior_state_committed")
         return PipelineRunResult(
             prediction=record,
+            evidence=evidence,
             event=event,
             runtime_trace=tuple(trace),
         )

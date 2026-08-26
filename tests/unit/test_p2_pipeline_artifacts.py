@@ -12,19 +12,22 @@ import torch
 
 from surgical_agent.data.constants import TASK_CLASS_COUNTS
 from surgical_agent.data.schemas import DatasetSplit, InferenceSample
+from surgical_agent.inference.frame_result_writer import FrameResultWriter
 from surgical_agent.inference.schemas import InitialPrediction, PredictionRecord
-from surgical_agent.inference.writer import ArtifactWriteError, PredictionWriter
+from surgical_agent.inference.writer import ArtifactWriteError
 from surgical_agent.models.baseline import LocalSmokeModel
+from surgical_agent.perception.context_builder import CausalPerceptionContextBuilder
+from surgical_agent.research.signals.frame_evidence import (
+    FrameEvidenceSignalExtractor,
+)
 from surgical_agent.systems.pipeline import (
     CanonicalStreamingPipeline,
     DisabledCandidateGenerator,
     DisabledSpecialistRegistry,
-    FramesOnlyContextBuilder,
     LocalSmokePerception,
     NeverVerify,
     NoOpCausalStore,
     NoOpCoordinator,
-    NoOpSignalExtractor,
     PipelineComponents,
     PredictionFinalizer,
 )
@@ -41,23 +44,23 @@ def _sample(video_id: str, frame_id: int) -> InferenceSample:
     )
 
 
-def _pipeline(writer: PredictionWriter) -> CanonicalStreamingPipeline:
+def _pipeline(writer: FrameResultWriter) -> CanonicalStreamingPipeline:
     return CanonicalStreamingPipeline(
         PipelineComponents(
-            context_builder=FramesOnlyContextBuilder(),
+            context_builder=CausalPerceptionContextBuilder(),
             perception=LocalSmokePerception(
                 LocalSmokeModel(),
                 device=torch.device("cpu"),
             ),
             candidate_generator=DisabledCandidateGenerator(),
-            signal_extractor=NoOpSignalExtractor(),
+            signal_extractor=FrameEvidenceSignalExtractor(),
             gate_policy=NeverVerify(),
             specialist_registry=DisabledSpecialistRegistry(),
             coordinator=NoOpCoordinator(),
             finalizer=PredictionFinalizer(),
             workflow_store=NoOpCausalStore("workflow"),
             event_memory=NoOpCausalStore("memory"),
-            prediction_writer=writer,
+            result_sink=writer,
         )
     )
 
@@ -90,7 +93,7 @@ def test_prediction_schema_rejects_wrong_probability_shape() -> None:
 
 
 def test_pipeline_resets_both_state_slots_at_video_boundary(tmp_path: Path) -> None:
-    writer = PredictionWriter(tmp_path, run_id="reset-test")
+    writer = FrameResultWriter(tmp_path, run_id="reset-test")
     pipeline = _pipeline(writer)
     frame = torch.rand(1, 3, 32, 32)
 
@@ -103,15 +106,15 @@ def test_pipeline_resets_both_state_slots_at_video_boundary(tmp_path: Path) -> N
     assert third.runtime_trace[0] == "01_video_boundary_reset"
     assert pipeline.components.workflow_store.reset_history == ["VID02", "VID30"]
     assert pipeline.components.event_memory.reset_history == ["VID02", "VID30"]
-    assert all(record.gate_action == "ACCEPT" for record in writer.records)
+    assert all(record.gate_action == "ACCEPT" for record in writer.predictions)
 
 
-def test_prediction_writer_materializes_hash_verified_completion_last(
+def test_frame_result_writer_materializes_both_hash_verified_outputs(
     tmp_path: Path,
 ) -> None:
-    writer = PredictionWriter(tmp_path, run_id="writer-test")
+    writer = FrameResultWriter(tmp_path, run_id="writer-test")
     pipeline = _pipeline(writer)
-    pipeline.run(
+    runtime_result = pipeline.run(
         _sample("VID02", 1),
         torch.rand(1, 3, 32, 32),
         run_id="writer-test",
@@ -121,9 +124,17 @@ def test_prediction_writer_materializes_hash_verified_completion_last(
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     assert manifest["status"] == "COMPLETE"
     assert manifest["record_count"] == 1
-    assert manifest["predictions_sha256"] == hashlib.sha256(
-        writer.prediction_path.read_bytes()
+    video_manifest = manifest["videos"]["VID02"]
+    prediction_path = tmp_path / video_manifest["predictions_file"]
+    evidence_path = tmp_path / video_manifest["evidence_file"]
+    assert video_manifest["predictions_sha256"] == hashlib.sha256(
+        prediction_path.read_bytes()
     ).hexdigest()
+    assert video_manifest["evidence_sha256"] == hashlib.sha256(
+        evidence_path.read_bytes()
+    ).hexdigest()
+    assert prediction_path.is_file()
+    assert evidence_path.is_file()
     assert not tuple(tmp_path.glob("*.tmp"))
     with pytest.raises(ArtifactWriteError, match="after writer finalization"):
-        writer.write(writer.records[0])
+        writer.write(runtime_result.prediction, runtime_result.evidence)

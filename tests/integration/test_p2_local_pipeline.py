@@ -14,7 +14,7 @@ from surgical_agent.data.dataset import (
     collate_smoke_batch,
 )
 from surgical_agent.data.schemas import DatasetSplit
-from surgical_agent.inference.writer import PredictionWriter
+from surgical_agent.inference.frame_result_writer import FrameResultWriter
 from surgical_agent.models.baseline import LocalSmokeModel
 from surgical_agent.systems.baseline_system import P2BaselineSystem
 from surgical_agent.training.trainer import LocalSmokeTrainer
@@ -80,7 +80,7 @@ def test_three_video_local_train_and_canonical_inference(
     }
 
     records = training + tuple(adapter.iter_video("VID30", max_samples=2))
-    writer = PredictionWriter(tmp_path, run_id="integration")
+    writer = FrameResultWriter(tmp_path, run_id="integration")
     result = P2BaselineSystem(
         model,
         device=torch.device("cpu"),
@@ -99,3 +99,9 @@ def test_three_video_local_train_and_canonical_inference(
     assert result.metric_summary["sample_count"] == 4
     assert result.metric_summary["metrics"]["phase_accuracy"]["support"] == 4
     assert result.manifest_path.is_file()
+    assert (tmp_path / "predictions/VID02.jsonl").is_file()
+    assert (tmp_path / "evidence/VID02.jsonl").is_file()
+    assert (tmp_path / "predictions/VID31.jsonl").is_file()
+    assert (tmp_path / "evidence/VID31.jsonl").is_file()
+    assert (tmp_path / "predictions/VID30.jsonl").is_file()
+    assert (tmp_path / "evidence/VID30.jsonl").is_file()

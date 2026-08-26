@@ -34,7 +34,7 @@ from surgical_agent.data.dataset import (
     collate_smoke_batch,
 )
 from surgical_agent.data.schemas import DatasetSplit
-from surgical_agent.inference.writer import PredictionWriter
+from surgical_agent.inference.frame_result_writer import FrameResultWriter
 from surgical_agent.models.baseline import LocalSmokeModel
 from surgical_agent.runtime.device import resolve_device
 from surgical_agent.runtime.seed import seed_everything
@@ -244,7 +244,7 @@ def run(args: argparse.Namespace) -> Path:
             )
         )
     )
-    writer = PredictionWriter(output_dir / "inference", run_id=run_id)
+    writer = FrameResultWriter(output_dir / "inference", run_id=run_id)
     runtime_provenance = capture_runtime_provenance(
         device=device,
         seed=seed,
@@ -260,11 +260,6 @@ def run(args: argparse.Namespace) -> Path:
         inference_records,
         run_id=run_id,
         manifest_metadata={
-            "phase": "P2",
-            "config_sha256": config_hash,
-            "source_tree_sha256": source_tree_hash,
-            "repair_manifest_sha256": sha256_file(manifest_path),
-            "runtime": runtime_provenance,
             "paper_metric_eligible": False,
         },
     )
