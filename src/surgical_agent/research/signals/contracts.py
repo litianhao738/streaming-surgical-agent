@@ -10,6 +10,58 @@ from types import MappingProxyType
 from surgical_agent.data.constants import TASK_ID_BOUNDS
 from surgical_agent.perception.contracts import TASK_NAMES
 
+EVIDENCE_SCHEMA_VERSION = "evidence_frame_v1"
+EVIDENCE_RECORD_SCHEMA_VERSION = "evidence_record_v1"
+_TASK_SIGNAL_NAMES = {
+    "instrument": frozenset(
+        {
+            "candidate_ambiguity",
+            "ivt_internal_conflict",
+            "self_reported_uncertainty",
+            "temporal_set_change",
+        }
+    ),
+    "verb": frozenset(
+        {
+            "candidate_ambiguity",
+            "ivt_internal_conflict",
+            "self_reported_uncertainty",
+            "temporal_set_change",
+        }
+    ),
+    "target": frozenset(
+        {
+            "candidate_ambiguity",
+            "ivt_internal_conflict",
+            "self_reported_uncertainty",
+            "temporal_set_change",
+        }
+    ),
+    "ivt": frozenset(
+        {
+            "candidate_ambiguity",
+            "ivt_internal_conflict",
+            "self_reported_uncertainty",
+            "temporal_set_change",
+        }
+    ),
+    "phase": frozenset(
+        {
+            "candidate_ambiguity",
+            "phase_change_anomaly",
+            "self_reported_uncertainty",
+        }
+    ),
+}
+_GLOBAL_SIGNAL_NAMES = frozenset({"ivt_internal_conflict"})
+_SIGNAL_SOURCES = {
+    "candidate_ambiguity": "joint_rank_margin",
+    "ivt_internal_conflict": "ivt_component_map_v1",
+    "phase_change_anomaly": "frozen_phase_transition_graph",
+    "self_reported_uncertainty": "joint_self_reported_confidence",
+    "temporal_set_change": "finalized_prior_jaccard",
+}
+
 
 def _require_nonnegative_int(value: object, *, name: str) -> None:
     if not isinstance(value, int) or isinstance(value, bool) or value < 0:
@@ -64,12 +116,13 @@ class EvidenceProfile:
     frame_id: int
     task_values: Mapping[str, Mapping[str, EvidenceValue]]
     global_values: Mapping[str, EvidenceValue]
-    evidence_version: str = "evidence_frame_v1"
+    evidence_version: str = EVIDENCE_SCHEMA_VERSION
 
     def __post_init__(self) -> None:
         _require_nonempty_string(self.video_id, name="video_id")
         _require_nonnegative_int(self.frame_id, name="frame_id")
-        _require_nonempty_string(self.evidence_version, name="evidence_version")
+        if self.evidence_version != EVIDENCE_SCHEMA_VERSION:
+            raise ValueError(f"unsupported evidence_version: {self.evidence_version!r}")
         if not isinstance(self.task_values, Mapping):
             raise TypeError("task_values must be a mapping")
         if set(self.task_values) != set(TASK_NAMES):
@@ -83,21 +136,71 @@ class EvidenceProfile:
             if not isinstance(values, Mapping):
                 raise TypeError("each task evidence value collection must be a mapping")
             frozen_values = dict(values)
-            _validate_values(frozen_values, frame_id=self.frame_id)
+            _validate_values(
+                frozen_values,
+                frame_id=self.frame_id,
+                allowed_names=_TASK_SIGNAL_NAMES[task],
+            )
             frozen_task_values[task] = MappingProxyType(frozen_values)
         frozen_global_values = dict(self.global_values)
-        _validate_values(frozen_global_values, frame_id=self.frame_id)
+        _validate_values(
+            frozen_global_values,
+            frame_id=self.frame_id,
+            allowed_names=_GLOBAL_SIGNAL_NAMES,
+        )
         object.__setattr__(self, "task_values", MappingProxyType(frozen_task_values))
         object.__setattr__(self, "global_values", MappingProxyType(frozen_global_values))
 
 
-def _validate_values(values: Mapping[str, EvidenceValue], *, frame_id: int) -> None:
+def _validate_values(
+    values: Mapping[str, EvidenceValue],
+    *,
+    frame_id: int,
+    allowed_names: frozenset[str],
+) -> None:
     if any(not isinstance(name, str) or not name for name in values):
         raise ValueError("evidence signal names must be non-empty strings")
     if any(not isinstance(value, EvidenceValue) for value in values.values()):
         raise TypeError("evidence values must be EvidenceValue instances")
+    if set(values) != allowed_names:
+        raise ValueError("evidence signal names must match the allowlisted schema")
+    if any(value.source != _SIGNAL_SOURCES[name] for name, value in values.items()):
+        raise ValueError("evidence sources must match the allowlisted signal sources")
     if any(value.source_max_frame_id > frame_id for value in values.values()):
         raise ValueError("evidence provenance must not reference a future frame")
+
+
+@dataclass(frozen=True)
+class EvidenceRecord:
+    """Persisted evidence paired to one canonical prediction hash."""
+
+    run_id: str
+    video_id: str
+    frame_id: int
+    prediction_sha256: str
+    task_values: Mapping[str, Mapping[str, EvidenceValue]]
+    global_values: Mapping[str, EvidenceValue]
+    evidence_version: str
+    schema_version: str = EVIDENCE_RECORD_SCHEMA_VERSION
+
+    def __post_init__(self) -> None:
+        _require_nonempty_string(self.run_id, name="run_id")
+        if self.schema_version != EVIDENCE_RECORD_SCHEMA_VERSION:
+            raise ValueError(f"unsupported schema_version: {self.schema_version!r}")
+        if (
+            len(self.prediction_sha256) != 64
+            or any(character not in "0123456789abcdef" for character in self.prediction_sha256)
+        ):
+            raise ValueError("prediction_sha256 must be a lowercase SHA-256 hex digest")
+        profile = EvidenceProfile(
+            video_id=self.video_id,
+            frame_id=self.frame_id,
+            task_values=self.task_values,
+            global_values=self.global_values,
+            evidence_version=self.evidence_version,
+        )
+        object.__setattr__(self, "task_values", profile.task_values)
+        object.__setattr__(self, "global_values", profile.global_values)
 
 
 @dataclass(frozen=True)

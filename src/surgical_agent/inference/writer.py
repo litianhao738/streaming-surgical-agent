@@ -18,7 +18,9 @@ class ArtifactWriteError(RuntimeError):
     """Raised when an output cannot be durably materialized."""
 
 
-def _json_default(value: object) -> object:
+def json_default(value: object) -> object:
+    """Serialize the small set of non-JSON values used by artifact contracts."""
+
     if isinstance(value, Enum):
         return value.value
     if isinstance(value, Path):
@@ -26,7 +28,9 @@ def _json_default(value: object) -> object:
     raise TypeError(f"Object of type {type(value).__name__} is not JSON serializable")
 
 
-def _atomic_write(path: Path, content: str) -> None:
+def atomic_write_text(path: Path, content: str) -> None:
+    """Durably replace one UTF-8 text file without exposing a partial file."""
+
     path.parent.mkdir(parents=True, exist_ok=True)
     descriptor, temporary_name = tempfile.mkstemp(
         prefix=f".{path.name}.",
@@ -45,6 +49,11 @@ def _atomic_write(path: Path, content: str) -> None:
         raise ArtifactWriteError(f"Atomic write failed for {path}: {exc}") from exc
     finally:
         temporary.unlink(missing_ok=True)
+
+
+# Compatibility for callers that imported the original private helpers.
+_json_default = json_default
+_atomic_write = atomic_write_text
 
 
 class PredictionWriter:
@@ -77,14 +86,14 @@ class PredictionWriter:
         content = "".join(
             json.dumps(
                 asdict(item),
-                default=_json_default,
+                default=json_default,
                 sort_keys=True,
                 ensure_ascii=True,
             )
             + "\n"
             for item in candidate_records
         )
-        _atomic_write(self.prediction_path, content)
+        atomic_write_text(self.prediction_path, content)
         self._records = candidate_records
         self._sample_ids.add(sample_id)
 
@@ -103,9 +112,9 @@ class PredictionWriter:
             "predictions_sha256": digest,
             "metadata": metadata,
         }
-        _atomic_write(
+        atomic_write_text(
             self.manifest_path,
-            json.dumps(manifest, sort_keys=True, indent=2, default=_json_default) + "\n",
+            json.dumps(manifest, sort_keys=True, indent=2, default=json_default) + "\n",
         )
         self._finalized = True
         return self.manifest_path
