@@ -75,6 +75,30 @@ class CachedMultimodalApiClient:
         provider_call_count: int,
         latency_ms: float,
     ) -> ApiResponseRecord:
+        try:
+            response = ProviderResponse(
+                provider=response.provider,
+                returned_model_identifier=response.returned_model_identifier,
+                parsed_payload=response.parsed_payload,
+                input_tokens=response.input_tokens,
+                output_tokens=response.output_tokens,
+                total_tokens=response.total_tokens,
+                image_count=response.image_count,
+                provider_request_id=response.provider_request_id,
+                timestamp=response.timestamp,
+                provider_cost=response.provider_cost,
+                exact_backend_model_identifier=(
+                    response.exact_backend_model_identifier
+                ),
+                exact_identity_evidence_source=(
+                    response.exact_identity_evidence_source
+                ),
+                safe_metadata=response.safe_metadata,
+            )
+        except (AttributeError, TypeError, ValueError):
+            raise ApiContractError(
+                "Provider response contract validation failed"
+            ) from None
         if response.provider != request.provider:
             raise ApiContractError("Provider response identity mismatch")
         self._validate_payload(response)
@@ -223,7 +247,7 @@ class CachedMultimodalApiClient:
                 retry_count=retried.retry_count,
                 provider_call_count=retried.attempt_count,
                 latency_ms=latency_ms,
-                response=retried.value,
+                response=(None if isinstance(exc, ApiContractError) else retried.value),
             )
             raise
         self.usage.log_success(metadata, record)

@@ -8,6 +8,7 @@ import math
 import re
 from collections.abc import Callable, Mapping
 from dataclasses import asdict, dataclass, field
+from datetime import datetime
 from types import MappingProxyType
 from typing import Any, Protocol
 
@@ -115,9 +116,29 @@ def _require_identity_evidence_pair(
         )
 
 
+def _require_optional_aware_iso_timestamp(value: object, *, name: str) -> None:
+    if value is None:
+        return
+    _require_nonempty_string(value, name=name)
+    try:
+        parsed = datetime.fromisoformat(value)
+    except ValueError:
+        raise ValueError(f"{name} must be a timezone-aware ISO timestamp") from None
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise ValueError(f"{name} must be a timezone-aware ISO timestamp")
+
+
 _GENERATION_PARAMETER_KEYS = frozenset(
-    {"deterministic_mock", "max_output_tokens", "seed", "temperature", "top_p"}
+    {
+        "deterministic_mock",
+        "max_output_tokens",
+        "reasoning",
+        "seed",
+        "temperature",
+        "top_p",
+    }
 )
+_REASONING_EFFORTS = frozenset({"high", "low", "medium"})
 
 
 def freeze_generation_parameters(value: object) -> Mapping[str, Any]:
@@ -170,6 +191,14 @@ def freeze_generation_parameters(value: object) -> Mapping[str, Any]:
                     "generation_parameters.deterministic_mock must be boolean"
                 )
             result[key] = item
+        elif key == "reasoning":
+            reasoning = _require_mapping(item, name="generation_parameters.reasoning")
+            if set(reasoning) != {"effort"}:
+                raise ValueError("generation_parameters.reasoning has invalid fields")
+            effort = reasoning["effort"]
+            if not isinstance(effort, str) or effort not in _REASONING_EFFORTS:
+                raise ValueError("generation_parameters.reasoning.effort is invalid")
+            result[key] = MappingProxyType({"effort": effort})
     return MappingProxyType(result)
 
 
@@ -184,9 +213,16 @@ _SAFE_METADATA_KEYS = frozenset(
 )
 _FINISH_REASONS = frozenset({"content_filter", "length", "stop", "tool_calls"})
 _REQUESTY_CACHE_STATUSES = frozenset({"bypass", "hit", "miss", "unknown"})
-_REQUESTY_PROVIDER_PATTERN = re.compile(r"[a-z0-9][a-z0-9._/-]{0,127}")
 _REQUESTY_REQUEST_ID_PATTERN = re.compile(
     r"(?:chatcmpl|req|request|resp)[-_][A-Za-z0-9._-]{1,120}"
+)
+_UNSAFE_REQUEST_ID_MARKERS = (
+    "api_key",
+    "authorization",
+    "bearer",
+    "key",
+    "secret",
+    "token",
 )
 
 
@@ -220,16 +256,18 @@ def freeze_safe_metadata(
             ):
                 raise ValueError(f"{path}.requesty_latency_ms is invalid")
         elif key == "requesty_provider":
-            if (
-                not isinstance(item, str)
-                or _REQUESTY_PROVIDER_PATTERN.fullmatch(item) is None
-            ):
+            if item != "openai":
                 raise ValueError(f"{path}.requesty_provider is invalid")
-        elif key == "requesty_request_id" and (
-            not isinstance(item, str)
-            or _REQUESTY_REQUEST_ID_PATTERN.fullmatch(item) is None
-        ):
-            raise ValueError(f"{path}.requesty_request_id is invalid")
+        elif key == "requesty_request_id":
+            if not isinstance(item, str):
+                raise ValueError(f"{path}.requesty_request_id is invalid")
+            lowered = item.lower()
+            if (
+                _REQUESTY_REQUEST_ID_PATTERN.fullmatch(item) is None
+                or any(marker in lowered for marker in _UNSAFE_REQUEST_ID_MARKERS)
+                or lowered.startswith(("sk-", "sk_"))
+            ):
+                raise ValueError(f"{path}.requesty_request_id is invalid")
         result[key] = item
     return MappingProxyType(result)
 
@@ -384,6 +422,16 @@ class CanonicalRequestMetadata:
         images = value["images"]
         if not isinstance(images, list):
             raise TypeError("canonical request images must be a list")
+        image_fields = {"identifier", "mime_type", "sha256", "size_bytes"}
+        provenance: list[ImageProvenance] = []
+        for item in images:
+            if not isinstance(item, Mapping):
+                raise TypeError("canonical request image must be a mapping")
+            if set(item) != image_fields:
+                raise ValueError("canonical request image has invalid fields")
+            provenance.append(
+                ImageProvenance(**{name: item[name] for name in image_fields})
+            )
         return cls(
             schema_version=value["schema_version"],
             provider=value["provider"],
@@ -395,7 +443,7 @@ class CanonicalRequestMetadata:
                 value["generation_parameters"]
             ),
             payload_sha256=value["payload_sha256"],
-            images=tuple(ImageProvenance(**dict(item)) for item in images),
+            images=tuple(provenance),
             request_hash=value["request_hash"],
         )
 
@@ -425,11 +473,11 @@ class ProviderResponse:
         )
         for name in (
             "provider_request_id",
-            "timestamp",
             "exact_backend_model_identifier",
             "exact_identity_evidence_source",
         ):
             _require_optional_nonempty_string(getattr(self, name), name=name)
+        _require_optional_aware_iso_timestamp(self.timestamp, name="timestamp")
         _require_identity_evidence_pair(
             self.exact_backend_model_identifier,
             self.exact_identity_evidence_source,
@@ -483,12 +531,12 @@ class ApiResponseRecord:
             _require_nonempty_string(getattr(self, name), name=name)
         _require_sha256(self.request_hash, name="request_hash")
         for name in (
-            "timestamp",
             "provider_request_id",
             "exact_backend_model_identifier",
             "exact_identity_evidence_source",
         ):
             _require_optional_nonempty_string(getattr(self, name), name=name)
+        _require_optional_aware_iso_timestamp(self.timestamp, name="timestamp")
         _require_identity_evidence_pair(
             self.exact_backend_model_identifier,
             self.exact_identity_evidence_source,

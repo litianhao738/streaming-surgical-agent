@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 
+from surgical_agent.api import cache as cache_module
 from surgical_agent.api import errors
 from surgical_agent.api.cache import FileApiCache
 from surgical_agent.api.client import CachedMultimodalApiClient
@@ -17,7 +18,12 @@ from surgical_agent.api.contracts import (
     ApiResponseRecord,
     ProviderResponse,
 )
-from surgical_agent.api.errors import ApiCacheError, ApiSchemaError, ApiTransportError
+from surgical_agent.api.errors import (
+    ApiCacheError,
+    ApiContractError,
+    ApiSchemaError,
+    ApiTransportError,
+)
 from surgical_agent.api.providers.mock import MockProviderTransport
 from surgical_agent.api.request_hash import canonical_request_metadata
 from surgical_agent.api.retry import RetryPolicy, RetryResult
@@ -497,6 +503,28 @@ def test_cache_get_rejects_path_replacement_after_open(
     assert transport.provider_call_count == 1
 
 
+def test_cache_get_wraps_first_filesystem_failure_safely(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    metadata, record = _origin_record()
+    cache = FileApiCache(tmp_path / "cache")
+    cache.put(metadata, record)
+    real_lstat = cache_module.os.lstat
+
+    def denied_lstat(path: object, *args: object, **kwargs: object) -> os.stat_result:
+        if Path(path) == cache.path_for(metadata.request_hash):
+            raise PermissionError("sensitive-path-detail")
+        return real_lstat(path, *args, **kwargs)
+
+    monkeypatch.setattr(cache_module.os, "lstat", denied_lstat)
+
+    with pytest.raises(ApiCacheError) as caught:
+        cache.get(metadata)
+    assert "sensitive-path-detail" not in str(caught.value)
+    assert str(cache.root) not in str(caught.value)
+
+
 def test_cache_get_rejects_stable_symlink_without_reading_target(
     tmp_path: Path,
 ) -> None:
@@ -585,6 +613,73 @@ def test_cache_put_verifies_destination_after_successful_link_race(
     with pytest.raises(ApiCacheError):
         cache.put(metadata, record)
     assert not list(cache.root.glob("*.tmp"))
+
+
+def test_cache_put_rejects_late_replacement_after_parse(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    metadata, record = _origin_record()
+    cache = FileApiCache(tmp_path / "cache")
+    cache_path = cache.path_for(metadata.request_hash)
+    replacement = tmp_path / "post-parse-replacement.json"
+    real_parse = cache._parse_envelope
+    raced = False
+
+    def raced_parse(content: str, expected: object) -> ApiResponseRecord:
+        nonlocal raced
+        parsed = real_parse(content, expected)
+        replacement.write_text("{}", encoding="utf-8")
+        os.replace(replacement, cache_path)
+        raced = True
+        return parsed
+
+    monkeypatch.setattr(cache, "_parse_envelope", raced_parse)
+
+    with pytest.raises(ApiCacheError, match="raced"):
+        cache.put(metadata, record)
+    assert raced is True
+    assert cache_path.read_text(encoding="utf-8") == "{}"
+
+
+def test_cache_reconstruction_rejects_list_pair_image_provenance(
+    tmp_path: Path,
+) -> None:
+    metadata, record = _origin_record()
+    cache = FileApiCache(tmp_path / "cache")
+    path = cache.put(metadata, record)
+    envelope = json.loads(path.read_text(encoding="utf-8"))
+    image = envelope["request"]["images"][0]
+    envelope["request"]["images"] = [list(image.items())]
+    path.write_text(json.dumps(envelope), encoding="utf-8")
+
+    with pytest.raises(ApiCacheError):
+        cache.get(metadata)
+
+
+def test_invalid_transport_timestamp_is_logged_safely_before_cache_put(
+    tmp_path: Path,
+) -> None:
+    poisoned = object.__new__(ProviderResponse)
+    valid = _valid_provider_response()
+    for field_name in valid.__dataclass_fields__:
+        object.__setattr__(poisoned, field_name, getattr(valid, field_name))
+    object.__setattr__(poisoned, "timestamp", "provider body: Bearer SECRET")
+    transport = SequenceTransport([poisoned])
+    client, _ = _client(tmp_path, transport)
+
+    with pytest.raises(ApiContractError, match="contract"):
+        client.call(_request())
+
+    assert not list((tmp_path / "cache").glob("*.json"))
+    rendered = (tmp_path / "api_usage.jsonl").read_text(encoding="utf-8")
+    row = json.loads(rendered)
+    assert row["error"] == {
+        "code": "contract_error",
+        "retryable": False,
+        "status_code": None,
+    }
+    assert "Bearer" not in rendered
 
 
 def test_unsafe_request_metadata_is_rejected_before_any_persistence(

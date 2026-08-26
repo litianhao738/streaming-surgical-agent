@@ -79,6 +79,45 @@ def test_canonical_metadata_mapping_round_trip_is_exact_and_immutable() -> None:
         restored.generation_parameters["temperature"] = 1.0
 
 
+@pytest.mark.parametrize(
+    "images",
+    [
+        [
+            [
+                ("identifier", "synthetic:test"),
+                ("mime_type", "image/png"),
+                ("size_bytes", 7),
+                ("sha256", "0" * 64),
+            ]
+        ],
+        [
+            {
+                "identifier": "synthetic:test",
+                "mime_type": "image/png",
+                "size_bytes": 7,
+                "sha256": "0" * 64,
+                "authorization": "credential",
+            }
+        ],
+        [
+            {
+                "identifier": "synthetic:test",
+                "mime_type": "image/png",
+                "size_bytes": 7,
+            }
+        ],
+    ],
+)
+def test_canonical_metadata_requires_exact_mapping_image_items(
+    images: object,
+) -> None:
+    persisted = request_hash.canonical_request_metadata(_request()).to_mapping()
+    persisted["images"] = images
+
+    with pytest.raises((TypeError, ValueError), match="image"):
+        contracts.CanonicalRequestMetadata.from_mapping(persisted)
+
+
 @pytest.mark.parametrize("mutation", ["missing", "unknown"])
 def test_canonical_metadata_rejects_nonexact_persisted_fields(mutation: str) -> None:
     assert hasattr(contracts, "CanonicalRequestMetadata")
@@ -160,6 +199,11 @@ def test_response_safe_metadata_rejects_body_and_credential_keys() -> None:
         {"max_output_tokens": 0},
         {"seed": True},
         {"deterministic_mock": 1},
+        {"reasoning": "high"},
+        {"reasoning": {}},
+        {"reasoning": {"effort": "extreme"}},
+        {"reasoning": {"effort": "high", "authorization": "credential"}},
+        {"reasoning": {"secret": "credential"}},
     ],
 )
 def test_request_generation_parameters_are_an_exact_typed_allowlist(
@@ -177,6 +221,7 @@ def test_request_accepts_only_the_supported_generation_options() -> None:
             "max_output_tokens": 128,
             "seed": 7,
             "deterministic_mock": True,
+            "reasoning": {"effort": "high"},
         }
     )
 
@@ -186,7 +231,19 @@ def test_request_accepts_only_the_supported_generation_options() -> None:
         "max_output_tokens": 128,
         "seed": 7,
         "deterministic_mock": True,
+        "reasoning": {"effort": "high"},
     }
+
+
+def test_reasoning_round_trip_and_hash_bind_reviewed_effort() -> None:
+    high = _request(generation_parameters={"reasoning": {"effort": "high"}})
+    low = _request(generation_parameters={"reasoning": {"effort": "low"}})
+    restored = contracts.CanonicalRequestMetadata.from_mapping(
+        request_hash.canonical_request_metadata(high).to_mapping()
+    )
+
+    assert restored.generation_parameters == {"reasoning": {"effort": "high"}}
+    assert request_sha256(high) != request_sha256(low)
 
 
 def test_canonical_metadata_revalidates_generation_parameter_allowlist() -> None:
@@ -205,6 +262,13 @@ def test_canonical_metadata_revalidates_generation_parameter_allowlist() -> None
         ({"requesty_latency_ms": True}, "requesty_latency_ms"),
         ({"requesty_latency_ms": math.inf}, "requesty_latency_ms"),
         ({"requesty_cache_status": "authorization"}, "requesty_cache_status"),
+        ({"requesty_provider": "openai/gpt"}, "requesty_provider"),
+        ({"requesty_request_id": "req_Bearer_SECRET123"}, "requesty_request_id"),
+        ({"requesty_request_id": "req_authorization_1"}, "requesty_request_id"),
+        ({"requesty_request_id": "req_token_1"}, "requesty_request_id"),
+        ({"requesty_request_id": "req_secret_1"}, "requesty_request_id"),
+        ({"requesty_request_id": "req_api_key_1"}, "requesty_request_id"),
+        ({"requesty_request_id": "sk-proj-secret"}, "requesty_request_id"),
         ({"finish_reason": "provider error detail"}, "finish_reason"),
         ({"finish_reason": {"nested": "stop"}}, "finish_reason"),
     ],
@@ -229,14 +293,50 @@ def test_response_accepts_normalized_safe_metadata_fields() -> None:
         parsed_payload={},
         safe_metadata={
             "finish_reason": "stop",
-            "requesty_provider": "openai/gpt",
+            "requesty_provider": "openai",
             "requesty_cache_status": "miss",
             "requesty_latency_ms": 12.5,
-            "requesty_request_id": "req_123-ABC",
+            "requesty_request_id": "req_gateway_1",
         },
     )
 
     assert response.safe_metadata["requesty_cache_status"] == "miss"
+
+
+@pytest.mark.parametrize(
+    "timestamp",
+    ["not-a-time", "2026-08-26T00:00:00", "2026-08-26", ""],
+)
+def test_response_contracts_reject_nonaware_iso_timestamps(timestamp: str) -> None:
+    with pytest.raises(ValueError, match="timestamp"):
+        ProviderResponse(
+            provider="mock",
+            returned_model_identifier="returned-model",
+            parsed_payload={},
+            timestamp=timestamp,
+        )
+
+    values = {
+        "provider": "mock",
+        "endpoint_identifier": "mock://local/p3",
+        "request_hash": "0" * 64,
+        "requested_model_identifier": "requested-model",
+        "returned_model_identifier": "returned-model",
+        "parsed_payload": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "image_count": 0,
+        "latency_ms": 0.0,
+        "retry_count": 0,
+        "provider_call_count": 1,
+        "timestamp": timestamp,
+        "cache_hit": False,
+        "provider_cost": 0.0,
+        "origin_provider_cost": 0.0,
+    }
+    with pytest.raises(ValueError, match="timestamp"):
+        ApiResponseRecord(**values)
 
 
 @pytest.mark.parametrize(

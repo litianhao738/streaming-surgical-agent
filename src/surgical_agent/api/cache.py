@@ -6,6 +6,7 @@ import json
 import os
 import stat
 import tempfile
+from dataclasses import dataclass
 from pathlib import Path
 
 from surgical_agent.api.contracts import (
@@ -22,8 +23,19 @@ def _file_identity(value: os.stat_result) -> tuple[int, int]:
     return value.st_dev, value.st_ino
 
 
+@dataclass(frozen=True)
+class _VerifiedRead:
+    content: str
+    identity: tuple[int, int]
+
+
 class FileApiCache:
-    """One immutable, descriptor-verified envelope per canonical request hash."""
+    """One immutable, descriptor-verified envelope per canonical request hash.
+
+    Entry identity is checked before open, after open, after read, and after parsing.
+    This detects ordinary pathname replacement during an operation; it does not lock
+    the cache directory or prevent another process from mutating it after return.
+    """
 
     def __init__(self, root: str | Path) -> None:
         self.root = Path(root).expanduser().resolve()
@@ -36,7 +48,7 @@ class FileApiCache:
         return self.root / f"{request_hash}.json"
 
     @staticmethod
-    def _read_verified(path: Path) -> str | None:
+    def _read_verified(path: Path) -> _VerifiedRead | None:
         try:
             before = os.lstat(path)
         except FileNotFoundError:
@@ -44,7 +56,13 @@ class FileApiCache:
                 os.lstat(path)
             except FileNotFoundError:
                 return None
-            raise ApiCacheError("Cache entry raced from absent to present")
+            except OSError:
+                raise ApiCacheError(
+                    "Cache entry could not be inspected safely"
+                ) from None
+            raise ApiCacheError("Cache entry raced from absent to present") from None
+        except OSError:
+            raise ApiCacheError("Cache entry could not be inspected safely") from None
         if not stat.S_ISREG(before.st_mode):
             raise ApiCacheError("Present cache entry is not a regular file")
 
@@ -54,31 +72,59 @@ class FileApiCache:
         if hasattr(os, "O_NOFOLLOW"):
             flags |= os.O_NOFOLLOW
         descriptor: int | None = None
+        stream = None
         try:
             descriptor = os.open(path, flags)
             opened = os.fstat(descriptor)
-            after = os.lstat(path)
-            if not stat.S_ISREG(opened.st_mode) or not stat.S_ISREG(after.st_mode):
+            after_open = os.lstat(path)
+            if not stat.S_ISREG(opened.st_mode) or not stat.S_ISREG(after_open.st_mode):
                 raise ApiCacheError("Present cache entry is not a regular file")
             identities = {
                 _file_identity(before),
                 _file_identity(opened),
-                _file_identity(after),
+                _file_identity(after_open),
             }
             if len(identities) != 1:
                 raise ApiCacheError("Cache entry raced during verified read")
-            with os.fdopen(descriptor, "r", encoding="utf-8") as stream:
-                descriptor = None
-                return stream.read()
+            stream = os.fdopen(descriptor, "r", encoding="utf-8")
+            descriptor = None
+            content = stream.read()
+            opened_after_read = os.fstat(stream.fileno())
+            after_read = os.lstat(path)
+            if (
+                not stat.S_ISREG(opened_after_read.st_mode)
+                or not stat.S_ISREG(after_read.st_mode)
+                or _file_identity(opened_after_read) not in identities
+                or _file_identity(after_read) not in identities
+            ):
+                raise ApiCacheError("Cache entry raced during verified read")
+            return _VerifiedRead(content, _file_identity(opened_after_read))
         except ApiCacheError:
             raise
-        except (FileNotFoundError, OSError) as exc:
+        except (OSError, UnicodeError):
             raise ApiCacheError(
                 "Cache entry raced or could not be opened safely"
-            ) from exc
+            ) from None
         finally:
-            if descriptor is not None:
-                os.close(descriptor)
+            if stream is not None:
+                try:
+                    stream.close()
+                except OSError:
+                    pass
+            elif descriptor is not None:
+                try:
+                    os.close(descriptor)
+                except OSError:
+                    pass
+
+    @staticmethod
+    def _verify_entry_identity(path: Path, expected: tuple[int, int]) -> None:
+        try:
+            current = os.lstat(path)
+        except OSError:
+            raise ApiCacheError("Cache entry raced after verified read") from None
+        if not stat.S_ISREG(current.st_mode) or _file_identity(current) != expected:
+            raise ApiCacheError("Cache entry raced after verified read")
 
     @staticmethod
     def _parse_envelope(
@@ -145,11 +191,12 @@ class FileApiCache:
 
     def get(self, metadata: CanonicalRequestMetadata) -> ApiResponseRecord | None:
         path = self.path_for(metadata.request_hash)
-        content = self._read_verified(path)
-        if content is None:
+        verified = self._read_verified(path)
+        if verified is None:
             return None
-        response = self._parse_envelope(content, metadata)
+        response = self._parse_envelope(verified.content, metadata)
         self._validate_origin(response)
+        self._verify_entry_identity(path, verified.identity)
         return response
 
     @staticmethod
@@ -183,8 +230,8 @@ class FileApiCache:
         path = self.path_for(metadata.request_hash)
         try:
             self.root.mkdir(parents=True, exist_ok=True)
-        except OSError as exc:
-            raise ApiCacheError("Unable to prepare cache directory") from exc
+        except OSError:
+            raise ApiCacheError("Unable to prepare cache directory") from None
 
         descriptor: int | None = None
         temporary: Path | None = None
@@ -205,10 +252,10 @@ class FileApiCache:
                 os.link(temporary, path)
             except FileExistsError:
                 pass
-            except OSError as exc:
+            except OSError:
                 raise ApiCacheError(
                     "Unable to install cache entry without overwrite"
-                ) from exc
+                ) from None
             existing = self.get(metadata)
             if existing is None or canonical_json_bytes(
                 existing.to_persisted_mapping()
@@ -217,13 +264,16 @@ class FileApiCache:
             return path
         finally:
             if descriptor is not None:
-                os.close(descriptor)
+                try:
+                    os.close(descriptor)
+                except OSError:
+                    pass
             if temporary is not None:
                 try:
                     temporary.unlink()
                 except FileNotFoundError:
                     pass
-                except OSError as exc:
+                except OSError:
                     raise ApiCacheError(
                         "Unable to clean temporary cache entry"
-                    ) from exc
+                    ) from None

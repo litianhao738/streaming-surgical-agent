@@ -128,6 +128,39 @@ def test_usage_record_rejects_corrupt_types_versions_and_bindings(
 
 
 @pytest.mark.parametrize(
+    "images",
+    [
+        [
+            [
+                ("identifier", "synthetic:test"),
+                ("mime_type", "image/png"),
+                ("size_bytes", 7),
+                ("sha256", "0" * 64),
+            ]
+        ],
+        [{"identifier": "synthetic:test", "mime_type": "image/png"}],
+        [
+            {
+                "identifier": "synthetic:test",
+                "mime_type": "image/png",
+                "size_bytes": 7,
+                "sha256": "0" * 64,
+                "secret": "credential",
+            }
+        ],
+    ],
+)
+def test_usage_reconstruction_rejects_nonexact_image_provenance(
+    images: object,
+) -> None:
+    mapping = _valid_usage_mapping()
+    mapping["request"]["images"] = images
+
+    with pytest.raises((TypeError, ValueError), match="image"):
+        UsageRecord.from_mapping(mapping)
+
+
+@pytest.mark.parametrize(
     ("backend", "source"),
     [("backend-model", None), (None, "response.model")],
 )
