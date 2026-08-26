@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 import json
+import re
 import urllib.error
 import urllib.request
 from collections.abc import Mapping
@@ -120,7 +121,7 @@ def _integer_usage(usage: Mapping[str, Any], name: str) -> int:
 
 
 class OpenRouterTransport:
-    """P3 OpenRouter transport for one synthetic image."""
+    """OpenRouter transport for one to three ordered multimodal images."""
 
     provider = "openrouter"
 
@@ -158,20 +159,38 @@ class OpenRouterTransport:
             raise ApiContractError(
                 "Request endpoint does not match OpenRouter transport"
             )
-        if len(request.images) != 1:
+        if not 1 <= len(request.images) <= 3:
             raise ApiContractError(
-                "OpenRouter requires exactly one synthetic image"
+                "OpenRouter requires one to three images"
             )
         input_text = request.payload.get("input_text")
         if not isinstance(input_text, str) or not input_text.strip():
             raise ApiContractError(
                 "OpenRouter requires non-empty payload input_text"
             )
+        system_text = request.payload.get("system_text")
+        if system_text is not None and (
+            not isinstance(system_text, str) or not system_text.strip()
+        ):
+            raise ApiContractError("OpenRouter system_text must be non-empty text")
+
+    @staticmethod
+    def _image_content(image: Any) -> dict[str, object]:
+        encoded = base64.b64encode(image.content).decode("ascii")
+        return {
+            "type": "image_url",
+            "image_url": {"url": f"data:{image.mime_type};base64,{encoded}"},
+        }
+
+    @staticmethod
+    def _schema_name(version: str) -> str:
+        return re.sub(r"[^A-Za-z0-9_]", "_", version)
 
     def _request_body(self, request: ApiRequest) -> bytes:
-        image = request.images[0]
         input_text = request.payload["input_text"]
         assert isinstance(input_text, str)
+        system_text = request.payload.get("system_text")
+        assert system_text is None or isinstance(system_text, str)
         permitted_parameters = {
             key: thaw_json(value)
             for key, value in request.generation_parameters.items()
@@ -185,31 +204,23 @@ class OpenRouterTransport:
             "messages": [
                 {
                     "role": "system",
-                    "content": (
+                    "content": system_text
+                    if system_text is not None
+                    else (
                         "Return only the requested P3 transport-probe JSON. "
                         "Do not emit surgical predictions or P4 instance fields."
                     ),
                 },
                 {
                     "role": "user",
-                    "content": [
-                        {"type": "text", "text": input_text},
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": (
-                                    f"data:{image.mime_type};base64,"
-                                    f"{base64.b64encode(image.content).decode('ascii')}"
-                                )
-                            },
-                        },
-                    ],
+                    "content": [{"type": "text", "text": input_text}]
+                    + [self._image_content(image) for image in request.images],
                 },
             ],
             "response_format": {
                 "type": "json_schema",
                 "json_schema": {
-                    "name": "p3_multimodal_smoke",
+                    "name": self._schema_name(request.response_schema_version),
                     "strict": True,
                     "schema": schema_for(request.response_schema_version),
                 },
@@ -299,7 +310,7 @@ class OpenRouterTransport:
                 input_tokens=_integer_usage(usage, "prompt_tokens"),
                 output_tokens=_integer_usage(usage, "completion_tokens"),
                 total_tokens=_integer_usage(usage, "total_tokens"),
-                image_count=1,
+                image_count=len(request.images),
                 provider_request_id=response_id,
                 provider_cost=None if cost is None else float(cost),
                 exact_backend_model_identifier=None,

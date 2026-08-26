@@ -14,6 +14,7 @@ from surgical_agent.api.credentials import SecretValue
 from surgical_agent.api.errors import ApiContractError, ApiTransportError
 from surgical_agent.api.providers.openrouter import HttpResponse, OpenRouterTransport
 from surgical_agent.api.schema import P3_SMOKE_SCHEMA_VERSION
+from surgical_agent.perception.schema import JOINT_PERCEPTION_SCHEMA_VERSION
 
 ENDPOINT = "https://openrouter.ai/api/v1/chat/completions"
 
@@ -145,6 +146,58 @@ def test_openrouter_sends_chat_multimodal_structured_json() -> None:
     assert response.exact_identity_evidence_source is None
 
 
+def test_openrouter_keeps_three_images_in_causal_tuple_order() -> None:
+    """Catches a transport that silently drops or reorders causal images."""
+
+    captured: dict[str, object] = {}
+
+    def sender(
+        url: str,
+        headers: object,
+        body: bytes,
+        timeout: float,
+    ) -> HttpResponse:
+        captured["body"] = body
+        return HttpResponse(
+            status_code=200,
+            headers={},
+            body=json.dumps(success_response()).encode(),
+        )
+
+    response = OpenRouterTransport(
+        api_key=_fixture_secret(),
+        endpoint_identifier=ENDPOINT,
+        sender=sender,
+    ).send(
+        sample_request_value(
+            response_schema_version=JOINT_PERCEPTION_SCHEMA_VERSION,
+            payload={
+                "system_text": "Return strict joint JSON.",
+                "input_text": "causal-window",
+            },
+            images=(
+                ApiImageInput("synthetic:first", "image/png", b"first"),
+                ApiImageInput("synthetic:second", "image/jpeg", b"second"),
+                ApiImageInput("synthetic:third", "image/webp", b"third"),
+            ),
+        )
+    )
+
+    sent = json.loads(captured["body"])
+    content = sent["messages"][1]["content"]
+    assert sent["messages"][0]["content"] == "Return strict joint JSON."
+    assert content[0] == {"type": "text", "text": "causal-window"}
+    assert [item["image_url"]["url"] for item in content[1:]] == [
+        "data:image/png;base64,Zmlyc3Q=",
+        "data:image/jpeg;base64,c2Vjb25k",
+        "data:image/webp;base64,dGhpcmQ=",
+    ]
+    assert sent["response_format"]["json_schema"]["name"] == (
+        "joint_perception_frame_v1"
+    )
+    assert response.image_count == 3
+
+
 @pytest.mark.parametrize(
     ("status", "code", "retryable"),
     [
@@ -258,9 +311,11 @@ def test_openrouter_parse_failures_are_typed_and_nonretryable(
                 images=(
                     ApiImageInput("one", "image/png", b"a"),
                     ApiImageInput("two", "image/png", b"b"),
+                    ApiImageInput("three", "image/png", b"c"),
+                    ApiImageInput("four", "image/png", b"d"),
                 )
             ),
-            id="two-images",
+            id="four-images",
         ),
         pytest.param(
             sample_request_value(payload={"input_text": ""}),

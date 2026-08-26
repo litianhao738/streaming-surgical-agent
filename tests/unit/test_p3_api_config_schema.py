@@ -49,6 +49,20 @@ def test_openrouter_config_is_effective_and_non_secret() -> None:
     assert not hasattr(config, "api_key")
 
 
+def test_joint_upload_policy_and_causal_frame_limit_survive_typed_loading() -> None:
+    """Catches config loading that discards the joint-perception safety fields."""
+
+    defaults = ApiConfig.from_mapping(_valid_api_mapping())
+    configured = ApiConfig.from_mapping(
+        _valid_api_mapping(data_upload_authorized=True, max_causal_frames=2)
+    )
+
+    assert defaults.data_upload_authorized is False
+    assert defaults.max_causal_frames == 3
+    assert configured.data_upload_authorized is True
+    assert configured.max_causal_frames == 2
+
+
 def test_registry_routes_openrouter_with_secret() -> None:
     config = ApiConfig.from_mapping(_valid_api_mapping())
 

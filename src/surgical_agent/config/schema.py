@@ -78,6 +78,8 @@ class ApiConfig:
     provider_options: Mapping[str, object] = field(default_factory=dict)
     synthetic_input_required: bool = True
     cache_required: bool = True
+    data_upload_authorized: bool = False
+    max_causal_frames: int = 3
 
     @classmethod
     def from_mapping(cls, raw: Mapping[str, object]) -> ApiConfig:
@@ -105,10 +107,20 @@ class ApiConfig:
             text_values[name] = value
         synthetic_input_required = raw.get("synthetic_input_required", True)
         cache_required = raw.get("cache_required", True)
+        data_upload_authorized = raw.get("data_upload_authorized", False)
+        max_causal_frames = raw.get("max_causal_frames", 3)
         if type(synthetic_input_required) is not bool:
             raise ApiContractError("API synthetic_input_required must be boolean")
         if type(cache_required) is not bool:
             raise ApiContractError("API cache_required must be boolean")
+        if type(data_upload_authorized) is not bool:
+            raise ApiContractError("API data_upload_authorized must be boolean")
+        if (
+            not isinstance(max_causal_frames, int)
+            or isinstance(max_causal_frames, bool)
+            or not 1 <= max_causal_frames <= 3
+        ):
+            raise ApiContractError("API max_causal_frames must be an integer in 1..3")
         config = cls(
             enabled=raw["enabled"],
             mode=text_values["mode"],
@@ -127,6 +139,8 @@ class ApiConfig:
             ),
             synthetic_input_required=synthetic_input_required,
             cache_required=cache_required,
+            data_upload_authorized=data_upload_authorized,
+            max_causal_frames=max_causal_frames,
         )
         config.validate()
         return config
@@ -138,6 +152,14 @@ class ApiConfig:
             raise ApiContractError("API synthetic_input_required must be boolean")
         if type(self.cache_required) is not bool:
             raise ApiContractError("API cache_required must be boolean")
+        if type(self.data_upload_authorized) is not bool:
+            raise ApiContractError("API data_upload_authorized must be boolean")
+        if (
+            not isinstance(self.max_causal_frames, int)
+            or isinstance(self.max_causal_frames, bool)
+            or not 1 <= self.max_causal_frames <= 3
+        ):
+            raise ApiContractError("API max_causal_frames must be an integer in 1..3")
         for name in (
             "mode",
             "provider",

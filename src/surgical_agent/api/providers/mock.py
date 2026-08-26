@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import math
 from collections.abc import Mapping
 from datetime import UTC, datetime
@@ -10,6 +11,10 @@ from typing import TYPE_CHECKING
 from surgical_agent.api.contracts import ApiRequest, ProviderResponse
 from surgical_agent.api.errors import ApiContractError, ApiTransportError
 from surgical_agent.api.schema import P3_SMOKE_SCHEMA_VERSION
+from surgical_agent.perception.schema import (
+    JOINT_PERCEPTION_SCHEMA_VERSION,
+    TASK_LAYOUT,
+)
 
 if TYPE_CHECKING:
     from surgical_agent.config.schema import ApiConfig
@@ -101,16 +106,19 @@ class MockProviderTransport:
                 code="mock_transient",
                 retryable=True,
             )
-        payload = (
-            {"schema_version": "malformed"}
-            if self.malformed_payload
-            else {
+        if self.malformed_payload:
+            payload: dict[str, object] = {"schema_version": "malformed"}
+        elif request.response_schema_version == P3_SMOKE_SCHEMA_VERSION:
+            payload = {
                 "schema_version": P3_SMOKE_SCHEMA_VERSION,
                 "message": "deterministic mock multimodal response",
                 "image_observed": bool(request.images),
                 "structured": True,
             }
-        )
+        elif request.response_schema_version == JOINT_PERCEPTION_SCHEMA_VERSION:
+            payload = _joint_perception_payload(request)
+        else:
+            raise ApiContractError("mock transport does not support response schema")
         return ProviderResponse(
             provider=self.provider,
             returned_model_identifier=self.returned_model_identifier,
@@ -124,3 +132,42 @@ class MockProviderTransport:
             provider_cost=self.provider_cost,
             safe_metadata={"finish_reason": "stop"},
         )
+
+
+def _joint_perception_payload(request: ApiRequest) -> dict[str, object]:
+    """Produce the one stable mock response admitted by the joint schema."""
+
+    target_frame_id = 0
+    input_text = request.payload.get("input_text")
+    if isinstance(input_text, str):
+        try:
+            decoded = json.loads(input_text)
+            candidate = (
+                decoded.get("target_frame_id") if isinstance(decoded, Mapping) else None
+            )
+            if (
+                isinstance(candidate, int)
+                and not isinstance(candidate, bool)
+                and candidate >= 0
+            ):
+                target_frame_id = candidate
+        except (TypeError, ValueError):
+            pass
+    payload: dict[str, object] = {"schema_version": JOINT_PERCEPTION_SCHEMA_VERSION}
+    for task, count in TASK_LAYOUT:
+        topk = [
+            {"id": index, "score": 1.0 - index / (count + 1)}
+            for index in range(count)
+        ]
+        payload[task] = (
+            {"selected_id": 0, "topk": topk}
+            if task == "phase"
+            else {"selected_ids": [0], "topk": topk}
+        )
+    payload["evidence_refs"] = [
+        {"frame_id": target_frame_id, "code": "CURRENT_VISUAL_SUPPORT"}
+    ]
+    payload["self_reported_confidence"] = {
+        task: 0.8 for task, _count in TASK_LAYOUT
+    }
+    return payload
