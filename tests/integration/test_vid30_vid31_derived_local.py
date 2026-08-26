@@ -9,12 +9,12 @@ from pathlib import Path
 
 import pytest
 
+from surgical_agent.data.dataset import CholecTrack20DatasetAdapter
 from surgical_agent.data.derived_supervision import (
     load_derived_supervision_manifest,
     load_frame_level_ivt_supervision,
     load_image_phase_supervision,
 )
-from surgical_agent.data.dataset import CholecTrack20DatasetAdapter
 from surgical_agent.data.parser import parse_annotation_file
 from surgical_agent.data.schemas import DatasetSplit
 

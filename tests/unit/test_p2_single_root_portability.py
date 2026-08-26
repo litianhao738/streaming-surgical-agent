@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-import surgical_agent.data.portability as portability
+from surgical_agent.data import portability
 from surgical_agent.data.portability import (
     PortabilityError,
     assert_output_outside_dataset_root,

@@ -80,7 +80,7 @@ class ApiConfig:
     cache_required: bool = True
 
     @classmethod
-    def from_mapping(cls, raw: Mapping[str, object]) -> "ApiConfig":
+    def from_mapping(cls, raw: Mapping[str, object]) -> ApiConfig:
         if not isinstance(raw, Mapping):
             raise ApiContractError("API config must be a mapping")
         required = (

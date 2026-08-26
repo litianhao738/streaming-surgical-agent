@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from types import MappingProxyType
-from typing import Any, Callable
+from typing import Any
 
 from surgical_agent.api.errors import ApiContractError, ApiSchemaError
 
