@@ -130,8 +130,17 @@ class PhaseTransitionGraph:
         if tuple(sorted(set(transitions))) != transitions:
             raise ValueError("transitions must be sorted and unique")
         source_video_ids = tuple(self.source_video_ids)
-        if any(not isinstance(video_id, str) or not video_id for video_id in source_video_ids):
-            raise ValueError("source_video_ids must contain non-empty strings")
+        if not source_video_ids:
+            raise ValueError("source_video_ids must contain at least one video ID")
+        if any(
+            not isinstance(video_id, str)
+            or not video_id
+            or video_id != video_id.strip()
+            for video_id in source_video_ids
+        ):
+            raise ValueError(
+                "source_video_ids must contain stripped non-empty strings"
+            )
         if tuple(sorted(set(source_video_ids))) != source_video_ids:
             raise ValueError("source_video_ids must be sorted and unique")
         _require_nonempty_string(self.version, name="version")
