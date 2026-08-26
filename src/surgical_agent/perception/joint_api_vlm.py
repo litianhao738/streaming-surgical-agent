@@ -18,11 +18,13 @@ from surgical_agent.perception.context_builder import (
 )
 from surgical_agent.perception.contracts import JointPerceptionResult
 from surgical_agent.perception.parser import parse_joint_perception_response
+from surgical_agent.perception.schema import JOINT_PERCEPTION_SCHEMA_VERSION
 
 _BACKEND_NAMES = {
     "openrouter": "joint_openrouter_gpt56sol",
     "mock": "joint_mock",
 }
+_OPENROUTER_JOINT_MODEL_IDENTIFIER = "openai/gpt-5.6-sol"
 
 
 def load_prompt_text() -> str:
@@ -94,8 +96,20 @@ class JointPerceptionRequestBuilder:
     def build(self, context: PerceptionContext) -> ApiRequest:
         if not isinstance(context, PerceptionContext):
             raise TypeError("context must be PerceptionContext")
+        if self.config.provider == "openrouter":
+            if self.config.requested_model_identifier != (
+                _OPENROUTER_JOINT_MODEL_IDENTIFIER
+            ):
+                raise ApiContractError(
+                    "joint OpenRouter requests require the exact GPT-5.6-Sol model"
+                )
+            if self.config.response_schema_version != JOINT_PERCEPTION_SCHEMA_VERSION:
+                raise ApiContractError(
+                    "joint OpenRouter requests require the joint perception schema"
+                )
         if not 1 <= len(context.images) <= self.config.max_causal_frames:
             raise ApiContractError("joint requests require one to three causal images")
+        self._validate_prior(context)
         workflow_summary = safe_workflow_summary(context.workflow_snapshot)
         source_max_frame_id = workflow_summary["source_max_frame_id"]
         if (
@@ -132,6 +146,36 @@ class JointPerceptionRequestBuilder:
             images=context.images,
             generation_parameters=self.config.generation_parameters,
         )
+
+    @staticmethod
+    def _validate_prior(context: PerceptionContext) -> None:
+        """Recheck manually assembled context before it reaches an API boundary."""
+
+        prior = context.prior_finalized_prediction
+        if prior is None:
+            return
+        if not isinstance(prior, PredictionRecord):
+            raise ApiContractError("prior finalized prediction must be a PredictionRecord")
+        if prior.video_id != context.sample.video_id:
+            raise ApiContractError(
+                "prior finalized prediction must be from the same video"
+            )
+        if prior.frame_id >= context.sample.target_frame_id:
+            raise ApiContractError(
+                "prior finalized prediction must be strictly earlier than target"
+            )
+        prior_causal_frame_ids = prior.causal_frame_ids
+        if any(
+            frame_id >= context.sample.target_frame_id
+            for frame_id in prior_causal_frame_ids
+        ):
+            raise ApiContractError(
+                "prior causal frame IDs must be strictly earlier than target"
+            )
+        if tuple(sorted(set(prior_causal_frame_ids))) != prior_causal_frame_ids:
+            raise ApiContractError(
+                "prior causal frame IDs must be unique and increasing"
+            )
 
 
 class JointApiVlm:

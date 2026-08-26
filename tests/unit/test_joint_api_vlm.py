@@ -10,7 +10,9 @@ from surgical_agent.api.contracts import ApiImageInput, ApiResponseRecord
 from surgical_agent.api.errors import ApiContractError
 from surgical_agent.api.request_hash import canonical_request_metadata
 from surgical_agent.config.schema import ApiConfig
+from surgical_agent.data.constants import TASK_CLASS_COUNTS
 from surgical_agent.data.schemas import DatasetSplit, InferenceSample
+from surgical_agent.inference.schemas import PredictionRecord
 from surgical_agent.perception.context_builder import PerceptionContext
 from surgical_agent.perception.joint_api_vlm import (
     JointApiVlm,
@@ -42,6 +44,7 @@ def _context(
     image_ids: tuple[str, ...] = ("synthetic:10", "synthetic:11", "synthetic:12"),
     image_order: tuple[int, ...] = (0, 1, 2),
     workflow_snapshot: dict[str, object] | None = None,
+    prior_finalized_prediction: PredictionRecord | None = None,
 ) -> PerceptionContext:
     images = tuple(
         ApiImageInput(identifier, "image/png", f"image-{index}".encode())
@@ -67,7 +70,7 @@ def _context(
             "recent_finalized_phases": ("preparation",),
         },
         memory_snapshot={},
-        prior_finalized_prediction=None,
+        prior_finalized_prediction=prior_finalized_prediction,
     )
 
 
@@ -107,6 +110,37 @@ class _SpyClient:
             image_count=3,
             provider_call_count=1,
         )
+
+
+def _prior(
+    *,
+    frame_id: int,
+    video_id: str = "VID01",
+    causal_frame_ids: tuple[int, ...] | None = None,
+) -> PredictionRecord:
+    return PredictionRecord(
+        run_id="unit-run",
+        video_id=video_id,
+        frame_id=frame_id,
+        source_split=DatasetSplit.TESTING,
+        causal_frame_ids=(frame_id,)
+        if causal_frame_ids is None
+        else causal_frame_ids,
+        instrument_ids=(0,),
+        verb_ids=(0,),
+        target_ids=(0,),
+        triplet_ids=(0,),
+        phase_id=0,
+        granularity="frame_multilabel",
+        backend="unit-test",
+        gate_action="ACCEPT",
+        verification_status="SKIPPED",
+        alignment_version="unit-test",
+        probabilities={
+            task: (0.0,) * class_count
+            for task, class_count in TASK_CLASS_COUNTS.items()
+        },
+    )
 
 
 def test_three_image_request_hash_depends_on_order_and_context() -> None:
@@ -161,6 +195,96 @@ def test_request_builder_rejects_workflow_state_at_the_target_frame() -> None:
 
     with pytest.raises(ApiContractError, match="strictly earlier"):
         builder.build(_context(workflow_snapshot={"source_max_frame_id": 12}))
+
+
+def test_backend_rejects_same_frame_prior_before_client_call() -> None:
+    """Catches a target-frame prior being sent as causal context."""
+
+    client = _SpyClient()
+    backend = JointApiVlm(
+        client=client,
+        request_builder=JointPerceptionRequestBuilder(config=_config()),
+    )
+
+    with pytest.raises(ApiContractError, match="strictly earlier"):
+        backend.predict(_context(prior_finalized_prediction=_prior(frame_id=12)))
+
+    assert client.call_count == 0
+
+
+def test_backend_rejects_future_prior_history_before_client_call() -> None:
+    """Catches a prior whose causal history contains a future frame."""
+
+    client = _SpyClient()
+    backend = JointApiVlm(
+        client=client,
+        request_builder=JointPerceptionRequestBuilder(config=_config()),
+    )
+
+    with pytest.raises(ApiContractError, match="strictly earlier"):
+        backend.predict(
+            _context(
+                prior_finalized_prediction=_prior(
+                    frame_id=11,
+                    causal_frame_ids=(10, 13, 11),
+                )
+            )
+        )
+
+    assert client.call_count == 0
+
+
+def test_backend_rejects_cross_video_prior_before_client_call() -> None:
+    """Catches a prior finalized for a different video entering the prompt."""
+
+    client = _SpyClient()
+    backend = JointApiVlm(
+        client=client,
+        request_builder=JointPerceptionRequestBuilder(config=_config()),
+    )
+
+    with pytest.raises(ApiContractError, match="same video"):
+        backend.predict(
+            _context(prior_finalized_prediction=_prior(frame_id=11, video_id="VID02"))
+        )
+
+    assert client.call_count == 0
+
+
+@pytest.mark.parametrize(
+    ("config_changes", "message"),
+    [
+        ({"requested_model_identifier": "other/model"}, "model"),
+        ({"response_schema_version": "p3_multimodal_smoke_v1"}, "schema"),
+    ],
+    ids=("wrong-model", "wrong-schema"),
+)
+def test_backend_rejects_non_joint_openrouter_config_before_client_call(
+    config_changes: dict[str, object],
+    message: str,
+) -> None:
+    """Catches an OpenRouter joint call labeled as GPT-5.6-Sol without its contract."""
+
+    client = _SpyClient()
+    openrouter_changes = {
+        "requested_model_identifier": "openai/gpt-5.6-sol",
+        **config_changes,
+    }
+    config = _config(
+        mode="real",
+        provider="openrouter",
+        endpoint_identifier="https://openrouter.ai/api/v1/chat/completions",
+        **openrouter_changes,
+    )
+    backend = JointApiVlm(
+        client=client,
+        request_builder=JointPerceptionRequestBuilder(config=config),
+    )
+
+    with pytest.raises(ApiContractError, match=message):
+        backend.predict(_context())
+
+    assert client.call_count == 0
 
 
 def test_backend_calls_client_once_and_parses_the_joint_result() -> None:
