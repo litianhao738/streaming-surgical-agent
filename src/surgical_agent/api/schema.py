@@ -9,12 +9,14 @@ from typing import Any, Callable
 from surgical_agent.api.errors import ApiContractError, ApiSchemaError
 
 P3_SMOKE_SCHEMA_VERSION = "p3_multimodal_smoke_v1"
-P3_SMOKE_ALLOWED_KEYS = {
-    "schema_version",
-    "message",
-    "image_observed",
-    "structured",
-}
+P3_SMOKE_ALLOWED_KEYS = frozenset(
+    {
+        "schema_version",
+        "message",
+        "image_observed",
+        "structured",
+    }
+)
 _P3_SMOKE_JSON_SCHEMA = {
     "type": "object",
     "additionalProperties": False,

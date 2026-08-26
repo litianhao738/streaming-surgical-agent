@@ -4,6 +4,7 @@ import pytest
 
 from surgical_agent.api.errors import ApiContractError, ApiSchemaError
 from surgical_agent.api.schema import (
+    P3_SMOKE_ALLOWED_KEYS,
     P3_SMOKE_SCHEMA_VERSION,
     schema_for,
     validate_p3_smoke_payload,
@@ -155,6 +156,23 @@ def test_p3_validator_rejects_extra_and_p4_fields() -> None:
     with pytest.raises(ApiSchemaError, match="exact fields"):
         validate_p3_smoke_payload(payload)
     assert schema_for(P3_SMOKE_SCHEMA_VERSION)["additionalProperties"] is False
+
+
+def test_allowed_key_boundary_cannot_be_widened_at_runtime() -> None:
+    extra_key = "".join(("inst", "ances"))
+
+    with pytest.raises(AttributeError):
+        P3_SMOKE_ALLOWED_KEYS.add(extra_key)
+
+    payload = {
+        "schema_version": P3_SMOKE_SCHEMA_VERSION,
+        "message": "ok",
+        "image_observed": True,
+        "structured": True,
+    }
+    payload[extra_key] = []
+    with pytest.raises(ApiSchemaError, match="exact fields"):
+        validate_p3_smoke_payload(payload)
 
 
 @pytest.mark.parametrize(
