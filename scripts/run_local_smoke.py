@@ -147,12 +147,20 @@ def run(args: argparse.Namespace) -> Path:
     manifest_path = Path(manifest_value)
     if not manifest_path.is_absolute():
         manifest_path = dataset_root / manifest_path
+    pipeline_config = resolved.get("pipeline", {})
+    if not isinstance(pipeline_config, dict):
+        raise TypeError("Resolved pipeline config must be a mapping")
+    max_causal_frames = pipeline_config.get("max_causal_frames", 3)
+    if (
+        not isinstance(max_causal_frames, int)
+        or isinstance(max_causal_frames, bool)
+        or not 1 <= max_causal_frames <= 3
+    ):
+        raise RuntimeError("pipeline.max_causal_frames must be an integer in 1..3")
     adapter = CholecTrack20DatasetAdapter(
         dataset_root,
         derived_manifest_path=manifest_path,
-        causal_window_size=int(
-            resolved.get("train", {}).get("window", {}).get("history", 3)
-        ),
+        causal_window_size=max_causal_frames,
     )
 
     config_hash = sha256_mapping(resolved)

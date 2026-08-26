@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 from dataclasses import fields
@@ -10,6 +11,7 @@ from pathlib import Path
 import pytest
 import torch
 
+from scripts import run_local_smoke
 from surgical_agent.data.constants import TASK_CLASS_COUNTS
 from surgical_agent.data.schemas import DatasetSplit, InferenceSample
 from surgical_agent.inference.frame_result_writer import FrameResultWriter
@@ -138,3 +140,53 @@ def test_frame_result_writer_materializes_both_hash_verified_outputs(
     assert not tuple(tmp_path.glob("*.tmp"))
     with pytest.raises(ArtifactWriteError, match="after writer finalization"):
         writer.write(runtime_result.prediction, runtime_result.evidence)
+
+
+def test_local_smoke_real_config_wires_three_frame_perception_window(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config_path = (
+        Path(__file__).resolve().parents[2]
+        / "configs/experiments/local_smoke.yaml"
+    )
+    dataset_root = tmp_path / "dataset"
+    dataset_root.mkdir()
+    observed: dict[str, object] = {}
+
+    class StopAfterAdapterWiring(RuntimeError):
+        pass
+
+    def capture_adapter(
+        root: str | Path,
+        *,
+        derived_manifest_path: str | Path,
+        causal_window_size: int,
+    ) -> object:
+        observed.update(
+            root=Path(root),
+            derived_manifest_path=Path(derived_manifest_path),
+            causal_window_size=causal_window_size,
+        )
+        raise StopAfterAdapterWiring
+
+    monkeypatch.setattr(
+        run_local_smoke,
+        "CholecTrack20DatasetAdapter",
+        capture_adapter,
+    )
+    args = argparse.Namespace(
+        config=config_path,
+        dataset_root=dataset_root,
+        output_root=tmp_path / "output",
+        run_id="config-wiring",
+        device="cpu",
+        image_size=32,
+        skip_full_granularity_audit=True,
+    )
+
+    with pytest.raises(StopAfterAdapterWiring):
+        run_local_smoke.run(args)
+
+    assert observed["root"] == dataset_root.resolve()
+    assert observed["causal_window_size"] == 3

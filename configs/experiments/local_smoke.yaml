@@ -18,6 +18,7 @@ data:
 pipeline:
   runner: canonical_streaming
   context: frames_only
+  max_causal_frames: 3
   perception: local_smoke
   candidate_generator: disabled_traceable
   gate_policy: never_verify

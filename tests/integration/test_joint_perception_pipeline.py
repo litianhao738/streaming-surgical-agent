@@ -4,13 +4,19 @@ from __future__ import annotations
 
 import inspect
 from collections.abc import Mapping
+from dataclasses import replace
+from pathlib import Path
+from types import MappingProxyType
 
 import pytest
 import torch
 
 from surgical_agent.data.constants import TASK_CLASS_COUNTS
 from surgical_agent.data.schemas import DatasetSplit, InferenceSample
-from surgical_agent.inference.frame_result_writer import prediction_record_sha256
+from surgical_agent.inference.frame_result_writer import (
+    FrameResultWriter,
+    prediction_record_sha256,
+)
 from surgical_agent.inference.schemas import InitialPrediction, PredictionRecord
 from surgical_agent.inference.writer import ArtifactWriteError
 from surgical_agent.models.baseline import LocalSmokeModel
@@ -41,6 +47,7 @@ from surgical_agent.systems.pipeline import (
     NoOpCausalStore,
     NoOpCoordinator,
     PipelineComponents,
+    PipelineContractError,
     PredictionFinalizer,
 )
 
@@ -151,11 +158,106 @@ class RecordingFinalizer:
         )
 
 
+class FaultingStore(NoOpCausalStore):
+    def __init__(
+        self,
+        name: str,
+        *,
+        fail_reset: bool = False,
+        fail_update: bool = False,
+    ) -> None:
+        super().__init__(name)
+        self.fail_reset = fail_reset
+        self.fail_update = fail_update
+        self.reset_attempt_count = 0
+        self.update_attempt_count = 0
+
+    def reset(self, video_id: str) -> None:
+        self.reset_attempt_count += 1
+        if self.fail_reset:
+            raise RuntimeError("sensitive reset backend detail")
+        super().reset(video_id)
+
+    def update(self, event: FinalizedEvent) -> None:
+        self.update_attempt_count += 1
+        if self.fail_update:
+            raise RuntimeError("sensitive update backend detail")
+        super().update(event)
+
+
+class VerifyGate:
+    def decide(self, signals: EvidenceProfile) -> GateDecision:
+        del signals
+        return GateDecision(action="VERIFY", scope="forbidden", reason="test")
+
+
+class RecordingSpecialist:
+    enabled_scopes = ("forbidden",)
+
+    def __init__(self) -> None:
+        self.call_count = 0
+
+    def verify(
+        self,
+        scope: str,
+        prediction: InitialPrediction,
+    ) -> InitialPrediction:
+        del scope
+        self.call_count += 1
+        return prediction
+
+
+class AlteringFinalizer:
+    def __init__(self, alteration: str) -> None:
+        self.alteration = alteration
+        self._delegate = PredictionFinalizer()
+
+    def finalize(
+        self,
+        *,
+        run_id: str,
+        sample: InferenceSample,
+        prediction: InitialPrediction,
+        decision: GateDecision,
+        trace: tuple[str, ...],
+    ) -> tuple[object, object]:
+        record, event = self._delegate.finalize(
+            run_id=run_id,
+            sample=sample,
+            prediction=prediction,
+            decision=decision,
+            trace=trace,
+        )
+        if self.alteration == "record_type":
+            return object(), event
+        if self.alteration == "event_type":
+            return record, object()
+        if self.alteration == "record_run":
+            return replace(record, run_id="other"), event
+        if self.alteration == "record_video":
+            return replace(record, video_id="VID30"), event
+        if self.alteration == "record_frame":
+            return replace(
+                record,
+                frame_id=13,
+                causal_frame_ids=(11, 12, 13),
+            ), event
+        if self.alteration == "event_video":
+            return record, replace(event, video_id="VID30")
+        if self.alteration == "event_frame":
+            return record, replace(event, frame_id=13)
+        raise AssertionError(f"unknown alteration: {self.alteration}")
+
+
 def _pipeline(
     *,
-    result_sink: RecordingSink | None = None,
+    result_sink: RecordingSink | FrameResultWriter | None = None,
     perception: RecordingPerception | None = None,
-    finalizer: RecordingFinalizer | PredictionFinalizer | None = None,
+    finalizer: object | None = None,
+    workflow_store: NoOpCausalStore | None = None,
+    event_memory: NoOpCausalStore | None = None,
+    gate_policy: object | None = None,
+    specialist_registry: object | None = None,
 ) -> CanonicalStreamingPipeline:
     return CanonicalStreamingPipeline(
         PipelineComponents(
@@ -163,12 +265,14 @@ def _pipeline(
             perception=perception or RecordingPerception(),
             candidate_generator=DisabledCandidateGenerator(),
             signal_extractor=FrameEvidenceSignalExtractor(),
-            gate_policy=NeverVerify(),
-            specialist_registry=DisabledSpecialistRegistry(),
+            gate_policy=gate_policy or NeverVerify(),  # type: ignore[arg-type]
+            specialist_registry=(
+                specialist_registry or DisabledSpecialistRegistry()
+            ),  # type: ignore[arg-type]
             coordinator=NoOpCoordinator(),
-            finalizer=finalizer or PredictionFinalizer(),
-            workflow_store=NoOpCausalStore("workflow"),
-            event_memory=NoOpCausalStore("memory"),
+            finalizer=finalizer or PredictionFinalizer(),  # type: ignore[arg-type]
+            workflow_store=workflow_store or NoOpCausalStore("workflow"),
+            event_memory=event_memory or NoOpCausalStore("memory"),
             result_sink=result_sink or RecordingSink(),
         )
     )
@@ -277,3 +381,209 @@ def test_canonical_run_signature_cannot_accept_ground_truth() -> None:
 
     assert tuple(parameters) == ("self", "sample", "frames", "run_id")
     assert parameters["run_id"].kind is inspect.Parameter.KEYWORD_ONLY
+
+
+@pytest.mark.parametrize("failing_store_name", ["workflow", "event"])
+def test_post_persistence_store_failure_is_permanently_fail_stop(
+    failing_store_name: str,
+) -> None:
+    workflow = FaultingStore(
+        "workflow",
+        fail_update=failing_store_name == "workflow",
+    )
+    event = FaultingStore(
+        "event",
+        fail_update=failing_store_name == "event",
+    )
+    sink = RecordingSink()
+    perception = RecordingPerception()
+    pipeline = _pipeline(
+        result_sink=sink,
+        perception=perception,
+        workflow_store=workflow,
+        event_memory=event,
+    )
+
+    with pytest.raises(PipelineContractError) as first_error:
+        pipeline.run(_sample(), _frames(), run_id="run")
+
+    assert "sensitive" not in str(first_error.value)
+    assert pipeline.prior_finalized_prediction is sink.calls[0][0]
+    assert len(sink.calls) == 1
+    assert len(perception.contexts) == 1
+    expected_update_attempts = (
+        (1, 0) if failing_store_name == "workflow" else (1, 1)
+    )
+    assert (
+        workflow.update_attempt_count,
+        event.update_attempt_count,
+    ) == expected_update_attempts
+    reset_attempts = (
+        workflow.reset_attempt_count,
+        event.reset_attempt_count,
+    )
+
+    with pytest.raises(PipelineContractError, match="permanently faulted"):
+        pipeline.run(
+            _sample(video_id="VID30"),
+            _frames(),
+            run_id="run",
+        )
+
+    assert len(sink.calls) == 1
+    assert len(perception.contexts) == 1
+    assert (
+        workflow.reset_attempt_count,
+        event.reset_attempt_count,
+    ) == reset_attempts
+    assert pipeline.prior_finalized_prediction is sink.calls[0][0]
+
+
+@pytest.mark.parametrize("failing_store_name", ["workflow", "event"])
+def test_video_reset_failure_is_permanently_fail_stop(
+    failing_store_name: str,
+) -> None:
+    workflow = FaultingStore(
+        "workflow",
+        fail_reset=failing_store_name == "workflow",
+    )
+    event = FaultingStore(
+        "event",
+        fail_reset=failing_store_name == "event",
+    )
+    sink = RecordingSink()
+    perception = RecordingPerception()
+    pipeline = _pipeline(
+        result_sink=sink,
+        perception=perception,
+        workflow_store=workflow,
+        event_memory=event,
+    )
+
+    with pytest.raises(PipelineContractError) as first_error:
+        pipeline.run(_sample(), _frames(), run_id="run")
+
+    assert "sensitive" not in str(first_error.value)
+    assert pipeline.prior_finalized_prediction is None
+    assert sink.attempt_count == 0
+    assert perception.contexts == []
+    expected_reset_attempts = (
+        (1, 0) if failing_store_name == "workflow" else (1, 1)
+    )
+    assert (
+        workflow.reset_attempt_count,
+        event.reset_attempt_count,
+    ) == expected_reset_attempts
+
+    with pytest.raises(PipelineContractError, match="permanently faulted"):
+        pipeline.run(_sample(), _frames(), run_id="run")
+
+    assert (
+        workflow.reset_attempt_count,
+        event.reset_attempt_count,
+    ) == expected_reset_attempts
+    assert sink.attempt_count == 0
+    assert perception.contexts == []
+
+
+def test_finalized_record_is_detached_and_frozen_before_sink_and_prior(
+    tmp_path: Path,
+) -> None:
+    mutable_probabilities = {
+        task: [0.0] * class_count
+        for task, class_count in TASK_CLASS_COUNTS.items()
+    }
+    prediction = InitialPrediction(
+        instrument_ids=(0,),
+        verb_ids=(0,),
+        target_ids=(0,),
+        triplet_ids=(),
+        phase_id=0,
+        probabilities=mutable_probabilities,  # type: ignore[arg-type]
+        backend="integration-test",
+        score_semantics="probability_v1",
+    )
+    perception = RecordingPerception(prediction)
+    writer = FrameResultWriter(tmp_path, run_id="run")
+    pipeline = _pipeline(result_sink=writer, perception=perception)
+
+    first = pipeline.run(_sample(frame_id=12), _frames(), run_id="run")
+    prediction_path = tmp_path / "predictions/VID02.jsonl"
+    first_persisted_line = prediction_path.read_bytes().splitlines()[0]
+    mutable_probabilities["phase"] = [0.75] * TASK_CLASS_COUNTS["phase"]
+    pipeline.run(_sample(frame_id=13), _frames(), run_id="run")
+
+    assert first.prediction.probabilities["phase"] == (0.0,) * 7
+    assert type(first.prediction.probabilities) is MappingProxyType
+    assert all(
+        isinstance(values, tuple)
+        for values in first.prediction.probabilities.values()
+    )
+    assert prediction_path.read_bytes().splitlines()[0] == first_persisted_line
+    assert perception.contexts[1].prior_finalized_prediction is first.prediction
+
+
+def test_verify_decision_fails_closed_without_calling_specialist() -> None:
+    specialist = RecordingSpecialist()
+    sink = RecordingSink()
+    pipeline = _pipeline(
+        result_sink=sink,
+        gate_policy=VerifyGate(),
+        specialist_registry=specialist,
+    )
+
+    with pytest.raises(PipelineContractError, match="only ACCEPT"):
+        pipeline.run(_sample(), _frames(), run_id="run")
+
+    assert specialist.call_count == 0
+    assert sink.attempt_count == 0
+    assert pipeline.prior_finalized_prediction is None
+    assert pipeline.components.workflow_store.committed_frames == []
+    assert pipeline.components.event_memory.committed_frames == []
+
+
+@pytest.mark.parametrize("alteration", ["record_type", "event_type"])
+def test_finalizer_output_types_are_validated_before_persistence(
+    alteration: str,
+) -> None:
+    sink = RecordingSink()
+    pipeline = _pipeline(
+        result_sink=sink,
+        finalizer=AlteringFinalizer(alteration),
+    )
+
+    with pytest.raises(PipelineContractError, match="finalizer"):
+        pipeline.run(_sample(), _frames(), run_id="run")
+
+    assert sink.attempt_count == 0
+    assert pipeline.prior_finalized_prediction is None
+    assert pipeline.components.workflow_store.committed_frames == []
+    assert pipeline.components.event_memory.committed_frames == []
+
+
+@pytest.mark.parametrize(
+    "alteration",
+    [
+        "record_run",
+        "record_video",
+        "record_frame",
+        "event_video",
+        "event_frame",
+    ],
+)
+def test_finalizer_output_identity_is_validated_before_persistence(
+    alteration: str,
+) -> None:
+    sink = RecordingSink()
+    pipeline = _pipeline(
+        result_sink=sink,
+        finalizer=AlteringFinalizer(alteration),
+    )
+
+    with pytest.raises(PipelineContractError, match="identity"):
+        pipeline.run(_sample(), _frames(), run_id="run")
+
+    assert sink.attempt_count == 0
+    assert pipeline.prior_finalized_prediction is None
+    assert pipeline.components.workflow_store.committed_frames == []
+    assert pipeline.components.event_memory.committed_frames == []

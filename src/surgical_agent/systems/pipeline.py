@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+from types import MappingProxyType
 from typing import Any, Protocol
 
 import torch
@@ -306,6 +307,59 @@ class PredictionFinalizer:
         return record, event
 
 
+def _freeze_prediction_record(record: PredictionRecord) -> PredictionRecord:
+    """Detach every container before the record crosses the durable boundary."""
+
+    return replace(
+        record,
+        causal_frame_ids=tuple(record.causal_frame_ids),
+        instrument_ids=tuple(record.instrument_ids),
+        verb_ids=tuple(record.verb_ids),
+        target_ids=tuple(record.target_ids),
+        triplet_ids=tuple(record.triplet_ids),
+        probabilities=MappingProxyType(
+            {
+                task: tuple(values)
+                for task, values in record.probabilities.items()
+            }
+        ),
+        trace=tuple(record.trace),
+    )
+
+
+def _validate_finalizer_output(
+    record: object,
+    event: object,
+    *,
+    run_id: str,
+    sample: InferenceSample,
+) -> tuple[PredictionRecord, FinalizedEvent]:
+    if not isinstance(record, PredictionRecord) or not isinstance(
+        event, FinalizedEvent
+    ):
+        raise PipelineContractError(
+            "finalizer output must contain a PredictionRecord and FinalizedEvent"
+        )
+    sample_identity = (sample.video_id, sample.target_frame_id)
+    if (
+        record.run_id != run_id
+        or (record.video_id, record.frame_id) != sample_identity
+        or (event.video_id, event.frame_id) != sample_identity
+        or (record.video_id, record.frame_id)
+        != (event.video_id, event.frame_id)
+    ):
+        raise PipelineContractError(
+            "finalizer output identity does not match the current run and sample"
+        )
+    try:
+        frozen_record = _freeze_prediction_record(record)
+    except (TypeError, ValueError):
+        raise PipelineContractError(
+            "finalizer output could not be normalized safely"
+        ) from None
+    return frozen_record, event
+
+
 @dataclass(frozen=True)
 class PipelineComponents:
     context_builder: ContextBuilder
@@ -328,14 +382,21 @@ class CanonicalStreamingPipeline:
         self.components = components
         self._active_video_id: str | None = None
         self._prior_finalized_prediction: PredictionRecord | None = None
+        self._faulted = False
 
     @property
     def prior_finalized_prediction(self) -> PredictionRecord | None:
         return self._prior_finalized_prediction
 
     def _reset_for_video(self, video_id: str) -> None:
-        self.components.workflow_store.reset(video_id)
-        self.components.event_memory.reset(video_id)
+        try:
+            self.components.workflow_store.reset(video_id)
+            self.components.event_memory.reset(video_id)
+        except Exception:  # noqa: BLE001 - every store failure is fail-stop
+            self._faulted = True
+            raise PipelineContractError(
+                "Video boundary reset failed; pipeline is permanently faulted"
+            ) from None
         self._prior_finalized_prediction = None
         self._active_video_id = video_id
 
@@ -348,6 +409,8 @@ class CanonicalStreamingPipeline:
     ) -> PipelineRunResult:
         """Execute the canonical order without accepting any GT-bearing object."""
 
+        if self._faulted:
+            raise PipelineContractError("Canonical pipeline is permanently faulted")
         sample = require_inference_sample(sample)
         trace: list[str] = []
         if sample.video_id != self._active_video_id:
@@ -388,32 +451,50 @@ class CanonicalStreamingPipeline:
         del candidates
         trace.append("07_candidates_built")
         decision = self.components.gate_policy.decide(evidence)
+        if not isinstance(decision, GateDecision):
+            raise PipelineContractError("Gate policy must return a GateDecision")
         trace.append(f"08_gate_{decision.action.lower()}")
-        if decision.action == "VERIFY":
-            if decision.scope not in self.components.specialist_registry.enabled_scopes:
-                raise PipelineContractError("Gate selected a disabled Specialist scope")
-            initial = self.components.specialist_registry.verify(decision.scope, initial)
-            trace.extend(("09_specialist_routed", "10_specialist_result_validated"))
-        else:
-            trace.extend(("09_specialist_skipped", "10_keep_initial_prediction"))
+        if decision.action != "ACCEPT":
+            raise PipelineContractError(
+                "This canonical pipeline slice permits only ACCEPT decisions"
+            )
+        trace.extend(("09_specialist_skipped", "10_keep_initial_prediction"))
         coordinated = self.components.coordinator.coordinate(initial, decision)
         if coordinated is not initial:
             raise PipelineContractError(
                 "KEEP coordination must preserve prediction object identity"
             )
         trace.append("11_coordinator_keep")
-        record, event = self.components.finalizer.finalize(
+        finalized = self.components.finalizer.finalize(
             run_id=run_id,
             sample=sample,
             prediction=coordinated,
             decision=decision,
             trace=(*trace, "12_prediction_finalized"),
         )
+        if not isinstance(finalized, tuple) or len(finalized) != 2:
+            raise PipelineContractError(
+                "finalizer output must be a prediction/event pair"
+            )
+        record, event = _validate_finalizer_output(
+            finalized[0],
+            finalized[1],
+            run_id=run_id,
+            sample=sample,
+        )
         trace.append("12_prediction_finalized")
         self.components.result_sink.write(record, evidence)
         trace.append("13_result_pair_persisted")
-        self.components.workflow_store.update(event)
-        self.components.event_memory.update(event)
+        try:
+            self.components.workflow_store.update(event)
+            self.components.event_memory.update(event)
+        except Exception:  # noqa: BLE001 - every store failure is fail-stop
+            self._prior_finalized_prediction = record
+            self._faulted = True
+            raise PipelineContractError(
+                "Post-persistence causal state update failed; "
+                "pipeline is permanently faulted"
+            ) from None
         self._prior_finalized_prediction = record
         trace.append("14_prior_state_committed")
         return PipelineRunResult(
