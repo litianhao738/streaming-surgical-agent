@@ -2,9 +2,14 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 
 from surgical_agent.data.schemas import EvaluationTarget, FrameSupervisionTarget
+from surgical_agent.evaluation.frame_metrics import (
+    FrameMetricAccumulator,
+    FrameMetricReport,
+)
 from surgical_agent.inference.schemas import PredictionRecord
 
 
@@ -18,7 +23,7 @@ class SampleSmokeMetrics:
 
 
 class EvaluationEngine:
-    """Granularity-aware P2 evaluator; paper metrics remain deferred to P4."""
+    """Offline evaluator for engineering smoke and formal frame metrics."""
 
     metric_names = (
         "instrument_frame_exact",
@@ -88,7 +93,9 @@ class EvaluationEngine:
     def summarize(self, samples: tuple[SampleSmokeMetrics, ...]) -> dict[str, object]:
         metrics: dict[str, dict[str, float | int | None]] = {}
         for name in self.metric_names:
-            values = [sample.values[name] for sample in samples if name in sample.values]
+            values = [
+                sample.values[name] for sample in samples if name in sample.values
+            ]
             metrics[name] = {
                 "value": sum(values) / len(values) if values else None,
                 "support": len(values),
@@ -99,3 +106,21 @@ class EvaluationEngine:
             "sample_count": len(samples),
             "metrics": metrics,
         }
+
+    def summarize_frame_recognition(
+        self,
+        predictions: Iterable[PredictionRecord],
+        targets: Iterable[FrameSupervisionTarget],
+    ) -> FrameMetricReport:
+        prediction_tuple = tuple(predictions)
+        target_tuple = tuple(targets)
+        if len(prediction_tuple) != len(target_tuple):
+            raise ValueError("predictions and targets must have the same length")
+        accumulator = FrameMetricAccumulator()
+        for prediction, target in zip(
+            prediction_tuple,
+            target_tuple,
+            strict=True,
+        ):
+            accumulator.update(prediction, target)
+        return accumulator.compute()

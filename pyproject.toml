@@ -8,9 +8,11 @@ version = "3.1.0.dev0"
 description = "Strict-causal CholecTrack20 Streaming SurgicalAgent V3.1"
 requires-python = ">=3.10,<3.13"
 dependencies = [
+    "ivtmetrics==0.1.5",
     "numpy>=1.26,<3",
     "Pillow>=10.0,<13",
     "PyYAML>=6.0,<7",
+    "scikit-learn>=1.3,<2",
     "scipy>=1.12,<2",
     "torch>=2.1,<3",
 ]
