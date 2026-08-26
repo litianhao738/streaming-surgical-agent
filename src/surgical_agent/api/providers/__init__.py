@@ -1,5 +1,6 @@
-"""Provider transports. Only a deterministic mock exists before provider approval."""
+"""Provider transports for deterministic and Requesty-backed P3 calls."""
 
 from surgical_agent.api.providers.mock import MockProviderTransport
+from surgical_agent.api.providers.requesty import RequestyTransport
 
-__all__ = ["MockProviderTransport"]
+__all__ = ["MockProviderTransport", "RequestyTransport"]
