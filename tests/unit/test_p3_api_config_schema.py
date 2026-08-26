@@ -2,7 +2,11 @@ from pathlib import Path
 
 import pytest
 
+from surgical_agent.api.credentials import SecretValue
 from surgical_agent.api.errors import ApiContractError, ApiSchemaError
+from surgical_agent.api.providers.mock import MockProviderTransport
+from surgical_agent.api.providers.requesty import RequestyTransport
+from surgical_agent.api.registry import build_transport, build_validator
 from surgical_agent.api.schema import (
     P3_SMOKE_ALLOWED_KEYS,
     P3_SMOKE_SCHEMA_VERSION,
@@ -159,7 +163,7 @@ def test_p3_validator_rejects_extra_and_p4_fields() -> None:
 
 
 def test_allowed_key_boundary_cannot_be_widened_at_runtime() -> None:
-    extra_key = "".join(("inst", "ances"))
+    extra_key = "".join(("inst", "ances"))  # noqa: FLY002
 
     with pytest.raises(AttributeError):
         P3_SMOKE_ALLOWED_KEYS.add(extra_key)
@@ -214,3 +218,104 @@ def test_allowed_key_boundary_cannot_be_widened_at_runtime() -> None:
 def test_p3_validator_raises_schema_error_for_wrong_input_types(payload: object) -> None:
     with pytest.raises(ApiSchemaError):
         validate_p3_smoke_payload(payload)  # type: ignore[arg-type]
+
+
+def test_registry_routes_effective_mock_config_and_validator() -> None:
+    config = ApiConfig.from_mapping(
+        _valid_api_mapping(
+            mode="mock",
+            provider="mock",
+            endpoint_identifier="mock://local/p3",
+            provider_options={
+                "returned_model_identifier": "configured-returned-v1",
+                "retryable_failures_before_success": 2,
+                "malformed_payload": False,
+                "provider_cost": 0.25,
+            },
+        )
+    )
+
+    transport = build_transport(config, api_key=None)
+
+    assert isinstance(transport, MockProviderTransport)
+    assert transport.returned_model_identifier == "configured-returned-v1"
+    assert transport.retryable_failures_before_success == 2
+    assert transport.provider_cost == 0.25
+    assert build_validator(config) is validate_p3_smoke_payload
+
+
+def test_registry_routes_requesty_with_secret_and_configured_timeout() -> None:
+    config = load_api_config(Path("configs/api/requesty.yaml"))
+
+    transport = build_transport(
+        config,
+        api_key=SecretValue("test-secret"),
+    )
+
+    assert isinstance(transport, RequestyTransport)
+    assert transport.provider == config.provider
+    assert transport.endpoint_identifier == config.endpoint_identifier
+    assert transport.timeout_seconds == 60.0
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"retryable_failures_before_success": True},
+        {"retryable_failures_before_success": "2"},
+        {"provider_cost": "0.25"},
+        {"provider_cost": True},
+        {"malformed_payload": "false"},
+    ],
+)
+def test_mock_config_rejects_coerced_override_values(
+    overrides: dict[str, object],
+) -> None:
+    config = ApiConfig.from_mapping(
+        _valid_api_mapping(
+            mode="mock",
+            provider="mock",
+            endpoint_identifier="mock://local/p3",
+        )
+    )
+
+    with pytest.raises((ApiContractError, TypeError, ValueError)):
+        build_transport(config, api_key=None, mock_options=overrides)
+
+
+@pytest.mark.parametrize("timeout", [True, "60", 0, -1, float("nan")])
+def test_requesty_config_rejects_coerced_or_invalid_timeout(timeout: object) -> None:
+    with pytest.raises((ApiContractError, TypeError, ValueError)):
+        config = ApiConfig.from_mapping(
+            _valid_api_mapping(provider_options={"timeout_seconds": timeout})
+        )
+        build_transport(config, api_key=SecretValue("test-secret"))
+
+
+def test_registry_rejects_mock_credential_and_requesty_missing_credential() -> None:
+    mock = ApiConfig.from_mapping(
+        _valid_api_mapping(
+            mode="mock",
+            provider="mock",
+            endpoint_identifier="mock://local/p3",
+        )
+    )
+    requesty = load_api_config(Path("configs/api/requesty.yaml"))
+
+    with pytest.raises(ApiContractError, match="credential"):
+        build_transport(mock, api_key=SecretValue("not-for-mock"))
+    with pytest.raises(ApiContractError, match="credential"):
+        build_transport(requesty, api_key=None)
+
+
+def test_registry_rejects_transport_endpoint_provider_mismatch() -> None:
+    mock = ApiConfig.from_mapping(
+        _valid_api_mapping(
+            mode="mock",
+            provider="mock",
+            endpoint_identifier="https://router.requesty.ai/v1/responses",
+        )
+    )
+
+    with pytest.raises(ApiContractError, match="endpoint"):
+        build_transport(mock, api_key=None)

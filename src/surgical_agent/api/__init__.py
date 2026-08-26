@@ -10,6 +10,11 @@ from surgical_agent.api.contracts import (
     ProviderResponse,
     ProviderTransport,
 )
+from surgical_agent.api.registry import (
+    build_transport,
+    build_validator,
+    determine_p3_status,
+)
 from surgical_agent.api.request_hash import request_sha256
 from surgical_agent.api.retry import RetryPolicy
 from surgical_agent.api.usage import UsageLedger
@@ -25,5 +30,8 @@ __all__ = [
     "ProviderTransport",
     "RetryPolicy",
     "UsageLedger",
+    "build_transport",
+    "build_validator",
+    "determine_p3_status",
     "request_sha256",
 ]

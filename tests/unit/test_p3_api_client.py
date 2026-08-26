@@ -25,6 +25,7 @@ from surgical_agent.api.errors import (
     ApiTransportError,
 )
 from surgical_agent.api.providers.mock import MockProviderTransport
+from surgical_agent.api.registry import determine_p3_status
 from surgical_agent.api.request_hash import canonical_request_metadata
 from surgical_agent.api.retry import RetryPolicy, RetryResult
 from surgical_agent.api.schema import (
@@ -855,3 +856,54 @@ def test_success_cache_and_usage_persist_only_allowlisted_safe_fields(
     assert "parsed_payload" in cache_text
     assert "parsed_payload" not in usage_text
     assert '"probe"' not in usage_text
+
+
+def _verdict_record(**changes: object) -> ApiResponseRecord:
+    values: dict[str, object] = {
+        "provider": "requesty",
+        "endpoint_identifier": "https://router.requesty.ai/v1/responses",
+        "request_hash": "a" * 64,
+        "requested_model_identifier": "openai-responses/gpt-5.6-sol",
+        "returned_model_identifier": "openai-responses/gpt-5.6-sol",
+        "parsed_payload": {
+            "schema_version": P3_SMOKE_SCHEMA_VERSION,
+            "message": "ok",
+            "image_observed": True,
+            "structured": True,
+        },
+        "input_tokens": 10,
+        "output_tokens": 8,
+        "total_tokens": 18,
+        "image_count": 1,
+        "latency_ms": 50.0,
+        "retry_count": 0,
+        "provider_call_count": 1,
+        "timestamp": "2026-08-26T00:00:00+00:00",
+        "cache_hit": False,
+        "provider_request_id": "resp_1",
+        "provider_cost": 0.00125,
+        "origin_provider_cost": None,
+        "exact_backend_model_identifier": None,
+        "exact_identity_evidence_source": None,
+        "safe_metadata": {"requesty_provider": "openai"},
+    }
+    values.update(changes)
+    return ApiResponseRecord(**values)
+
+
+def test_alias_equality_does_not_establish_exact_backend_identity() -> None:
+    record = _verdict_record()
+
+    assert determine_p3_status(record, transport_gates_passed=True) == "PARTIAL"
+
+
+def test_explicit_identity_evidence_passes_only_when_transport_gates_are_boolean_true() -> None:
+    record = _verdict_record(
+        exact_backend_model_identifier="immutable-backend-id",
+        exact_identity_evidence_source="documented_response_field",
+    )
+
+    assert determine_p3_status(record, transport_gates_passed=True) == "PASS"
+    assert determine_p3_status(record, transport_gates_passed=False) == "PARTIAL"
+    with pytest.raises((ApiContractError, TypeError, ValueError)):
+        determine_p3_status(record, transport_gates_passed=1)  # type: ignore[arg-type]

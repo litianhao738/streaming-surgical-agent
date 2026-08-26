@@ -2,11 +2,17 @@
 
 from __future__ import annotations
 
+import math
+from collections.abc import Mapping
 from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 from surgical_agent.api.contracts import ApiRequest, ProviderResponse
 from surgical_agent.api.errors import ApiContractError, ApiTransportError
 from surgical_agent.api.schema import P3_SMOKE_SCHEMA_VERSION
+
+if TYPE_CHECKING:
+    from surgical_agent.config.schema import ApiConfig
 
 
 class MockProviderTransport:
@@ -21,13 +27,67 @@ class MockProviderTransport:
         malformed_payload: bool = False,
         provider_cost: float | None = 0.0,
     ) -> None:
+        if (
+            not isinstance(retryable_failures_before_success, int)
+            or isinstance(retryable_failures_before_success, bool)
+        ):
+            raise TypeError("retryable_failures_before_success must be an integer")
         if retryable_failures_before_success < 0:
             raise ValueError("retryable_failures_before_success must be non-negative")
+        if not isinstance(returned_model_identifier, str) or not returned_model_identifier:
+            raise ValueError("returned_model_identifier must be non-empty text")
+        if type(malformed_payload) is not bool:
+            raise TypeError("malformed_payload must be a boolean")
+        if provider_cost is not None and (
+            not isinstance(provider_cost, (int, float))
+            or isinstance(provider_cost, bool)
+            or not math.isfinite(float(provider_cost))
+            or provider_cost < 0
+        ):
+            raise ValueError("provider_cost must be non-negative and finite")
         self.returned_model_identifier = returned_model_identifier
         self.retryable_failures_before_success = retryable_failures_before_success
         self.malformed_payload = malformed_payload
         self.provider_cost = provider_cost
         self.provider_call_count = 0
+
+    @classmethod
+    def from_config(
+        cls,
+        config: ApiConfig,
+        overrides: Mapping[str, object],
+    ) -> MockProviderTransport:
+        """Construct a deterministic mock from validated provider options."""
+
+        from surgical_agent.config.schema import ApiConfig as ConcreteApiConfig
+
+        if not isinstance(config, ConcreteApiConfig):
+            raise TypeError("config must be ApiConfig")
+        if config.provider != cls.provider:
+            raise ApiContractError("mock config provider does not match mock transport")
+        if config.endpoint_identifier != cls.endpoint_identifier:
+            raise ApiContractError("mock config endpoint does not match mock transport")
+        if not isinstance(overrides, Mapping):
+            raise TypeError("mock options must be a mapping")
+        values = {**dict(config.provider_options), **dict(overrides)}
+        unknown = set(values) - {
+            "returned_model_identifier",
+            "retryable_failures_before_success",
+            "malformed_payload",
+            "provider_cost",
+        }
+        if unknown:
+            raise ApiContractError("mock options contain unknown fields")
+        return cls(
+            returned_model_identifier=values.get(
+                "returned_model_identifier", "mock-model-returned-v1"
+            ),
+            retryable_failures_before_success=values.get(
+                "retryable_failures_before_success", 0
+            ),
+            malformed_payload=values.get("malformed_payload", False),
+            provider_cost=values.get("provider_cost", 0.0),
+        )
 
     def send(self, request: ApiRequest) -> ProviderResponse:
         if request.provider != self.provider:
