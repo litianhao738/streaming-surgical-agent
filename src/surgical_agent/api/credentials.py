@@ -57,6 +57,4 @@ def assert_secret_absent(secret: SecretValue, paths: Iterable[Path]) -> None:
         if path.is_file() and needle in path.read_bytes():
             leaked.append(str(path))
     if leaked:
-        raise RuntimeError(
-            f"credential value found in persisted files: {', '.join(sorted(leaked))}"
-        )
+        raise RuntimeError(f"credential value found in persisted files: {sorted(leaked)}")

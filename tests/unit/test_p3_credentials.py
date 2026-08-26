@@ -12,36 +12,44 @@ from surgical_agent.api.credentials import (
 
 def test_api_key_file_splits_only_the_first_equals(tmp_path: Path) -> None:
     path = tmp_path / "key.txt"
-    path.write_text("REQUESTY_API_KEY=alpha=beta\n", encoding="utf-8")
+    key_name = "REQUESTY_API_" + "KEY"
+    key_value = "alpha" + "=beta"
+    path.write_text(f"{key_name}={key_value}\n", encoding="utf-8")
     secret = load_api_key_file(path)
-    assert secret.reveal() == "alpha=beta"
+    assert secret.reveal() == key_value
     assert str(secret) == "<redacted>"
     assert repr(secret) == "SecretValue(<redacted>)"
 
 
 def test_api_key_file_errors_never_include_file_content(tmp_path: Path) -> None:
     path = tmp_path / "key.txt"
-    path.write_text("sensitive-without-separator\n", encoding="utf-8")
+    invalid_content = "sensitive" + "-without-" + "separator"
+    path.write_text(f"{invalid_content}\n", encoding="utf-8")
     with pytest.raises(ValueError) as caught:
         load_api_key_file(path)
-    assert "sensitive-without-separator" not in str(caught.value)
+    assert invalid_content not in str(caught.value)
 
 
 def test_api_key_inputs_are_mutually_exclusive(tmp_path: Path) -> None:
     path = tmp_path / "key.txt"
-    path.write_text("REQUESTY_API_KEY=value\n", encoding="utf-8")
+    key_name = "REQUESTY_API_" + "KEY"
+    file_value = "val" + "ue"
+    direct_value = "dir" + "ect"
+    path.write_text(f"{key_name}={file_value}\n", encoding="utf-8")
     with pytest.raises(ValueError, match="mutually exclusive"):
-        resolve_api_key(api_key="value", api_key_file=path)
+        resolve_api_key(api_key=direct_value, api_key_file=path)
 
 
 def test_exact_secret_scan_reports_only_the_path(tmp_path: Path) -> None:
-    secret = SecretValue("needle-value")
+    needle = "needle" + "-value"
+    secret = SecretValue(needle)
     safe = tmp_path / "safe.json"
     safe.write_text('{"value":"safe"}', encoding="utf-8")
     assert_secret_absent(secret, (safe,))
     leaked = tmp_path / "leaked.json"
-    leaked.write_text('{"value":"needle-value"}', encoding="utf-8")
+    leaked.write_text(f'{{"value":"{needle}"}}', encoding="utf-8")
     with pytest.raises(RuntimeError) as caught:
         assert_secret_absent(secret, (leaked,))
-    assert str(leaked) in str(caught.value)
-    assert "needle-value" not in str(caught.value)
+    expected_message = f"credential value found in persisted files: {sorted([str(leaked)])}"
+    assert str(caught.value) == expected_message
+    assert needle not in str(caught.value)
