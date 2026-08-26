@@ -103,8 +103,9 @@ def freeze_snapshot(
 
     if not isinstance(snapshot, Mapping):
         raise PerceptionContextError(f"{name} snapshot must be a mapping")
-    require_gold_free(snapshot)
-    return _freeze_snapshot_value(snapshot, active=set())
+    frozen_snapshot = _freeze_snapshot_value(snapshot, active=set())
+    require_gold_free(frozen_snapshot)
+    return frozen_snapshot
 
 
 def _freeze_snapshot_value(value: object, *, active: set[int]) -> object:

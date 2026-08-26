@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
 from io import BytesIO
 
@@ -109,6 +110,29 @@ def frame_supervision_target() -> FrameSupervisionTarget:
 @dataclass(frozen=True)
 class SnapshotEnvelope:
     payload: object
+
+
+class ChangingSnapshot(Mapping[str, object]):
+    """A mapping that exposes a forbidden key only on a later traversal."""
+
+    def __init__(self) -> None:
+        self.traversal_count = 0
+
+    def __iter__(self) -> Iterator[str]:
+        self.traversal_count += 1
+        if self.traversal_count == 1:
+            return iter(("safe",))
+        return iter(("ground_truth",))
+
+    def __len__(self) -> int:
+        return 1
+
+    def __getitem__(self, key: str) -> object:
+        if key == "safe":
+            return "safe value"
+        if key == "ground_truth":
+            return "injected value"
+        raise KeyError(key)
 
 
 def test_builder_binds_three_ordered_frames_to_three_image_hashes() -> None:
@@ -319,6 +343,21 @@ def test_builder_rejects_non_mapping_snapshot_before_pair_conversion(
             memory_snapshot=snapshots["memory_snapshot"],  # type: ignore[arg-type]
             prior_finalized_prediction=None,
         )
+
+
+def test_builder_validates_the_exact_frozen_snapshot_representation() -> None:
+    changing_snapshot = ChangingSnapshot()
+
+    context = builder().build(
+        sample=sample(),
+        frames=three_frames(),
+        workflow_snapshot=changing_snapshot,
+        memory_snapshot={},
+        prior_finalized_prediction=None,
+    )
+
+    assert context.workflow_snapshot == {"safe": "safe value"}
+    assert changing_snapshot.traversal_count == 1
 
 
 def test_builder_freezes_snapshot_values_against_source_and_consumer_mutation() -> None:
