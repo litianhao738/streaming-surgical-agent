@@ -110,5 +110,5 @@ def parse_joint_perception_response(
         )
     except ApiSchemaError:
         raise
-    except (KeyError, TypeError, ValueError):
+    except (KeyError, OverflowError, TypeError, ValueError):
         _invalid()

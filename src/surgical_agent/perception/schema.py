@@ -8,7 +8,6 @@ from collections.abc import Mapping, Sequence
 from importlib.resources import files
 from typing import Any
 
-from surgical_agent.api.errors import ApiSchemaError
 from surgical_agent.data.constants import TASK_ID_BOUNDS
 from surgical_agent.perception.contracts import EVIDENCE_REF_CODES
 
@@ -44,6 +43,8 @@ def joint_perception_schema() -> dict[str, Any]:
 
 
 def _invalid() -> None:
+    from surgical_agent.api.errors import ApiSchemaError
+
     raise ApiSchemaError("Joint perception response violates the strict schema")
 
 
@@ -144,7 +145,5 @@ def validate_joint_perception_payload(payload: Mapping[str, Any]) -> None:
             _validate_task(payload[task], task=task, expected_count=expected_count)
         _validate_evidence_refs(payload["evidence_refs"])
         _validate_confidences(payload["self_reported_confidence"])
-    except ApiSchemaError:
-        raise
-    except (KeyError, TypeError, ValueError):
+    except (KeyError, OverflowError, TypeError, ValueError):
         _invalid()

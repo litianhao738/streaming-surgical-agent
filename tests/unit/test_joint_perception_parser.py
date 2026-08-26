@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+import os
+import subprocess
+import sys
 from copy import deepcopy
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -11,7 +15,10 @@ from surgical_agent.api.contracts import ApiResponseRecord
 from surgical_agent.api.errors import ApiSchemaError
 from surgical_agent.api.schema import schema_for, validator_for
 from surgical_agent.perception.parser import parse_joint_perception_response
-from surgical_agent.perception.schema import JOINT_PERCEPTION_SCHEMA_VERSION
+from surgical_agent.perception.schema import (
+    JOINT_PERCEPTION_SCHEMA_VERSION,
+    validate_joint_perception_payload,
+)
 
 TASK_COUNTS = {
     "instrument": 7,
@@ -158,3 +165,39 @@ def test_joint_schema_is_registered_without_replacing_p3_registry_behavior() -> 
     assert schema["additionalProperties"] is False
     assert schema["properties"]["phase"]["required"] == ["selected_id", "topk"]
     assert validator_for(JOINT_PERCEPTION_SCHEMA_VERSION) is not None
+
+
+def test_public_schema_module_imports_in_a_clean_interpreter() -> None:
+    """Restoring the API-to-schema import cycle must fail this public import."""
+
+    repository_root = Path(__file__).parents[2]
+    result = subprocess.run(
+        [sys.executable, "-c", "import surgical_agent.perception.schema"],
+        cwd=repository_root,
+        env={**os.environ, "PYTHONPATH": str(repository_root / "src")},
+        capture_output=True,
+        check=False,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stderr
+
+
+def test_extreme_integer_score_fails_closed_at_validator_and_parser_boundaries() -> None:
+    """Removing overflow handling must leak an OverflowError from either boundary."""
+
+    payload = valid_joint_payload()
+    payload["instrument"]["topk"][0]["score"] = 10**400
+
+    for validate in (
+        lambda: validate_joint_perception_payload(payload),
+        lambda: parse_joint_perception_response(
+            api_record(parsed_payload=payload),
+            video_id="VID02",
+            frame_id=12,
+            backend="joint_openrouter_gpt56sol",
+        ),
+    ):
+        with pytest.raises(ApiSchemaError) as error:
+            validate()
+        assert "100000" not in str(error.value)
