@@ -5,14 +5,15 @@ from __future__ import annotations
 import math
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from numbers import Integral, Real
+from types import MappingProxyType
 
 import numpy as np
 from sklearn.metrics import average_precision_score, f1_score
 
-from surgical_agent.data.constants import TASK_CLASS_COUNTS
-from surgical_agent.data.schemas import FrameSupervisionTarget
+from surgical_agent.data.constants import TASK_CLASS_COUNTS, TASK_ID_BOUNDS
+from surgical_agent.data.schemas import FrameSupervisionTarget, FrameTaskMask
 from surgical_agent.inference.schemas import PredictionRecord
 
 _MULTILABEL_TASKS = ("instrument", "verb", "target", "ivt")
@@ -63,21 +64,90 @@ class FrameMetricReport:
 class FrameMetricAccumulator:
     def __init__(self) -> None:
         self._records: list[tuple[PredictionRecord, FrameSupervisionTarget]] = []
+        self._identities: set[tuple[str, int]] = set()
 
     def update(
         self,
         prediction: PredictionRecord,
         target: FrameSupervisionTarget,
     ) -> None:
-        if (prediction.video_id, prediction.frame_id) != (
-            target.video_id,
-            target.frame_id,
-        ):
-            raise ValueError("prediction and target identity mismatch")
-        self._records.append((prediction, target))
+        snapshot = _snapshot_pair(prediction, target)
+        identity = (snapshot[0].video_id, snapshot[0].frame_id)
+        if identity in self._identities:
+            raise ValueError("duplicate prediction and target identity")
+        self._records.append(snapshot)
+        self._identities.add(identity)
 
     def compute(self) -> FrameMetricReport:
         return compute_frame_metric_report(tuple(self._records))
+
+
+def _phase_id(value: object, owner: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, Integral):
+        raise TypeError(f"{owner} phase_id must be a non-boolean integer")
+    lower, upper = TASK_ID_BOUNDS["phase"]
+    if not lower <= value <= upper:
+        raise ValueError(f"{owner} phase_id must lie in {lower}..{upper}")
+    return int(value)
+
+
+def _snapshot_pair(
+    prediction: PredictionRecord,
+    target: FrameSupervisionTarget,
+) -> tuple[PredictionRecord, FrameSupervisionTarget]:
+    if (prediction.video_id, prediction.frame_id) != (
+        target.video_id,
+        target.frame_id,
+    ):
+        raise ValueError("prediction and target identity mismatch")
+
+    mask_values = tuple(
+        getattr(target.mask, task) for task in (*_MULTILABEL_TASKS, "phase")
+    )
+    if any(type(value) is not bool for value in mask_values):
+        raise TypeError("task masks must contain exact bool values")
+    mask = FrameTaskMask(*mask_values)
+    prediction_phase_id = _phase_id(prediction.phase_id, "prediction")
+    if mask.phase:
+        target_phase_id: int | None = _phase_id(target.phase_id, "target")
+    else:
+        if target.phase_id is not None:
+            raise ValueError("target phase_id must be absent when its mask is false")
+        target_phase_id = None
+
+    probabilities = MappingProxyType(
+        {task: tuple(prediction.probabilities[task]) for task in TASK_CLASS_COUNTS}
+    )
+    prediction_snapshot = replace(
+        prediction,
+        probabilities=probabilities,
+        phase_id=prediction_phase_id,
+    )
+    target_snapshot = replace(
+        target,
+        instrument_ids=tuple(target.instrument_ids),
+        verb_ids=tuple(target.verb_ids),
+        target_ids=tuple(target.target_ids),
+        triplet_ids=tuple(target.triplet_ids),
+        phase_id=target_phase_id,
+        mask=mask,
+    )
+    return prediction_snapshot, target_snapshot
+
+
+def _snapshot_records(
+    records: Iterable[tuple[PredictionRecord, FrameSupervisionTarget]],
+) -> tuple[tuple[PredictionRecord, FrameSupervisionTarget], ...]:
+    snapshots: list[tuple[PredictionRecord, FrameSupervisionTarget]] = []
+    identities: set[tuple[str, int]] = set()
+    for prediction, target in records:
+        snapshot = _snapshot_pair(prediction, target)
+        identity = (snapshot[0].video_id, snapshot[0].frame_id)
+        if identity in identities:
+            raise ValueError("duplicate prediction and target identity")
+        snapshots.append(snapshot)
+        identities.add(identity)
+    return tuple(snapshots)
 
 
 def _task_target_ids(target: FrameSupervisionTarget, task: str) -> tuple[int, ...]:
@@ -208,13 +278,7 @@ def _compute_phase(
 def compute_frame_metric_report(
     records: Iterable[tuple[PredictionRecord, FrameSupervisionTarget]],
 ) -> FrameMetricReport:
-    record_tuple = tuple(records)
-    for prediction, target in record_tuple:
-        if (prediction.video_id, prediction.frame_id) != (
-            target.video_id,
-            target.frame_id,
-        ):
-            raise ValueError("prediction and target identity mismatch")
+    record_tuple = _snapshot_records(records)
     return FrameMetricReport(
         tasks={
             task: _compute_task_map(task, record_tuple) for task in _MULTILABEL_TASKS
@@ -280,7 +344,7 @@ def paired_video_bootstrap(
         size=(int(resamples), len(video_ids)),
     )
     sampled_means = np.mean(gains[sampled_indices], axis=1)
-    lower, upper = np.percentile(sampled_means, (2.5, 97.5))
+    lower, upper = np.percentile(sampled_means, (2.5, 97.5), method="linear")
     return BootstrapInterval(
         estimate=float(np.mean(gains)),
         lower=float(lower),

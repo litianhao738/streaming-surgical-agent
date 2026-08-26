@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import math
+from collections.abc import Iterator
 from dataclasses import asdict
 
 import numpy as np
@@ -105,6 +106,35 @@ def _accumulator(
     for prediction, target in pairs:
         accumulator.update(prediction, target)
     return accumulator
+
+
+def _duplicate_sensitive_pairs() -> tuple[
+    tuple[PredictionRecord, FrameSupervisionTarget], ...
+]:
+    return (
+        (
+            _prediction(
+                "VID01",
+                0,
+                phase_id=0,
+                probabilities=_scores(
+                    instrument=_class_scores("instrument", **{"0": 0.9})
+                ),
+            ),
+            _target("VID01", 0, instrument_ids=(0,), phase_id=0),
+        ),
+        (
+            _prediction(
+                "VID01",
+                1,
+                phase_id=0,
+                probabilities=_scores(
+                    instrument=_class_scores("instrument", **{"0": 0.8})
+                ),
+            ),
+            _target("VID01", 1, phase_id=1),
+        ),
+    )
 
 
 def test_video_wise_map_is_not_pooled_frame_ap() -> None:
@@ -292,6 +322,148 @@ def test_accumulator_and_evaluator_require_exact_prediction_target_identity() ->
         EvaluationEngine().summarize_frame_recognition((prediction,), ())
 
 
+def test_accumulator_rejects_duplicate_frames_without_biasing_any_metric() -> None:
+    pairs = _duplicate_sensitive_pairs()
+    accumulator = _accumulator(pairs)
+
+    with pytest.raises(ValueError, match="duplicate prediction and target identity"):
+        accumulator.update(*pairs[0])
+
+    report = accumulator.compute()
+    assert report.tasks["instrument"].video_wise_map == 1.0
+    assert report.phase.video_wise_accuracy == 0.5
+    assert report.phase.video_wise_macro_f1 == pytest.approx(1.0 / 3.0)
+
+
+def test_direct_report_builder_rejects_duplicate_frames() -> None:
+    pairs = _duplicate_sensitive_pairs()
+
+    with pytest.raises(ValueError, match="duplicate prediction and target identity"):
+        compute_frame_metric_report((*pairs, pairs[0]))
+
+
+@pytest.mark.parametrize(
+    "mutated_scores",
+    [
+        (0.0,),
+        (math.nan, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+    ],
+)
+def test_accumulator_snapshots_mutable_probability_mappings(
+    mutated_scores: tuple[float, ...],
+) -> None:
+    probabilities = _scores(instrument=_class_scores("instrument", **{"0": 0.9}))
+    accumulator = FrameMetricAccumulator()
+    accumulator.update(
+        _prediction("VID01", 0, probabilities=probabilities),
+        _target("VID01", 0, instrument_ids=(0,)),
+    )
+    probabilities["instrument"] = mutated_scores
+    accumulator.update(
+        _prediction(
+            "VID01",
+            1,
+            probabilities=_scores(instrument=_class_scores("instrument", **{"0": 0.8})),
+        ),
+        _target("VID01", 1),
+    )
+
+    report = accumulator.compute()
+
+    assert report.tasks["instrument"].class_ap[0] == 1.0
+
+
+def test_accumulator_snapshots_prediction_target_and_mask_values() -> None:
+    prediction = _prediction("VID01", 0, phase_id=0)
+    target = _target("VID01", 0, instrument_ids=(0,), phase_id=0)
+    accumulator = FrameMetricAccumulator()
+    accumulator.update(prediction, target)
+
+    object.__setattr__(prediction, "phase_id", 1)
+    object.__setattr__(target, "instrument_ids", ())
+    object.__setattr__(target.mask, "instrument", False)
+
+    report = accumulator.compute()
+
+    assert report.tasks["instrument"].class_ap[0] == 1.0
+    assert report.phase.video_wise_accuracy == 1.0
+
+
+def test_direct_report_builder_snapshots_each_pair_while_ingesting() -> None:
+    probabilities = _scores(instrument=_class_scores("instrument", **{"0": 0.9}))
+    first = (
+        _prediction("VID01", 0, probabilities=probabilities),
+        _target("VID01", 0, instrument_ids=(0,)),
+    )
+    second = (
+        _prediction(
+            "VID01",
+            1,
+            probabilities=_scores(instrument=_class_scores("instrument", **{"0": 0.8})),
+        ),
+        _target("VID01", 1),
+    )
+
+    def records() -> Iterator[tuple[PredictionRecord, FrameSupervisionTarget]]:
+        yield first
+        probabilities["instrument"] = (math.nan,)
+        yield second
+
+    report = compute_frame_metric_report(records())
+
+    assert report.tasks["instrument"].class_ap[0] == 1.0
+
+
+@pytest.mark.parametrize(
+    ("field_name", "invalid_value"),
+    [
+        ("instrument", "true"),
+        ("verb", 1),
+        ("target", 0.5),
+        ("ivt", np.bool_(True)),
+        ("phase", 1),
+    ],
+)
+def test_report_rejects_non_bool_task_masks(
+    field_name: str,
+    invalid_value: object,
+) -> None:
+    mask_values: dict[str, object] = {
+        "instrument": True,
+        "verb": True,
+        "target": True,
+        "ivt": True,
+        "phase": True,
+    }
+    mask_values[field_name] = invalid_value
+    mask = FrameTaskMask(**mask_values)  # type: ignore[arg-type]
+    pair = (
+        _prediction("VID01", 0),
+        _target("VID01", 0, mask=mask),
+    )
+
+    with pytest.raises(TypeError, match="task masks must contain exact bool values"):
+        compute_frame_metric_report((pair,))
+
+
+@pytest.mark.parametrize("owner", ["prediction", "target"])
+@pytest.mark.parametrize("invalid_phase_id", ["1", 1.5, True])
+def test_report_rejects_non_integer_or_boolean_phase_ids(
+    owner: str,
+    invalid_phase_id: object,
+) -> None:
+    prediction = _prediction("VID01", 0)
+    target = _target("VID01", 0)
+    object.__setattr__(
+        prediction if owner == "prediction" else target,
+        "phase_id",
+        invalid_phase_id,
+    )
+
+    with pytest.raises(TypeError, match="phase_id must be a non-boolean integer"):
+        compute_frame_metric_report(((prediction, target),))
+
+
 def test_evaluation_engine_exposes_formal_metrics_and_preserves_smoke_names() -> None:
     prediction = _prediction("VID01", 0, phase_id=0)
     target = _target("VID01", 0, phase_id=0)
@@ -369,6 +541,41 @@ def test_paired_bootstrap_uses_named_whole_videos_and_is_deterministic() -> None
     assert first.upper == pytest.approx(0.4)
     assert first.confidence == 0.95
     assert first.resampling_unit == "video"
+
+
+def test_paired_bootstrap_uses_linear_non_grid_percentiles() -> None:
+    interval = paired_video_bootstrap(
+        {"VID01": 0.0, "VID02": 0.5, "VID03": 1.0},
+        {"VID01": 0.0, "VID02": 0.0, "VID03": 0.0},
+        seed=6,
+        resamples=7,
+    )
+
+    assert interval.lower == pytest.approx(43.0 / 120.0)
+    assert interval.upper == pytest.approx(97.0 / 120.0)
+
+
+def test_empty_accumulator_returns_complete_undefined_report() -> None:
+    report = FrameMetricAccumulator().compute()
+
+    assert report.schema_version == "frame_recognition_metrics_v1"
+    assert tuple(report.tasks) == ("instrument", "verb", "target", "ivt")
+    for task, task_report in report.tasks.items():
+        assert task_report.class_ap == {
+            class_id: None for class_id in range(TASK_CLASS_COUNTS[task])
+        }
+        assert task_report.class_video_support == {
+            class_id: 0 for class_id in range(TASK_CLASS_COUNTS[task])
+        }
+        assert task_report.video_wise_map is None
+        assert task_report.excluded_classes == (
+            (94, 95, 96, 97, 98, 99) if task == "ivt" else ()
+        )
+    assert report.tasks["ivt"].excluded_classes == (94, 95, 96, 97, 98, 99)
+    assert report.phase.video_wise_accuracy is None
+    assert report.phase.video_wise_macro_f1 is None
+    assert report.phase.per_video == {}
+    assert report.score_semantics == ()
 
 
 @pytest.mark.parametrize(
