@@ -12,6 +12,7 @@ tmp/
 .env.*
 !.env.example
 scripts/API.txt
+docs/API.txt
 *.ckpt
 *.pt
 
