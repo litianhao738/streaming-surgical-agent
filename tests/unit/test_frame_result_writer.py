@@ -199,6 +199,61 @@ def test_mapping_proxy_probabilities_hash_write_and_finalize(tmp_path: Path) -> 
     )
 
 
+def test_mutating_input_probabilities_cannot_change_an_accepted_pair(
+    tmp_path: Path,
+) -> None:
+    base = _prediction(frame_id=12)
+    mutable_probabilities = dict(base.probabilities)
+    first_prediction = replace(base, probabilities=mutable_probabilities)
+    writer = FrameResultWriter(tmp_path, run_id="run")
+
+    first_evidence = writer.write(first_prediction, _evidence(frame_id=12))
+    first_persisted_before = _json_lines(
+        tmp_path / "predictions/VID02.jsonl"
+    )[0]
+    mutable_probabilities["phase"] = (0.5,) * 7
+    second_evidence = writer.write(
+        _prediction(frame_id=13),
+        _evidence(frame_id=13),
+    )
+
+    persisted_predictions = _json_lines(tmp_path / "predictions/VID02.jsonl")
+    persisted_evidence = _json_lines(tmp_path / "evidence/VID02.jsonl")
+    assert persisted_predictions[0] == first_persisted_before
+    assert persisted_predictions[0]["probabilities"]["phase"] == [0.0] * 7
+    assert [record["prediction_sha256"] for record in persisted_evidence] == [
+        first_evidence.prediction_sha256,
+        second_evidence.prediction_sha256,
+    ]
+    assert writer.finalize({"paper_metric_eligible": False}).is_file()
+
+
+def test_predictions_property_cannot_mutate_an_accepted_payload(
+    tmp_path: Path,
+) -> None:
+    writer = FrameResultWriter(tmp_path, run_id="run")
+    first_evidence = writer.write(_prediction(frame_id=12), _evidence(frame_id=12))
+
+    exposed_probabilities = writer.predictions[0].probabilities
+    try:
+        exposed_probabilities["phase"] = (0.75,) * 7  # type: ignore[index]
+    except TypeError:
+        pass
+    second_evidence = writer.write(
+        _prediction(frame_id=13),
+        _evidence(frame_id=13),
+    )
+
+    persisted_predictions = _json_lines(tmp_path / "predictions/VID02.jsonl")
+    persisted_evidence = _json_lines(tmp_path / "evidence/VID02.jsonl")
+    assert persisted_predictions[0]["probabilities"]["phase"] == [0.0] * 7
+    assert [record["prediction_sha256"] for record in persisted_evidence] == [
+        first_evidence.prediction_sha256,
+        second_evidence.prediction_sha256,
+    ]
+    assert writer.finalize({}).is_file()
+
+
 @pytest.mark.parametrize(
     ("prediction", "evidence", "message"),
     [

@@ -8,6 +8,7 @@ import re
 from collections.abc import Mapping
 from dataclasses import asdict
 from pathlib import Path
+from types import MappingProxyType
 from typing import Protocol
 
 from surgical_agent.inference.schemas import PredictionRecord
@@ -44,15 +45,7 @@ class FrameResultSink(Protocol):
 def prediction_record_sha256(record: PredictionRecord) -> str:
     """Hash every serialized prediction field using canonical JSON."""
 
-    payload = json.dumps(
-        _prediction_payload(record),
-        default=json_default,
-        sort_keys=True,
-        separators=(",", ":"),
-        ensure_ascii=True,
-        allow_nan=False,
-    ).encode("utf-8")
-    return hashlib.sha256(payload).hexdigest()
+    return _canonical_mapping_sha256(_prediction_payload(record))
 
 
 def _prediction_payload(record: PredictionRecord) -> dict[str, object]:
@@ -80,6 +73,15 @@ def _prediction_payload(record: PredictionRecord) -> dict[str, object]:
         "schema_version": record.schema_version,
         "score_semantics": record.score_semantics,
     }
+
+
+def _prediction_from_payload(payload: Mapping[str, object]) -> PredictionRecord:
+    values = dict(payload)
+    probabilities = values["probabilities"]
+    if not isinstance(probabilities, Mapping):
+        raise TypeError("normalized prediction probabilities must be a mapping")
+    values["probabilities"] = MappingProxyType(dict(probabilities))
+    return PredictionRecord(**values)  # type: ignore[arg-type]
 
 
 def _evidence_value_payload(value: EvidenceValue) -> dict[str, object]:
@@ -136,6 +138,7 @@ def _json_document(payload: Mapping[str, object]) -> str:
 def _canonical_mapping_sha256(payload: Mapping[str, object]) -> str:
     serialized = json.dumps(
         payload,
+        default=json_default,
         sort_keys=True,
         separators=(",", ":"),
         ensure_ascii=True,
@@ -157,7 +160,7 @@ class FrameResultWriter:
         self.manifest_path = self.output_dir / "manifest.json"
         self.status_path = self.output_dir / "run_status.json"
         self._require_fresh_owned_tree()
-        self._predictions: list[PredictionRecord] = []
+        self._prediction_payloads: list[dict[str, object]] = []
         self._evidence_records: list[EvidenceRecord] = []
         self._sample_ids: set[tuple[str, int]] = set()
         self._write_failed = False
@@ -165,7 +168,9 @@ class FrameResultWriter:
 
     @property
     def predictions(self) -> tuple[PredictionRecord, ...]:
-        return tuple(self._predictions)
+        return tuple(
+            _prediction_from_payload(payload) for payload in self._prediction_payloads
+        )
 
     @property
     def evidence_records(self) -> tuple[EvidenceRecord, ...]:
@@ -190,23 +195,24 @@ class FrameResultWriter:
         if sample_id in self._sample_ids:
             raise ArtifactWriteError(f"Duplicate frame result sample: {sample_id}")
         prediction_path, evidence_path = self._video_paths(prediction.video_id)
+        prediction_payload = _prediction_payload(prediction)
 
         evidence_record = EvidenceRecord(
             run_id=self.run_id,
             video_id=evidence.video_id,
             frame_id=evidence.frame_id,
-            prediction_sha256=prediction_record_sha256(prediction),
+            prediction_sha256=_canonical_mapping_sha256(prediction_payload),
             task_values=evidence.task_values,
             global_values=evidence.global_values,
             evidence_version=evidence.evidence_version,
         )
-        video_predictions = [
+        video_prediction_payloads = [
             *(
-                item
-                for item in self._predictions
-                if item.video_id == prediction.video_id
+                payload
+                for payload in self._prediction_payloads
+                if payload["video_id"] == prediction.video_id
             ),
-            prediction,
+            prediction_payload,
         ]
         video_evidence = [
             *(
@@ -216,9 +222,7 @@ class FrameResultWriter:
             ),
             evidence_record,
         ]
-        prediction_content = _jsonl(
-            [_prediction_payload(item) for item in video_predictions]
-        )
+        prediction_content = _jsonl(video_prediction_payloads)
         evidence_content = _jsonl(
             [_evidence_payload(item) for item in video_evidence]
         )
@@ -241,7 +245,7 @@ class FrameResultWriter:
                 raise
             raise ArtifactWriteError(f"Frame result write failed: {error}") from error
 
-        self._predictions.append(prediction)
+        self._prediction_payloads.append(prediction_payload)
         self._evidence_records.append(evidence_record)
         self._sample_ids.add(sample_id)
         return evidence_record
@@ -253,7 +257,7 @@ class FrameResultWriter:
             raise ArtifactWriteError("Writer was already finalized")
         if self._write_failed:
             raise ArtifactWriteError("Cannot finalize an incomplete failed run")
-        if not self._predictions:
+        if not self._prediction_payloads:
             raise ArtifactWriteError("Cannot finalize an empty frame-result run")
         normalized_metadata = _normalize_metadata(metadata)
 
@@ -267,7 +271,7 @@ class FrameResultWriter:
             "schema_version": "frame_result_artifact_manifest_v1",
             "status": "COMPLETE",
             "run_id": self.run_id,
-            "record_count": len(self._predictions),
+            "record_count": len(self._prediction_payloads),
             "videos": videos,
             "metadata": normalized_metadata,
         }
@@ -343,7 +347,8 @@ class FrameResultWriter:
 
     def _verify_and_hash_persisted_records(self) -> dict[str, dict[str, object]]:
         prediction_samples = {
-            (record.video_id, record.frame_id): record for record in self._predictions
+            (str(payload["video_id"]), int(payload["frame_id"])): payload
+            for payload in self._prediction_payloads
         }
         evidence_samples = {
             (record.video_id, record.frame_id): record
@@ -351,14 +356,16 @@ class FrameResultWriter:
         }
         if set(prediction_samples) != set(evidence_samples):
             raise ValueError("prediction and evidence sample sets differ")
-        for sample_id, prediction in prediction_samples.items():
-            if evidence_samples[sample_id].prediction_sha256 != prediction_record_sha256(
-                prediction
-            ):
+        for sample_id, prediction_payload in prediction_samples.items():
+            if evidence_samples[
+                sample_id
+            ].prediction_sha256 != _canonical_mapping_sha256(prediction_payload):
                 raise ValueError(f"prediction hash mismatch for {sample_id}")
 
         video_manifests: dict[str, dict[str, object]] = {}
-        video_ids = sorted({record.video_id for record in self._predictions})
+        video_ids = sorted(
+            {str(payload["video_id"]) for payload in self._prediction_payloads}
+        )
         for video_id in video_ids:
             prediction_path, evidence_path = self._video_paths(video_id)
             persisted_predictions = _read_jsonl(prediction_path)
@@ -376,9 +383,9 @@ class FrameResultWriter:
                     raise ValueError(f"persisted prediction hash mismatch for {sample_id}")
 
             expected_predictions = [
-                _prediction_payload(record)
-                for record in self._predictions
-                if record.video_id == video_id
+                payload
+                for payload in self._prediction_payloads
+                if payload["video_id"] == video_id
             ]
             expected_evidence = [
                 _evidence_payload(record)
