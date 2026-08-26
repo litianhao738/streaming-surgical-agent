@@ -32,6 +32,7 @@ from surgical_agent.api.errors import (
     ApiCallFailure,
     ApiContractError,
     ApiError,
+    ApiTransportError,
 )
 from surgical_agent.api.registry import build_transport, build_validator
 from surgical_agent.api.request_hash import canonical_request_metadata
@@ -188,7 +189,11 @@ def _require_complete_real_accounting(response: ProviderResponse) -> None:
         response.total_tokens,
     )
     if any(type(value) is not int or value < 0 for value in token_counts):
-        raise ApiContractError("real single-pass accounting is incomplete")
+        raise ApiTransportError(
+            "real single-pass accounting is incomplete",
+            code="response_usage_invalid",
+            retryable=False,
+        )
     cost = response.provider_cost
     if (
         not isinstance(cost, (int, float))
@@ -196,7 +201,11 @@ def _require_complete_real_accounting(response: ProviderResponse) -> None:
         or not math.isfinite(float(cost))
         or cost < 0
     ):
-        raise ApiContractError("real single-pass accounting is incomplete")
+        raise ApiTransportError(
+            "real single-pass accounting is incomplete",
+            code="response_usage_invalid",
+            retryable=False,
+        )
 
 
 class _RealAccountingTransport:

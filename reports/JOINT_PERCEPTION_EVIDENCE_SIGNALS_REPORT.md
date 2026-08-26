@@ -26,6 +26,8 @@ Status: `CORE_AND_REAL_SINGLE_PASS_COMPLETE`
   IDs.
 - A real origin response must include exact non-null input/output/total token
   counts and finite non-negative cost before parsing or paired persistence.
+  Incomplete accounting is recorded as a nonretryable
+  `response_usage_invalid` provider attempt before the run fails closed.
 
 ## TDD Evidence
 
@@ -72,8 +74,8 @@ runner implementation: `12 passed in 0.56s`.
 - Python: `3.11.7`.
 - Key packages: Torch `2.13.0+cpu`, Pillow `12.3.0`, PyYAML `6.0.3`, pytest
   `9.1.1`, Ruff `0.16.4`.
-- Post-review focused integration: `18 passed in 9.03s`.
-- Post-review repository suite: `549 passed, 13 skipped in 20.21s`.
+- Final focused API/integration surface: `121 passed, 1 skipped in 11.55s`.
+- Final repository suite: `562 passed, 13 skipped in 21.01s`.
 - Ruff after the final behavior change: `All checks passed!`.
 - Full-token tracked-source secret scan returned no match (`git grep` exit 1).
   The literal prefix command in the plan also matches inherited safe docs,
@@ -139,7 +141,8 @@ secret scans were clean.
 
 After adding the supported low-effort reasoning parameter and content-free
 parse-stage taxonomy, exactly one fresh authorized invocation ran under ID
-`task10_fix2_real_20260827`. It succeeded without retry:
+`task10_fix2_real_20260827` at sanitized UTC ledger timestamp
+`2026-08-26T19:43:51.933870+00:00`. It succeeded without retry:
 
 - requested and returned model: `openai/gpt-5.6-sol`;
 - response ID: `gen-1787773419-a1u2Eb5T9mmHQmO2zw1w`;

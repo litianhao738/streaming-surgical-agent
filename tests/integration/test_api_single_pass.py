@@ -385,7 +385,7 @@ def test_actual_openrouter_transport_sends_exact_joint_request_body(
         pytest.param("provider_cost", None, id="missing-provider-cost"),
     ],
 )
-def test_real_single_pass_rejects_incomplete_accounting_before_pair_completion(
+def test_real_single_pass_records_incomplete_accounting_before_pair_completion(
     tmp_path: Path,
     field: str,
     value: object,
@@ -393,20 +393,56 @@ def test_real_single_pass_rejects_incomplete_accounting_before_pair_completion(
     transport = CountingOpenRouterTransport()
     setattr(transport, field, value)
     output_dir = tmp_path / "run"
+    secret_text = "-".join(  # noqa: FLY002 - keep scan fixture non-contiguous
+        ("incomplete", "accounting", "credential")
+    )
 
-    with pytest.raises(ApiContractError, match="accounting"):
+    with pytest.raises(ApiCallFailure) as caught:
         run_single_pass(
             config=load_api_config(REAL_CONFIG),
             output_dir=output_dir,
-            api_key=SecretValue(
-                "-".join(  # noqa: FLY002 - keep scan fixture non-contiguous
-                    ("incomplete", "accounting", "credential")
-                )
-            ),
+            api_key=SecretValue(secret_text),
             transport=transport,
             run_id="incomplete-accounting",
         )
 
+    assert caught.value.cause.code == "response_usage_invalid"
+    assert caught.value.cause.retryable is False
+    assert caught.value.attempt_count == 1
+    assert caught.value.provider_call_count == 1
+    assert caught.value.retry_count == 0
+    assert transport.call_count == 1
+    usage_lines = (output_dir / "api_usage.jsonl").read_text(
+        encoding="utf-8"
+    ).splitlines()
+    assert len(usage_lines) == 1
+    usage_row = json.loads(usage_lines[0])
+    assert usage_row["provider_call_count"] == 1
+    assert usage_row["retry_count"] == 0
+    assert usage_row["error"] == {
+        "code": "response_usage_invalid",
+        "retryable": False,
+        "status_code": None,
+    }
+    assert usage_row["returned_model_identifier"] is None
+    assert usage_row["provider_request_id"] is None
+    assert usage_row["input_tokens"] is None
+    assert usage_row["output_tokens"] is None
+    assert usage_row["total_tokens"] is None
+    assert usage_row["provider_cost"] is None
+    persisted = "\n".join(usage_lines).lower()
+    for forbidden in (
+        "raw_response",
+        "parsed_payload",
+        "system_text",
+        "input_text",
+        "authorization",
+        "bearer ",
+        '"headers"',
+        "refusal",
+        secret_text,
+    ):
+        assert forbidden not in persisted
     assert not (output_dir / "single_pass_artifact.json").exists()
     assert not (output_dir / "manifest.json").exists()
     assert not (output_dir / "predictions/SYNTHETIC01.jsonl").exists()
