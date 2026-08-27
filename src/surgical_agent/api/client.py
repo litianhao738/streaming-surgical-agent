@@ -6,6 +6,7 @@ from dataclasses import replace
 from datetime import UTC, datetime
 from time import perf_counter
 
+from surgical_agent.api.budget import ProviderCallBudget
 from surgical_agent.api.cache import FileApiCache
 from surgical_agent.api.contracts import (
     ApiRequest,
@@ -20,6 +21,7 @@ from surgical_agent.api.errors import (
     ApiCallFailure,
     ApiContractError,
     ApiError,
+    ApiProviderCallBudgetError,
     ApiSchemaError,
 )
 from surgical_agent.api.request_hash import canonical_request_metadata
@@ -39,6 +41,7 @@ class CachedMultimodalApiClient:
         validator: ResponseValidator,
         retry_policy: RetryPolicy | None = None,
         sleep: SleepFunction | None = None,
+        provider_call_budget: ProviderCallBudget | None = None,
     ) -> None:
         self.transport = transport
         self.cache = cache
@@ -46,6 +49,7 @@ class CachedMultimodalApiClient:
         self.validator = validator
         self.retry_policy = retry_policy or RetryPolicy()
         self.sleep = sleep
+        self.provider_call_budget = provider_call_budget
 
     @staticmethod
     def _now() -> str:
@@ -208,6 +212,18 @@ class CachedMultimodalApiClient:
             return replay
 
         start = perf_counter()
+        try:
+            if self.provider_call_budget is not None:
+                self.provider_call_budget.consume()
+        except ApiProviderCallBudgetError as exc:
+            self._log_failure(
+                metadata,
+                error_code=exc.code,
+                retry_count=0,
+                provider_call_count=0,
+                latency_ms=(perf_counter() - start) * 1000.0,
+            )
+            raise
         try:
             if self.sleep is None:
                 retried = self.retry_policy.execute(

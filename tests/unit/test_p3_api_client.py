@@ -4,12 +4,15 @@ from __future__ import annotations
 
 import json
 import os
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
 
 from surgical_agent.api import cache as cache_module
 from surgical_agent.api import errors
+from surgical_agent.api.accounting import CompleteAccountingTransport
+from surgical_agent.api.budget import ProviderCallBudget
 from surgical_agent.api.cache import FileApiCache
 from surgical_agent.api.client import CachedMultimodalApiClient
 from surgical_agent.api.contracts import (
@@ -21,6 +24,7 @@ from surgical_agent.api.contracts import (
 from surgical_agent.api.errors import (
     ApiCacheError,
     ApiContractError,
+    ApiProviderCallBudgetError,
     ApiSchemaError,
     ApiTransportError,
 )
@@ -157,6 +161,67 @@ class SequenceTransport:
         if isinstance(outcome, ApiTransportError):
             raise outcome
         return outcome
+
+
+def test_provider_budget_counts_misses_and_rejects_without_transport_call(
+    tmp_path: Path,
+) -> None:
+    """Fails if a cache replay consumes budget or exhaustion reaches transport."""
+    transport = MockProviderTransport()
+    usage = UsageLedger(tmp_path / "api_usage.jsonl")
+    budget = ProviderCallBudget(1)
+    client = CachedMultimodalApiClient(
+        transport=transport,
+        cache=FileApiCache(tmp_path / "cache"),
+        usage=usage,
+        validator=validate_p3_smoke_payload,
+        retry_policy=RetryPolicy(max_attempts=1),
+        provider_call_budget=budget,
+    )
+
+    client.call(_request())
+    client.call(_request())
+    uncached = replace(
+        _request(),
+        images=(ApiImageInput("synthetic:uncached", "image/png", b"uncached"),),
+    )
+
+    with pytest.raises(ApiProviderCallBudgetError):
+        client.call(uncached)
+
+    assert transport.provider_call_count == 1
+    assert budget.used == 1
+    assert budget.remaining == 0
+    assert usage.records()[-1]["provider_call_count"] == 0
+    assert usage.records()[-1]["retry_count"] == 0
+    assert usage.records()[-1]["error"] == {
+        "code": "provider_call_budget_exhausted",
+        "retryable": False,
+        "status_code": None,
+    }
+
+
+@pytest.mark.parametrize("limit", [True, 0, -1, 1.5, "1"])
+def test_provider_budget_rejects_non_positive_integer_limits(limit: object) -> None:
+    """Fails if invalid configuration can authorize an unbounded provider call."""
+    with pytest.raises((TypeError, ValueError)):
+        ProviderCallBudget(limit)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize(
+    "field",
+    ["input_tokens", "output_tokens", "total_tokens", "provider_cost"],
+)
+def test_complete_accounting_rejects_missing_real_accounting(field: str) -> None:
+    """Fails if a real provider response missing required accounting is accepted."""
+    transport = SequenceTransport([_valid_provider_response(**{field: None})])
+
+    with pytest.raises(ApiTransportError) as caught:
+        CompleteAccountingTransport(transport).send(_request())
+
+    assert caught.value.code == "response_usage_invalid"
+    assert caught.value.retryable is False
+    assert transport.provider_call_count == 1
 
 
 def test_transport_error_keeps_only_a_safe_category() -> None:

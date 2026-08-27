@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import math
 import re
 import subprocess
 import sys
@@ -19,9 +18,10 @@ if str(SRC_ROOT) not in sys.path:
 
 import torch
 
+from surgical_agent.api.accounting import CompleteAccountingTransport
 from surgical_agent.api.cache import CACHE_SCHEMA_VERSION, FileApiCache
 from surgical_agent.api.client import CachedMultimodalApiClient
-from surgical_agent.api.contracts import ApiRequest, ProviderResponse, ProviderTransport
+from surgical_agent.api.contracts import ProviderTransport
 from surgical_agent.api.credentials import (
     SecretValue,
     assert_secret_absent,
@@ -31,7 +31,6 @@ from surgical_agent.api.errors import (
     ApiCallFailure,
     ApiContractError,
     ApiError,
-    ApiTransportError,
 )
 from surgical_agent.api.registry import build_transport, build_validator
 from surgical_agent.api.request_hash import canonical_request_metadata
@@ -181,46 +180,6 @@ def _require_transport_identity(
         raise ApiContractError("transport endpoint does not match config")
 
 
-def _require_complete_real_accounting(response: ProviderResponse) -> None:
-    token_counts = (
-        response.input_tokens,
-        response.output_tokens,
-        response.total_tokens,
-    )
-    if any(type(value) is not int or value < 0 for value in token_counts):
-        raise ApiTransportError(
-            "real single-pass accounting is incomplete",
-            code="response_usage_invalid",
-            retryable=False,
-        )
-    cost = response.provider_cost
-    if (
-        not isinstance(cost, (int, float))
-        or isinstance(cost, bool)
-        or not math.isfinite(float(cost))
-        or cost < 0
-    ):
-        raise ApiTransportError(
-            "real single-pass accounting is incomplete",
-            code="response_usage_invalid",
-            retryable=False,
-        )
-
-
-class _RealAccountingTransport:
-    """Fail before parsing/persistence when an origin response lacks accounting."""
-
-    def __init__(self, transport: ProviderTransport) -> None:
-        self._transport = transport
-        self.provider = transport.provider
-        self.endpoint_identifier = transport.endpoint_identifier
-
-    def send(self, request: ApiRequest) -> ProviderResponse:
-        response = self._transport.send(request)
-        _require_complete_real_accounting(response)
-        return response
-
-
 def _synthetic_input() -> tuple[InferenceSample, torch.Tensor]:
     """Return three distinct deterministic 32x32 RGB frames and safe references."""
 
@@ -332,7 +291,7 @@ def run_single_pass(
 
     cache = FileApiCache(destination / "api_cache")
     client_transport = (
-        _RealAccountingTransport(selected_transport)
+        CompleteAccountingTransport(selected_transport)
         if config.mode == "real"
         else selected_transport
     )

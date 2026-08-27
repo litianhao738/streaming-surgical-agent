@@ -23,6 +23,10 @@ class ApiCacheError(ApiError):
     code = "cache_error"
 
 
+class ApiProviderCallBudgetError(ApiError):
+    code = "provider_call_budget_exhausted"
+
+
 class ApiTransportError(ApiError):
     """Provider/transport failure with an explicit safe category."""
 
