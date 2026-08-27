@@ -42,14 +42,13 @@ not by itself a paper-performance or exact-backend claim.
 - A dataset-scale CLI for the existing `CanonicalStreamingPipeline`.
 - Explicit engineering and paper execution modes.
 - Native-resolution PNG loading for training/validation sources.
-- Exact monotonic MP4 decoding for official test sources using the frozen
+- Exact MP4 decoding for official test sources using the frozen
   `decoder_index = frame_id - 1` alignment rule.
 - OpenRouter `openai/gpt-5.6-sol` Joint Perception, deterministic Evidence
   Signals, `NeverVerify`, and KEEP coordination.
 - Persistent parsed-response cache, usage ledger, paired prediction/evidence
-  files, attempt status, and dataset rollout manifest.
-- Bounded provider-call execution and restart without repaying for completed
-  requests.
+  files, and a dataset rollout manifest.
+- A hard provider-call limit and cache reuse across reruns.
 - Mock and local-data verification that make no paid API calls.
 
 ### 2.2 Out of scope
@@ -145,12 +144,10 @@ For test MP4 samples it:
 - requires all refs in the sample to name the same regular MP4 file;
 - maps each canonical frame ID to decoder index `frame_id - 1`;
 - rejects zero/negative canonical frame IDs;
-- uses an OpenCV headless decoder owned by one video session;
-- decodes monotonically from the beginning or the last committed decoder
-  position, including intervening frames when annotation IDs are sparse;
-- retains only the bounded frames needed by the current causal window;
-- converts BGR to RGB and verifies reported decoder progress;
-- fails closed on seek, decode, geometry, or frame-count disagreement.
+- uses OpenCV headless to read the exact requested decoder indices;
+- converts BGR to RGB;
+- fails closed when a requested frame cannot be decoded or frame geometry is
+  inconsistent.
 
 `opencv-python-headless` is an explicit compatible dependency in both the Python
 project metadata and the AutoDL requirements. It is used only for MP4 decoding;
@@ -221,32 +218,20 @@ and no automatic retry. A budgeted transport wrapper sits below the cache, so
 cache hits do not consume the budget.
 
 Every invocation requires `--max-provider-calls` with either a positive integer
-or the literal value `exact-selection`. `exact-selection` resolves, before key
-or media access, to the complete selected frame count. The wrapper rejects the
-next network send before it would exceed the resolved limit. The runner also
-accepts a positive `--max-total-cost-usd`; when supplied, it stops before
-another call after accumulated observed cost reaches the limit. Because the
-next response price is not known in advance, the call-count limit is the hard
-pre-call bound and the dollar limit is an observed-cost stop condition, not a
-promise that one last response cannot cross the threshold.
+or the literal value `exact-selection`. `exact-selection` resolves to the
+selected frame count. The wrapper rejects the next network send before it would
+exceed the resolved limit. Token counts, latency, and returned provider cost are
+recorded by the existing usage ledger; a second dollar-limit mechanism is
+deferred unless real operation shows it is needed.
 
 Provider errors, schema errors, invalid accounting, cache corruption, and
 budget exhaustion are typed, sanitized failures. There is no local-model
 fallback inside the same experiment.
 
-### 5.5 Cache and restart
+### 5.5 Cache reuse
 
-Each experiment owns a persistent cache directory keyed by a fingerprint of:
-
-- provider and endpoint identifier;
-- requested model identifier;
-- generation parameters and provider options;
-- prompt and response-schema versions;
-- causal image hashes and ordered identifiers;
-- the canonical request body.
-
-Each attempt writes results to a fresh attempt directory. If an attempt stops,
-the user starts a new attempt with the same experiment/cache root. The runner
+The CLI accepts a persistent `--cache-root` and a fresh result `--run-id`. If a
+run stops, the user starts a new run ID with the same cache root. The runner
 replays the video from its first state in canonical order:
 
 - completed requests are served from parsed-response cache with zero provider
@@ -255,9 +240,9 @@ replays the video from its first state in canonical order:
 - the first missing request resumes paid execution;
 - the fresh `FrameResultWriter` builds one internally consistent result set.
 
-This avoids unsafe in-place append/resume semantics while preserving causal
-state and preventing repeated payment. A successful paper artifact points to
-exactly one complete attempt; incomplete attempts remain diagnostic only.
+The existing canonical request metadata detects incompatible cache entries, so
+this feature does not add a second experiment-fingerprint subsystem. In-place
+result append is not supported.
 
 ## 6. CLI Contract
 
@@ -273,8 +258,9 @@ python scripts/run_dataset_api_pipeline.py \
   --max-frames 3 \
   --config configs/perception/joint_openrouter_dataset.yaml \
   --api-key-file docs/API.txt \
-  --experiment-root artifacts/api_dataset/baseline_v1 \
-  --attempt-id engineering_vid30_001 \
+  --output-root artifacts/api_dataset \
+  --cache-root artifacts/api_dataset_cache/baseline_v1 \
+  --run-id engineering_vid30_001 \
   --max-provider-calls exact-selection \
   --authorize-data-upload
 ```
@@ -288,38 +274,33 @@ python scripts/run_dataset_api_pipeline.py \
   --dataset-root "$CHOLECTRACK20_ROOT" \
   --config configs/perception/joint_openrouter_dataset.yaml \
   --api-key-file docs/API.txt \
-  --experiment-root artifacts/api_dataset/single_pass_validation_v1 \
-  --attempt-id validation_full_001 \
+  --output-root artifacts/api_dataset \
+  --cache-root artifacts/api_dataset_cache/single_pass_validation_v1 \
+  --run-id validation_full_001 \
   --max-provider-calls exact-selection \
   --authorize-data-upload
 ```
 
-`--attempt-id` must be a safe new identifier. Attempt result directories are
-fresh; the experiment cache is shared. API keys are accepted only through the
-existing secret wrapper and ignored `docs/API.txt` path or an explicit CLI
-secret option, and are never serialized.
+`--run-id` must be a safe new identifier and its result directory must be
+fresh. API keys are accepted through the existing secret wrapper and ignored
+`docs/API.txt` file and are never serialized.
 
 ## 7. Persistence
 
-The experiment root contains:
+The result and cache roots contain:
 
 ```text
-<experiment-root>/
-  experiment.json
-  api_cache/<request_hash>.json
-  attempts/<attempt-id>/
-    status.json
-    resolved_selection.json
-    api_usage.jsonl
-    predictions/<video_id>.jsonl
-    evidence/<video_id>.jsonl
-    manifest.json
-    dataset_rollout_artifact.json
-```
+<output-root>/<run-id>/
+  run_status.json
+  api_usage.jsonl
+  predictions/<video_id>.jsonl
+  evidence/<video_id>.jsonl
+  manifest.json
+  dataset_rollout_artifact.json
 
-`experiment.json` freezes safe configuration and dataset provenance before the
-first call. Reopening an existing experiment with different safe configuration,
-selection, prompt/schema, or dataset-manifest hashes fails closed.
+<cache-root>/
+  <request_hash>.json
+```
 
 The final rollout artifact records:
 
@@ -328,9 +309,9 @@ The final rollout artifact records:
 - ordered video IDs and video-boundary resets;
 - dataset repair-manifest SHA-256 and alignment versions;
 - requested and returned model identity evidence;
-- prompt/schema/config versions and experiment fingerprint;
+- prompt/schema/config versions;
 - first-call/cache-hit/retry/provider-call/token/cost totals;
-- paths and SHA-256 hashes of paired outputs, usage, manifest, and cache index;
+- paired-output, usage, manifest, and cache locations;
 - `track20_image_uploaded: true`;
 - `paper_metric_eligible: false` until all paper gates are independently met;
 - explicit failure category and incomplete status when applicable.
@@ -341,26 +322,22 @@ absolute local dataset paths.
 
 ## 8. Failure Semantics
 
-- Invalid mode/selection/config/auth/budget: fail before credential or media
-  access.
+- Invalid mode/selection/config/auth/budget: fail before provider access.
 - Dataset manifest/hash/alignment failure: fail before provider access.
 - PNG/MP4 decode or geometry failure: fail before the affected request.
-- Cache corruption or request-provenance mismatch: log a sanitized failure and
-  stop; never overwrite the cache entry.
+- Cache corruption or request mismatch: stop without overwriting the entry.
 - Provider/accounting/schema failure: write one sanitized usage failure record
-  with exact provider-call accounting and stop the attempt.
+  with exact provider-call accounting and stop the run.
 - Budget exhaustion: write `provider_call_budget_exhausted` with no network
   call for the rejected state.
-- Persistence or causal-store failure: the pipeline remains fail-stop and the
-  attempt is incomplete.
-- Any incomplete paper attempt is excluded from formal aggregation.
+- Any incomplete paper run is excluded from formal aggregation.
 
 ## 9. Evaluation Boundary
 
 This feature produces the complete single-pass prediction/evidence baseline.
 It does not put GT into the rollout process and does not choose thresholds.
 
-Offline evaluation may consume a completed Validation attempt through the
+Offline evaluation may consume a completed Validation run through the
 existing formal frame-metric implementation. It must retain task masks and
 source granularity, exclude unsupported classes, compute video-wise I/V/T/IVT
 mAP and Phase macro-F1/Accuracy, and keep test frozen. Test predictions with no
@@ -375,22 +352,19 @@ calls.
 Required tests cover:
 
 - engineering and paper argument compatibility;
-- paper mode rejecting truncation, stride, random sampling, and partial video
-  completion;
-- double authorization failing before key/media access;
+- paper mode rejecting truncation and partial video completion;
+- double authorization failing before a provider call;
 - official split ordering and frame ordering;
 - labels/evaluation objects having no route into the pipeline request;
 - native PNG RGB loading and geometry validation;
-- test MP4 `frame_id - 1` mapping, monotonic decode, video reset, and exact pixel
-  ordering;
+- test MP4 `frame_id - 1` mapping and video reset;
 - three-frame causal ordering and target-frame maximality;
-- provider-call hard budget and observed-cost stopping;
+- provider-call hard budget;
 - first mock pass writing paired outputs, usage, cache, and manifests;
-- a fresh attempt replaying cached prefix states with zero provider calls before
+- a fresh run replaying cached prefix states with zero provider calls before
   the first uncached state;
-- experiment fingerprint mismatch rejection;
 - sanitized failures and exact-secret scans;
-- incomplete attempts never marked complete or paper eligible;
+- incomplete runs never marked complete or paper eligible;
 - complete mock multi-video rollout with one reset per video;
 - a local-data integration run over a bounded PNG sample and a bounded official
   test MP4 sample when `CHOLECTRACK20_ROOT` is available;
@@ -411,9 +385,9 @@ after code review and local mock/data checks pass.
 4. Real-data execution cannot start without both the exact real-data config and
    `--authorize-data-upload`.
 5. Provider calls cannot exceed the declared hard call budget.
-6. Interrupted execution can be restarted in a fresh attempt; cached prefix
+6. Interrupted execution can be restarted with a fresh run ID; cached prefix
    states reconstruct causal history with zero repeated provider calls.
-7. Completed attempts contain paired predictions/evidence, usage, cache,
+7. Completed runs contain paired predictions/evidence, usage, cache,
    selection, provenance, and a complete manifest with no credential or raw
    image/provider payload.
 8. Multi-video runs preserve frame order and reset state at every video
