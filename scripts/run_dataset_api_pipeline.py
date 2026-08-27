@@ -422,51 +422,61 @@ def run_dataset_api_rollout(
         writer=writer,
         media_loader=CausalApiMediaLoader(),
     )
+    writer.begin()
     try:
-        result = system.run(selection, run_id=run_id)
-        artifact: dict[str, object] = {
-            "schema_version": "cholectrack20_api_rollout_v1",
-            "status": (
-                "REAL_RESPONSE_RECEIVED"
-                if config.mode == "real"
-                else "MOCK_COMPLETE"
-            ),
-            "run_id": run_id,
-            "mode": selection.mode,
-            "split": selection.split.value if selection.split else None,
-            "video_ids": list(selection.video_ids),
-            "expected_frame_counts": dict(selection.frame_counts),
-            "completed_frame_counts": dict(result.frame_counts),
-            "provider": config.provider,
-            "model_requested": config.requested_model_identifier,
-            "models_returned": sorted(
-                {
-                    str(row["returned_model_identifier"])
-                    for row in usage.records()
-                    if row.get("returned_model_identifier") is not None
-                }
-            ),
-            "prompt_version": config.prompt_version,
-            "response_schema_version": config.response_schema_version,
-            "repair_manifest_sha256": repair_manifest_sha256,
-            "alignment_versions": sorted(
-                {sample.alignment_version for sample in selection.samples}
-            ),
-            "usage": result.usage_summary,
-            "cache_entry_count": len(tuple(resolved_cache_root.glob("*.json"))),
-            "track20_image_uploaded": config.mode == "real",
-            "paper_metric_eligible": False,
-            "manifest_file": "manifest.json",
-        }
-        atomic_write_json(destination / "dataset_rollout_artifact.json", artifact)
-    finally:
-        if config.mode == "real":
-            assert api_key is not None
-            _scan_secret(
-                api_key,
-                output_dir=destination,
-                cache_root=resolved_cache_root,
+        try:
+            result = system.run(
+                selection,
+                run_id=run_id,
+                defer_completion=True,
             )
+            artifact: dict[str, object] = {
+                "schema_version": "cholectrack20_api_rollout_v1",
+                "status": (
+                    "REAL_RESPONSE_RECEIVED"
+                    if config.mode == "real"
+                    else "MOCK_COMPLETE"
+                ),
+                "run_id": run_id,
+                "mode": selection.mode,
+                "split": selection.split.value if selection.split else None,
+                "video_ids": list(selection.video_ids),
+                "expected_frame_counts": dict(selection.frame_counts),
+                "completed_frame_counts": dict(result.frame_counts),
+                "provider": config.provider,
+                "model_requested": config.requested_model_identifier,
+                "models_returned": sorted(
+                    {
+                        str(row["returned_model_identifier"])
+                        for row in usage.records()
+                        if row.get("returned_model_identifier") is not None
+                    }
+                ),
+                "prompt_version": config.prompt_version,
+                "response_schema_version": config.response_schema_version,
+                "repair_manifest_sha256": repair_manifest_sha256,
+                "alignment_versions": sorted(
+                    {sample.alignment_version for sample in selection.samples}
+                ),
+                "usage": result.usage_summary,
+                "cache_entry_count": len(tuple(resolved_cache_root.glob("*.json"))),
+                "track20_image_uploaded": config.mode == "real",
+                "paper_metric_eligible": False,
+                "manifest_file": "manifest.json",
+            }
+            atomic_write_json(destination / "dataset_rollout_artifact.json", artifact)
+        finally:
+            if config.mode == "real":
+                assert api_key is not None
+                _scan_secret(
+                    api_key,
+                    output_dir=destination,
+                    cache_root=resolved_cache_root,
+                )
+        writer.complete()
+    except Exception as exc:
+        writer.mark_failed(_safe_error_category(exc))
+        raise
     return artifact
 
 

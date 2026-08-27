@@ -79,7 +79,13 @@ class DatasetApiPipelineSystem:
             )
         )
 
-    def run(self, selection: RolloutSelection, *, run_id: str) -> DatasetApiRunResult:
+    def run(
+        self,
+        selection: RolloutSelection,
+        *,
+        run_id: str,
+        defer_completion: bool = False,
+    ) -> DatasetApiRunResult:
         if not isinstance(selection, RolloutSelection):
             raise TypeError("selection must be a RolloutSelection")
         predictions: list[PredictionRecord] = []
@@ -93,7 +99,10 @@ class DatasetApiPipelineSystem:
             predictions.append(result.prediction)
 
         self._assert_selection_matches(selection, predictions)
-        manifest_path = self.writer.finalize({"paper_metric_eligible": False})
+        manifest_path = self.writer.finalize(
+            {"paper_metric_eligible": False},
+            defer_completion=defer_completion,
+        )
         return DatasetApiRunResult(
             predictions=tuple(predictions),
             manifest_path=manifest_path,

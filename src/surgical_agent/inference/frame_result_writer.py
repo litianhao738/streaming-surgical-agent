@@ -24,6 +24,7 @@ from surgical_agent.research.signals.contracts import (
 )
 
 _SAFE_VIDEO_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*\Z")
+_SAFE_FAILURE_CATEGORY = re.compile(r"[a-z][a-z0-9_]*\Z")
 _WINDOWS_RESERVED_NAMES = frozenset(
     {"CON", "PRN", "AUX", "NUL"}
     | {f"COM{index}" for index in range(1, 10)}
@@ -165,6 +166,7 @@ class FrameResultWriter:
         self._sample_ids: set[tuple[str, int]] = set()
         self._write_failed = False
         self._finalized = False
+        self._completion_deferred = False
 
     @property
     def predictions(self) -> tuple[PredictionRecord, ...]:
@@ -175,6 +177,38 @@ class FrameResultWriter:
     @property
     def evidence_records(self) -> tuple[EvidenceRecord, ...]:
         return tuple(self._evidence_records)
+
+    def begin(self) -> None:
+        """Persist the durable lifecycle marker before rollout work begins."""
+
+        if self._finalized or self._prediction_payloads:
+            raise ArtifactWriteError("Cannot begin an active or finalized run")
+        self._write_status({"status": "INCOMPLETE"})
+
+    def mark_failed(self, failure_category: str) -> None:
+        """Persist only a sanitized category while keeping the run incomplete."""
+
+        if _SAFE_FAILURE_CATEGORY.fullmatch(failure_category) is None:
+            raise ArtifactWriteError("failure category must be a safe identifier")
+        self._write_status(
+            {
+                "status": "INCOMPLETE",
+                "failure_category": failure_category,
+            }
+        )
+
+    def complete(self) -> None:
+        """Publish COMPLETE after deferred rollout-level requirements succeed."""
+
+        if not self._finalized or not self._completion_deferred:
+            raise ArtifactWriteError("No deferred frame-result run is ready to complete")
+        self._write_status(
+            {
+                "status": "COMPLETE",
+                "manifest_file": self.manifest_path.name,
+            }
+        )
+        self._completion_deferred = False
 
     def write(
         self, prediction: PredictionRecord, evidence: EvidenceProfile
@@ -251,7 +285,10 @@ class FrameResultWriter:
         return evidence_record
 
     def finalize(
-        self, metadata: Mapping[str, object] | None = None
+        self,
+        metadata: Mapping[str, object] | None = None,
+        *,
+        defer_completion: bool = False,
     ) -> Path:
         if self._finalized:
             raise ArtifactWriteError("Writer was already finalized")
@@ -275,22 +312,36 @@ class FrameResultWriter:
             "videos": videos,
             "metadata": normalized_metadata,
         }
-        complete_status = {
-            "schema_version": "frame_result_run_status_v1",
-            "status": "COMPLETE",
-            "run_id": self.run_id,
-            "manifest_file": self.manifest_path.name,
-        }
         try:
             atomic_write_text(self.manifest_path, _json_document(manifest))
-            atomic_write_text(self.status_path, _json_document(complete_status))
+            if not defer_completion:
+                self._write_status(
+                    {
+                        "status": "COMPLETE",
+                        "manifest_file": self.manifest_path.name,
+                    }
+                )
         except (ArtifactWriteError, OSError) as error:
             self._write_failed = True
             if isinstance(error, ArtifactWriteError):
                 raise
             raise ArtifactWriteError(f"Frame result finalization failed: {error}") from error
         self._finalized = True
+        self._completion_deferred = defer_completion
         return self.manifest_path
+
+    def _write_status(self, payload: Mapping[str, object]) -> None:
+        status = {
+            "schema_version": "frame_result_run_status_v1",
+            **payload,
+            "run_id": self.run_id,
+        }
+        try:
+            atomic_write_text(self.status_path, _json_document(status))
+        except (ArtifactWriteError, OSError) as error:
+            if isinstance(error, ArtifactWriteError):
+                raise
+            raise ArtifactWriteError(f"Frame-result status write failed: {error}") from error
 
     def _require_fresh_owned_tree(self) -> None:
         stale_artifacts = [

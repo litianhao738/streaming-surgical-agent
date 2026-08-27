@@ -56,9 +56,22 @@ class OpenCvVideoFrameReader:
                 raise DatasetContractError("Unable to open MP4 causal media")
             frames: list[np.ndarray] = []
             for decoder_index in decoder_indices:
-                capture.set(cv2.CAP_PROP_POS_FRAMES, decoder_index)
+                if not capture.set(cv2.CAP_PROP_POS_FRAMES, decoder_index):
+                    raise DatasetContractError("Unable to decode an exact MP4 frame")
+                positioned_index = capture.get(cv2.CAP_PROP_POS_FRAMES)
+                if (
+                    not np.isfinite(positioned_index)
+                    or abs(positioned_index - decoder_index) > 0.5
+                ):
+                    raise DatasetContractError("Unable to decode an exact MP4 frame")
                 ok, frame = capture.read()
                 if not ok or frame is None:
+                    raise DatasetContractError("Unable to decode an exact MP4 frame")
+                next_index = capture.get(cv2.CAP_PROP_POS_FRAMES)
+                if (
+                    not np.isfinite(next_index)
+                    or abs(next_index - (decoder_index + 1)) > 0.5
+                ):
                     raise DatasetContractError("Unable to decode an exact MP4 frame")
                 frames.append(np.ascontiguousarray(frame[:, :, ::-1]))
             return tuple(frames)

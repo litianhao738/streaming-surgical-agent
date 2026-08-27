@@ -11,6 +11,7 @@ import pytest
 from PIL import Image
 
 import scripts.run_dataset_api_pipeline as dataset_cli
+import surgical_agent.inference.frame_result_writer as frame_writer_module
 from scripts.run_dataset_api_pipeline import (
     build_parser,
     run,
@@ -23,8 +24,9 @@ from surgical_agent.api.errors import ApiContractError, ApiTransportError
 from surgical_agent.api.providers.mock import MockProviderTransport
 from surgical_agent.config.loader import load_api_config
 from surgical_agent.data.api_rollout_selection import RolloutSelection
-from surgical_agent.data.dataset import PNG_ALIGNMENT_VERSION
+from surgical_agent.data.dataset import PNG_ALIGNMENT_VERSION, DatasetContractError
 from surgical_agent.data.schemas import DatasetSplit, InferenceSample
+from surgical_agent.inference.writer import ArtifactWriteError
 from surgical_agent.perception.schema import (
     JOINT_PERCEPTION_SCHEMA_VERSION,
     TASK_LAYOUT,
@@ -349,6 +351,23 @@ def test_injected_real_rollout_marks_dataset_image_upload_without_network(
     secret_text = "-".join(  # noqa: FLY002 - keep scan fixture non-contiguous
         ("injected", "dataset", "credential")
     )
+    real_scan_secret = dataset_cli._scan_secret
+
+    def observe_incomplete_scan_state(
+        secret: SecretValue,
+        *,
+        output_dir: Path,
+        cache_root: Path,
+    ) -> None:
+        status = json.loads((output_dir / "run_status.json").read_text())
+        assert status["status"] == "INCOMPLETE"
+        real_scan_secret(
+            secret,
+            output_dir=output_dir,
+            cache_root=cache_root,
+        )
+
+    monkeypatch.setattr(dataset_cli, "_scan_secret", observe_incomplete_scan_state)
 
     artifact = run_dataset_api_rollout(
         config=load_api_config(REAL_DATASET_CONFIG),
@@ -370,6 +389,169 @@ def test_injected_real_rollout_marks_dataset_image_upload_without_network(
     assert secret_text not in _persisted_text(
         tmp_path / "real-output", tmp_path / "real-cache"
     )
+
+
+def test_first_frame_failure_persists_sanitized_incomplete_status(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A failure before the first pair must still leave a categorized run record."""
+
+    dataset_root = tmp_path / "dataset"
+    selection = _selection_with_two_pngs(dataset_root / "media")
+    (dataset_root / "repair_manifest.json").write_text("{}\n", encoding="utf-8")
+    _install_canonical_adapter(monkeypatch, selection)
+
+    class FailingLoader:
+        def load(self, _sample: InferenceSample) -> object:
+            raise DatasetContractError("sensitive first-frame detail")
+
+    monkeypatch.setattr(dataset_cli, "CausalApiMediaLoader", FailingLoader)
+    output_dir = tmp_path / "output"
+
+    with pytest.raises(DatasetContractError, match="first-frame"):
+        run_dataset_api_rollout(
+            config=load_api_config(MOCK_DATASET_CONFIG),
+            selection=selection,
+            dataset_root=dataset_root,
+            output_dir=output_dir,
+            cache_root=tmp_path / "cache",
+            run_id="first-frame-failure",
+            max_provider_calls=2,
+            transport=MockProviderTransport(),
+        )
+
+    assert json.loads((output_dir / "run_status.json").read_text()) == {
+        "failure_category": "dataset_error",
+        "run_id": "first-frame-failure",
+        "schema_version": "frame_result_run_status_v1",
+        "status": "INCOMPLETE",
+    }
+    assert "sensitive first-frame detail" not in _persisted_text(output_dir)
+
+
+def test_mid_run_failure_persists_category_and_partial_pairs(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Stopping after one pair must categorize the run without losing that pair."""
+
+    dataset_root = tmp_path / "dataset"
+    selection = _selection_with_two_pngs(dataset_root / "media")
+    (dataset_root / "repair_manifest.json").write_text("{}\n", encoding="utf-8")
+    _install_canonical_adapter(monkeypatch, selection)
+    real_loader = dataset_cli.CausalApiMediaLoader
+
+    class SecondFrameFailureLoader:
+        def __init__(self) -> None:
+            self.delegate = real_loader()
+
+        def load(self, sample: InferenceSample) -> object:
+            if sample.target_frame_id == 2:
+                raise DatasetContractError("sensitive mid-run detail")
+            return self.delegate.load(sample)
+
+    monkeypatch.setattr(dataset_cli, "CausalApiMediaLoader", SecondFrameFailureLoader)
+    output_dir = tmp_path / "output"
+
+    with pytest.raises(DatasetContractError, match="mid-run"):
+        run_dataset_api_rollout(
+            config=load_api_config(MOCK_DATASET_CONFIG),
+            selection=selection,
+            dataset_root=dataset_root,
+            output_dir=output_dir,
+            cache_root=tmp_path / "cache",
+            run_id="mid-run-failure",
+            max_provider_calls=2,
+            transport=MockProviderTransport(),
+        )
+
+    status = json.loads((output_dir / "run_status.json").read_text())
+    assert status["status"] == "INCOMPLETE"
+    assert status["failure_category"] == "dataset_error"
+    assert len((output_dir / "predictions/VID30.jsonl").read_text().splitlines()) == 1
+    assert len((output_dir / "evidence/VID30.jsonl").read_text().splitlines()) == 1
+    assert "sensitive mid-run detail" not in _persisted_text(output_dir)
+
+
+def test_dataset_artifact_failure_replaces_premature_complete_status(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The frame manifest alone must not make the overall rollout COMPLETE."""
+
+    dataset_root = tmp_path / "dataset"
+    selection = _selection_with_two_pngs(dataset_root / "media")
+    (dataset_root / "repair_manifest.json").write_text("{}\n", encoding="utf-8")
+    _install_canonical_adapter(monkeypatch, selection)
+    output_dir = tmp_path / "output"
+
+    def fail_dataset_artifact(_path: Path, _payload: object) -> None:
+        raise ArtifactWriteError("injected dataset artifact failure")
+
+    monkeypatch.setattr(dataset_cli, "atomic_write_json", fail_dataset_artifact)
+
+    with pytest.raises(ArtifactWriteError, match="dataset artifact"):
+        run_dataset_api_rollout(
+            config=load_api_config(MOCK_DATASET_CONFIG),
+            selection=selection,
+            dataset_root=dataset_root,
+            output_dir=output_dir,
+            cache_root=tmp_path / "cache",
+            run_id="artifact-failure",
+            max_provider_calls=2,
+            transport=MockProviderTransport(),
+        )
+
+    status = json.loads((output_dir / "run_status.json").read_text())
+    assert status["status"] == "INCOMPLETE"
+    assert status["failure_category"] == "artifact_error"
+    assert (output_dir / "manifest.json").is_file()
+    assert not (output_dir / "dataset_rollout_artifact.json").exists()
+
+
+def test_final_complete_status_failure_leaves_durable_incomplete_category(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Failure publishing the last state must preserve a truthful prior state."""
+
+    dataset_root = tmp_path / "dataset"
+    selection = _selection_with_two_pngs(dataset_root / "media")
+    (dataset_root / "repair_manifest.json").write_text("{}\n", encoding="utf-8")
+    _install_canonical_adapter(monkeypatch, selection)
+    output_dir = tmp_path / "output"
+    real_atomic_write = frame_writer_module.atomic_write_text
+
+    def fail_complete_status(path: Path, content: str) -> None:
+        if path.name == "run_status.json":
+            payload = json.loads(content)
+            if payload.get("status") == "COMPLETE":
+                raise ArtifactWriteError("injected final status failure")
+        real_atomic_write(path, content)
+
+    monkeypatch.setattr(
+        frame_writer_module,
+        "atomic_write_text",
+        fail_complete_status,
+    )
+
+    with pytest.raises(ArtifactWriteError, match="final status"):
+        run_dataset_api_rollout(
+            config=load_api_config(MOCK_DATASET_CONFIG),
+            selection=selection,
+            dataset_root=dataset_root,
+            output_dir=output_dir,
+            cache_root=tmp_path / "cache",
+            run_id="completion-failure",
+            max_provider_calls=2,
+            transport=MockProviderTransport(),
+        )
+
+    status = json.loads((output_dir / "run_status.json").read_text())
+    assert status["status"] == "INCOMPLETE"
+    assert status["failure_category"] == "artifact_error"
+    assert (output_dir / "dataset_rollout_artifact.json").is_file()
 
 
 def test_programmatic_paper_selection_must_match_canonical_dataset_before_work(

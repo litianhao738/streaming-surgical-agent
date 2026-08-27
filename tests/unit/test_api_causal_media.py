@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
 from PIL import Image
 
-from surgical_agent.data.api_media import CausalApiMediaLoader
+from surgical_agent.data.api_media import CausalApiMediaLoader, OpenCvVideoFrameReader
 from surgical_agent.data.dataset import (
     MP4_ALIGNMENT_VERSION,
     PNG_ALIGNMENT_VERSION,
@@ -94,6 +96,50 @@ def test_test_mp4_uses_annotation_id_minus_one_indices(tmp_path: Path) -> None:
 
     assert reader.calls == [(video.resolve(), (0, 25, 50))]
     assert loaded.frames.shape[0] == 3
+
+
+@pytest.mark.parametrize(
+    ("seek_succeeds", "reported_position"),
+    [(False, 7.0), (True, 6.0)],
+)
+def test_opencv_reader_fails_closed_when_exact_seek_is_not_verified(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    seek_succeeds: bool,
+    reported_position: float,
+) -> None:
+    """Ignoring seek failure or position mismatch can return the wrong frame."""
+
+    class FakeCapture:
+        def __init__(self, _path: str) -> None:
+            self.released = False
+
+        def isOpened(self) -> bool:
+            return True
+
+        def set(self, _property: int, _value: int) -> bool:
+            return seek_succeeds
+
+        def get(self, _property: int) -> float:
+            return reported_position
+
+        def read(self) -> tuple[bool, np.ndarray]:
+            return True, np.zeros((4, 6, 3), dtype=np.uint8)
+
+        def release(self) -> None:
+            self.released = True
+
+    fake_cv2 = SimpleNamespace(
+        CAP_PROP_POS_FRAMES=1,
+        VideoCapture=FakeCapture,
+    )
+    monkeypatch.setitem(sys.modules, "cv2", fake_cv2)
+
+    with pytest.raises(
+        DatasetContractError,
+        match="Unable to decode an exact MP4 frame",
+    ):
+        OpenCvVideoFrameReader().read_many_rgb(tmp_path / "video.mp4", (7,))
 
 
 def test_png_window_rejects_mismatched_frame_geometry(tmp_path: Path) -> None:
