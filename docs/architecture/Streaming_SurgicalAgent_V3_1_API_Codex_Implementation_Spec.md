@@ -8,7 +8,7 @@
 >
 > **任何阶段未真实通过测试，不得进入下一阶段；任何字段、annotation semantics、ontology、FPS、tracker 训练来源或 API 能力不明确时，必须标记 `BLOCKED`，禁止自行假设。**
 
-> **当前执行检查点（2026-08-24，2026-08-25 独立复核与 P3 mock 实现）**：P0 `PASS`；P1 `PASS_WITH_EXPLICIT_PARTIAL_SUPERVISION`；P2 Local Smoke `PASS`，运行约束由 `<resolved dataset root>/repair_manifest.json` 冻结。真实 masked optimizer step、checkpoint round-trip、VID02/VID31/VID30 canonical pipeline、Gold-free PredictionRecord、atomic artifact 和 20-video target-granularity audit 均已运行通过。VID30 仍是候选重建验证源；VID31 只启用 CholecT50 frame-level Instrument/Verb/Target/Triplet presence 与 Cholec80 phase，不启用 instance、bounding box、operator 或 track supervision。历史完整环境为 `79 passed`；2026-08-25 当前环境在未配置可选原始 Cholec80 provenance 目录时为 `78 passed, 1 skipped`，两次结果按各自运行环境保留。P3 provider-neutral client/hash/cache/retry/usage、mock adapter 与合成图像 smoke 已通过，但 exact API identity 和真实调用仍为 `BLOCKED`，故 P3 为 `PARTIAL`；P4 prediction/evaluation granularity 与 P9 canonical per-sample task error 继续保持各自阶段性 `BLOCKED`。不得因 mock 通过而进入 P4。
+> **当前执行检查点（2026-08-24 至 2026-08-28）**：P0 `PASS`；P1 `PASS_WITH_EXPLICIT_PARTIAL_SUPERVISION`；P2 Local Smoke `PASS`，运行约束由 `<resolved dataset root>/repair_manifest.json` 冻结。真实 masked optimizer step、checkpoint round-trip、VID02/VID31/VID30 canonical pipeline、Gold-free PredictionRecord、atomic artifact 和 20-video target-granularity audit 均已运行通过。VID30 仍是候选重建验证源；VID31 只启用 CholecT50 frame-level Instrument/Verb/Target/Triplet presence 与 Cholec80 phase，不启用 instance、bounding box、operator 或 track supervision。历史完整环境为 `79 passed`；2026-08-25 当前环境在未配置可选原始 Cholec80 provenance 目录时为 `78 passed, 1 skipped`，两次结果按各自运行环境保留。P3 provider-neutral client/hash/cache/retry/usage、mock adapter、OpenRouter transport 与合成图像 structured-response smoke 已通过，但响应未提供 immutable exact-backend identity，故 P3 仍为 `PARTIAL`；后续明确批准继续构建不等于把该 identity 缺口改判为 `PASS`。原 P4 粒度闸门现仅对第一版 frame recognition 关闭：`joint_perception_frame_v1` 固定 I/V/T/IVT 为 frame-level multi-label、Phase 为 frame-level single-label；未来 instance-level schema 与 matching rule 仍需单独批准。P9 canonical per-sample task error 继续保持阶段性 `BLOCKED`。
 
 ---
 
@@ -849,15 +849,14 @@ class PerceptionBackend(Protocol):
 输出：
 
 ```text
-instance_predictions[]: prediction_id + bbox + optional track_ref + I/V/T/IVT top-k
-optional frame_multilabel: I/V/T/IVT presence sets with explicit granularity
-frame-level Phase top-k
+frame-level Instrument / Verb / Target / IVT selected-ID sets + ranked candidates
+frame-level single Phase selected ID + ranked candidates
 evidence_refs
-optional self_reported_confidence
+required diagnostic self_reported_confidence mapping
 provenance
 ```
 
-CholecTrack20 是多器械数据；禁止把所有实例压成一个未定义的“主 I/V/T/IVT”。`InitialPrediction` 和 `PredictionRecord` 必须携带 granularity。frame-level 与 instance-level 输出只能由各自兼容的 EvaluationTarget 评估。默认 Verifier 只能修正 scoped semantic candidate 或 phase，不能修改 bbox、实例数量和 track identity。
+第一版已批准的 active contract 是 `joint_perception_frame_v1`。CholecTrack20 是多器械数据，并且一帧可以包含多个交互，因此 I/V/T/IVT 必须是 frame-level multi-label sets，Phase 必须是 frame-level single-label；禁止将整帧 I/V/T/IVT 压成唯一 `choice`。`InitialPrediction` 和 `PredictionRecord` 必须携带 `frame_multilabel` granularity。当前 Verifier 只能修正 scoped semantic candidate 或 phase；bbox、实例数量和 track identity 不属于这一 contract。未来 instance-level 输出必须另设版本化 schema、matching rule 与 evaluator，不能复用当前字段并静默改变粒度。
 
 API self confidence 字段必须命名：
 
@@ -1060,39 +1059,73 @@ class EventMemory(Protocol):
 
 ## 输出
 
-推荐 schema：
+当前生效的 wire schema 是 `joint_perception_frame_v1`。下面是结构伪代码，不是可直接送入 validator 的 JSON；尖括号行表示为节省篇幅而省略的候选。可执行 schema 以 `src/surgical_agent/perception/prompts/perception_schema.json` 为准：
 
-```json
+```text
 {
-  "instances": [
-    {
-      "prediction_id": "inst:0",
-      "bbox_xywh_norm": [0.0, 0.0, 0.0, 0.0],
-      "track_ref": null,
-      "instrument": {"choice": null, "topk": []},
-      "verb": {"choice": null, "topk": []},
-      "target": {"choice": null, "topk": []},
-      "ivt": {"choice": null, "topk": []}
-    }
+  "schema_version": "joint_perception_frame_v1",
+  "instrument": {
+    "selected_ids": [0, 5],
+    "topk": [
+      {"id": 0, "score": 0.84}, {"id": 5, "score": 0.61},
+      <再提供 5 个唯一候选，使总数严格为 7>
+    ]
+  },
+  "verb": {
+    "selected_ids": [1],
+    "topk": [
+      {"id": 1, "score": 0.66}, {"id": 2, "score": 0.21},
+      <再提供 8 个唯一候选，使总数严格为 10>
+    ]
+  },
+  "target": {
+    "selected_ids": [2],
+    "topk": [
+      {"id": 2, "score": 0.63}, {"id": 4, "score": 0.19},
+      <再提供 13 个唯一候选，使总数严格为 15>
+    ]
+  },
+  "ivt": {
+    "selected_ids": [12],
+    "topk": [
+      {"id": 12, "score": 0.59}, {"id": 45, "score": 0.17},
+      <再提供 18 个唯一候选，使总数严格为 20>
+    ]
+  },
+  "phase": {
+    "selected_id": 3,
+    "topk": [
+      {"id": 3, "score": 0.78}, {"id": 2, "score": 0.18},
+      <再提供 5 个唯一候选，使总数严格为 7>
+    ]
+  },
+  "evidence_refs": [
+    {"frame_id": 123, "code": "CURRENT_VISUAL_SUPPORT"}
   ],
-  "frame_multilabel": null,
-  "phase": {"choice": null, "topk": []},
-  "evidence_refs": [],
-  "self_reported_confidence": {},
-  "schema_version": "perception_v1"
+  "self_reported_confidence": {
+    "instrument": 0.84,
+    "verb": 0.66,
+    "target": 0.63,
+    "ivt": 0.59,
+    "phase": 0.78
+  }
 }
 ```
+
+精确 `topk` 长度为 Instrument 7、Verb 10、Target 15、IVT 20、Phase 7。候选必须使用 `{id, score}`，ID 唯一、分数降序；I/V/T/IVT 的 `selected_ids` 是无重复数组且必须是相应 `topk` 的子集，Phase 必须使用一个合法 `selected_id`。严格 parser 先把 wire response 转换为 frame-level `InitialPrediction`，并设置 `granularity="frame_multilabel"` 与 `score_semantics="uncalibrated_rank_v1"`；`PredictionFinalizer` 再创建包含 `instrument_ids`、`verb_ids`、`target_ids`、`triplet_ids`、`phase_id` 和五个 dense score vectors 的 durable `PredictionRecord`。writer 持久化 `PredictionRecord`，frame-level evaluator 只在隔离的离线边界将它与监督 target 配对。
 
 必须：
 
 - JSON schema validate；
 - ontology validate；
-- unique `prediction_id`、bbox range、candidate scope 与 granularity validate；
-- invalid choice fail explicitly；
-- 不得将多个 instance 静默压成单一 label，也不得把 frame-level label 绑定到 bbox；
+- exact candidate counts、unique candidate IDs、score order、selected-ID subset 与 granularity validate；
+- invalid selected ID fail explicitly；
+- `instances`、bbox、track identity 和其他 instance-only 字段在当前 schema 中 fail closed；
 - malformed API response 不得静默修复成合法答案；
 - retries 必须记录；
 - prompt/version 进入 provenance。
+
+延后的 instance-level detection/tracking 输出不属于当前 contract。若后续启用，必须先单独批准并实现独立、版本化的 wire schema、instance/frame matching rule 和 evaluator；单个 instance 内的一 `choice` 不得被解释为整帧唯一预测，也不得与 `joint_perception_frame_v1` 混合落盘或评估。
 
 ---
 
@@ -1307,9 +1340,9 @@ WorkflowStateStore 只维护 compact causal workflow state，供 context builder
 ```text
 video_id
 frame_id
-instance_states[] with scoped I / V / T / IVT
-optional frame_multilabel with explicit source granularity
+frame_multilabel_state with I / V / T / IVT selected-ID sets
 frame-level Phase
+optional future instance_states[] only under a separately approved instance schema
 predicted_track_state
 verification_status
 evidence_refs
@@ -1693,18 +1726,27 @@ REAL_API_SMOKE: BLOCKED
 
 ## P4 — API Single-pass Baseline
 
-前置硬门槛：根据 P2 target-granularity audit 冻结 `PredictionRecord` 与 EvaluationEngine 的
-instance matching / frame-multilabel / phase 规则。若 API capability 与可用 GT 粒度无法形成
-同粒度比较，P4 标记 `BLOCKED`；禁止通过选择“主器械”、把 frame label 绑定 bbox，或忽略
-未匹配实例来制造可评估结果。
+P2 target-granularity audit 后已批准并冻结当前 B0 的同粒度合同：
+
+- wire response 使用 `joint_perception_frame_v1`，I/V/T/IVT 为 frame-level multi-label
+  `selected_ids`，Phase 为 frame-level single-label `selected_id`；
+- parser 生成 frame-level `InitialPrediction`，Finalizer 生成 `granularity="frame_multilabel"`
+  的 durable `PredictionRecord`；
+- EvaluationEngine 仅把该 record 与兼容的 `FrameSupervisionTarget` 配对，按 task mask 计算
+  frame-recognition metrics；任何 GT 都不得进入 prompt、在线 state、cache 或 prediction；
+- instance matching、bbox 和 track-level evaluation 不属于当前 P4。未来若启用，必须先批准
+  独立 schema、matching rule 与 evaluator；禁止通过选择“主器械”、把 frame label 绑定 bbox，
+  或忽略未匹配实例来制造可评估结果。
 
 实现 B0：
 
 ```text
 causal frames
 → Joint API-VLM
-→ structured instance I/V/T/IVT + optional frame multilabel + frame Phase + scoped candidates
-→ evaluation
+→ joint_perception_frame_v1: multi-label I/V/T/IVT + single-label Phase + ranked candidates
+→ InitialPrediction
+→ PredictionFinalizer → durable PredictionRecord
+→ Gold-isolated offline frame evaluation
 ```
 
 完成完整 rollout。
@@ -2009,13 +2051,13 @@ delta in calls / tokens / latency / estimated cost
 
 ## Recognition
 
-- Instrument F1；
-- Verb F1（mask-aware）；
-- Target F1（mask-aware）；
-- IVT F1（明确 support）；
-- Phase accuracy / macro-F1。
+- Instrument、Verb、Target、IVT 使用 `frame_recognition_metrics_v1` 的 mask-aware video-wise mAP。对每个任务，仅收集该任务 mask 有效的帧；对每个 video/class，只在该 video 存在至少一个 GT positive 时计算 AP；先对同一 class 的有效 video AP 取均值，再对有定义的 class AP 取均值得到任务 mAP；必须同时报告 class-level AP 与 video support；
+- IVT 的 94–99 六个 null classes 保留 support metadata，但从最终 AP/mAP 聚合中排除；
+- Phase 在每个 video 内计算 Accuracy，并仅对该 video 的 GT 中出现过的 phase 类计算 class F1 与 macro-F1；GT 出现但从未预测的类记 F1=0，GT 未出现的类记为 undefined 并排除；最后对有资格的 video 等权平均 Accuracy 与 macro-F1；
+- 报告中必须携带 prediction `score_semantics`。`uncalibrated_rank_v1` 可用于排名 AP，但不得被称为 calibrated probability；
+- 未来 instance-level detection/tracking 指标必须在独立 schema 与 matching rule 获批后分表报告，不得与当前 frame-level recognition 指标混合。
 
-实际 micro/macro 以现有 ontology/task semantics 为准，不自行发明。
+这里的 aggregate semantics 已由 `FrameMetricAccumulator` 固定；不得改成 pooled-frame AP、I/V/T/IVT set-F1，或自行选择 micro/macro 变体。该 paper-level aggregate 不替代仍待批准的 Gate canonical per-sample task error。
 
 ## Gate
 

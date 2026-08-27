@@ -173,37 +173,66 @@ Track/Workflow 不建议写成冗长自然语言故事，而应使用 compact st
 
 ## 5.2 输出 schema：必须同时支持候选与审计
 
-CholecTrack20 一帧可包含多个器械实例，因此 I/V/T/IVT 不能被实现成整帧唯一 `choice`。主输出必须区分 instance-level semantics、可选 frame-level multi-label diagnostics 和 frame-level phase：
+当前已批准并实现的第一版保持 **frame-level recognition**：Instrument、Verb、Target、IVT 是 multi-label presence，Phase 是 single-label。CholecTrack20 一帧可包含多个器械和多个交互，因此禁止把整帧 I/V/T/IVT 实现成唯一 `choice`。下面是 `joint_perception_frame_v1` 的结构伪代码，不是可直接送入 validator 的 JSON；尖括号行表示为节省篇幅而省略的候选。可执行 schema 以 `src/surgical_agent/perception/prompts/perception_schema.json` 为准。
 
-```json
+```text
 {
-  "instances": [
-    {
-      "prediction_id": "inst:0",
-      "bbox_xywh_norm": [0.1, 0.2, 0.3, 0.4],
-      "track_ref": "track:3",
-      "instrument": {"choice": 0, "topk": [0, 1]},
-      "verb": {"choice": 2, "topk": [2, 1]},
-      "target": {"choice": 4, "topk": [4, 8]},
-      "ivt": {"choice": 12, "topk": [12, 13]}
-    }
-  ],
-  "frame_multilabel": {
-    "instrument_ids": [0],
-    "verb_ids": [2],
-    "target_ids": [4],
-    "triplet_ids": [12],
-    "granularity": "frame_multilabel"
+  "schema_version": "joint_perception_frame_v1",
+  "instrument": {
+    "selected_ids": [0, 5],
+    "topk": [
+      {"id": 0, "score": 0.84}, {"id": 5, "score": 0.61},
+      <再提供 5 个唯一候选，使总数严格为 7>
+    ]
   },
-  "phase": {"choice": 3, "topk": [3, 2]},
-  "evidence_refs": ["frame_t", "track:3"],
-  "self_reported_confidence": {"phase": 0.82},
-  "schema_version": "perception_v1"
+  "verb": {
+    "selected_ids": [1, 2],
+    "topk": [
+      {"id": 1, "score": 0.72}, {"id": 2, "score": 0.66},
+      <再提供 8 个唯一候选，使总数严格为 10>
+    ]
+  },
+  "target": {
+    "selected_ids": [2, 4],
+    "topk": [
+      {"id": 2, "score": 0.68}, {"id": 4, "score": 0.63},
+      <再提供 13 个唯一候选，使总数严格为 15>
+    ]
+  },
+  "ivt": {
+    "selected_ids": [12, 45],
+    "topk": [
+      {"id": 12, "score": 0.59}, {"id": 45, "score": 0.54},
+      <再提供 18 个唯一候选，使总数严格为 20>
+    ]
+  },
+  "phase": {
+    "selected_id": 3,
+    "topk": [
+      {"id": 3, "score": 0.78}, {"id": 2, "score": 0.18},
+      <再提供 5 个唯一候选，使总数严格为 7>
+    ]
+  },
+  "evidence_refs": [
+    {"frame_id": 123, "code": "CURRENT_VISUAL_SUPPORT"}
+  ],
+  "self_reported_confidence": {
+    "instrument": 0.84,
+    "verb": 0.66,
+    "target": 0.63,
+    "ivt": 0.59,
+    "phase": 0.78
+  }
 }
 ```
 
-`frame_multilabel` 只能在来源明确提供整帧 presence semantics 时训练或评估，不能把 partial instance annotations 的“未出现”静默当成负类。instance-level 与 frame-level 指标必须分表报告；除非 EvaluationEngine 中存在预注册、版本化的 aggregation rule，否则禁止互相转换。Verifier 的候选 ID 必须包含 `prediction_id + task` 或 `frame:phase` scope；默认只允许修正语义标签/phase，不得顺带新增删除实例、修改 bbox 或改写 track identity。
-重要：`self_reported_confidence` 只能作为 diagnostic/optional feature，不能默认解释为 calibrated probability。若 API 支持 forced-choice token logprobs，可单独实现 `LogprobCapability`，并在 validation 上做 calibration；否则 Gate 应主要依赖 model-independent uncertainty proxies。
+Instrument、Verb、Target、Phase 的 `topk` 分别覆盖 7、10、15、7 个 ontology 类；IVT 返回 100 类中的前 20 个。每个候选必须是唯一、按分数降序的 `{id, score}`；每个 `selected_ids` 必须无重复且属于同任务 `topk`，Phase 必须且只能使用单个 `selected_id`。分数是 `uncalibrated_rank_v1`，不要求和为 1；未返回的 IVT 类在构造 dense score vector 时填 0，但该 0 不等同于经过校准的“缺失概率”。
+
+严格 parser 先把 wire response 转换为 frame-level `InitialPrediction`；`PredictionFinalizer` 再创建 durable `PredictionRecord`，其中使用 `instrument_ids`、`verb_ids`、`target_ids`、`triplet_ids`、`phase_id` 和五个 dense score vectors，并显式声明 `granularity="frame_multilabel"`。落盘 writer 持久化 `PredictionRecord`，frame-level evaluator 只在隔离的离线边界将它与监督 target 配对，不直接消费 wire 字段名。整帧监督只能来自明确的 frame presence semantics 或版本化、预注册的 instance-to-frame aggregation rule；partial instance annotation 的“未出现”不得静默当成负类。
+
+**延后的 instance-level 扩展不属于 `joint_perception_frame_v1`。** 如果后续正式加入 bbox、track identity 和 per-instance I/V/T/IVT，它必须使用独立、版本化且另行批准的 schema、matching rule 与 evaluator；此时单个 `instances[]` 元素内部可以是一实例一 `choice`，但不得把该字段解释为整帧唯一预测，也不得把两种粒度塞进当前 wire contract。instance-level 与 frame-level 指标必须分表报告，除非 EvaluationEngine 中存在预注册、版本化的 aggregation rule，否则禁止互相转换。
+
+重要：当前 wire schema 要求输出完整的 `self_reported_confidence` mapping，以保持记录 shape 固定；但这些值在方法中只能作为 diagnostic/optional feature，不能默认解释为 calibrated probability。若 API 支持 forced-choice token logprobs，可单独实现 `LogprobCapability`，并在 validation 上做 calibration；否则 Gate 应主要依赖 model-independent uncertainty proxies。
 
 ## 5.3 API uncertainty 的学术修正
 
@@ -411,7 +440,7 @@ Reliability 子实验固定 Workflow、Finalized-only EventMemory、G1、Special
 
 |维度|必须报告的指标|
 |---|---|
-|Recognition|实例级与帧级 Instrument/Verb/Target/IVT 分开报告适用指标；Phase accuracy/macro-F1；严格按 granularity、label mask 与 support 报告，禁止混合粒度聚合|
+|Recognition|当前 frame-level Instrument/Verb/Target/IVT 使用 mask-aware video-wise mAP：仅对 video/class 有 GT positive 的单元计算 AP，先跨有效 video 聚合同一 class，再跨有定义 class 聚合；IVT 94–99 null classes 只保留 support、不进入 mAP。Phase 逐 video 计算 Accuracy，以及仅覆盖该 video GT-present classes 的 macro-F1，再跨有效 video 等权平均。必须报告 class/video support、excluded classes 与 score semantics。未来 instance-level 指标必须按独立 schema/matching rule 分表报告，禁止混合粒度聚合|
 |Framework|同 backbone 的逐任务/aggregate `Full Agent - Single-pass`、paired per-video delta 与 bootstrap CI；同时报告 cost delta|
 |Gate/Router|verification rate、scope selection distribution、per-scope benefit regression error/rank correlation、same-budget performance、positive-benefit capture rate、route regret vs oracle route|
 |Verification|per-Specialist KEEP/REPAIR counts、repair precision、repair success rate、harm rate、scope violation count（必须为 0）、scope-wise CandidateRecall@K|
@@ -538,7 +567,7 @@ API 版本仍必须从基础框架逐步增加模块，不允许一次生成 Ful
 |---|---|
 |Causality|window max frame <= t；workflow/memory max source frame < current commit；无 current self-retrieval|
 |Gold-free|InferenceSample/API prompt builder 无 GT/LabelMask/OracleTrack 字段|
-|API schema|malformed JSON、invalid candidate id、ontology-out choice、agent_role/scope/touched_tasks 不一致、timeout/retry、cache replay|
+|API schema|malformed JSON、invalid candidate id、ontology-out selected ID、agent_role/scope/touched_tasks 不一致、timeout/retry、cache replay|
 |API provenance|request hash 稳定；cache hit 不重复计费；usage 统计一致|
 |Track safety|main config 禁止 OracleTrack；fold-safe 标记|
 |Gate pair|ACCEPT/各 scope 分支共享相同 MemorySnapshot/context；Δ 使用 mask；未观测 route 使用 observed mask 而非零收益|
@@ -602,11 +631,36 @@ Perceive jointly → Predict when and which specialist is worth invoking → Ver
 # 附录 A. 推荐主配置语义（示例）
 
 ```text
-perception:  backend: api_joint_vlm  provider: <provider>  model: <exact_model_id>  prompt_version: perception_v1specialists:  model: ${perception.model}  roles: [spatial_track, interaction, workflow]  max_per_state: 1  candidate_k_per_scope: 5  coordinator: deterministic_scope_validatorgate:  model: small_shared_encoder_multihead_regressor  outputs: benefit_hat_by_scope  use_self_reported_confidence: false  threshold_source: validationmemory:  scope: per_video  max_events_per_video: <fixed>  reliability_mode: deterministic_profile_v1api:  cache: required  record_usage: true  record_latency: true  fail_closed_on_schema_error: true
+perception:
+  backend: api_joint_vlm
+  provider: <provider>
+  model: <exact_model_id>
+  prompt_version: joint_perception_frame_v1
+  response_schema_version: joint_perception_frame_v1
+specialists:
+  model: ${perception.model}
+  roles: [spatial_track, interaction, workflow]
+  max_per_state: 1
+  candidate_k_per_scope: 5
+  coordinator: deterministic_scope_validator
+gate:
+  model: small_shared_encoder_multihead_regressor
+  outputs: benefit_hat_by_scope
+  use_self_reported_confidence: false
+  threshold_source: validation
+memory:
+  scope: per_video
+  max_events_per_video: <fixed>
+  reliability_mode: deterministic_profile_v1
+api:
+  cache: required
+  record_usage: true
+  record_latency: true
+  fail_closed_on_schema_error: true
 ```
 
 # 附录 B. 本轮自检结论
 经本轮逻辑自检，API 化方案在工程上可实现，且比“本地 baseline + 强 API verifier”具有更好的主实验归因；Framework Gain、policy/routing attribution 与 component ablation 已形成三层互补而不越界的证据链。稀疏 Specialist 不是第四个贡献，而是 Benefit Gate 与受约束 Verification 的联合实现：Gate 预测 per-scope counterfactual benefit，Coordinator 强制角色边界，默认每状态最多一个额外 Agent。policy-matched refresh 缓解 bootstrap 与部署策略的状态分布错配；task-wise normalization/route mask 防止标签缺失和未执行 route 污染 Gate target；WorkflowState/EventMemory 分离避免消融混杂；provenance cap 与 single retrieval-time decay 避免 reliability 过度自信和双重衰减。
 
-当前 P1 时间轴、正常非负 ontology 和训练 mask 已达到带证据约束的工程可用状态；Track20 未明文发布的 PNG 抽取措辞与负数 sentinel 医学语义作为 provenance caveat 保留，但不再阻断 P2。仍然存在三个阶段性硬门槛：P3 真实 API smoke 前 exact provider/model identifier 未冻结；P4 前必须依据 P2 audit 冻结 instance/frame prediction 与 evaluation matching 粒度；**TBD / BLOCKED: canonical per-sample task error semantics must be resolved before Gate dataset implementation.** 最后一项只阻断 P9 及之后的 Gate 数据构建，不阻断 P2-P8。canonical error 必须与唯一 EvaluationEngine 对齐，并由数据 annotation semantics 与论文评估协议共同确认，本文不自行假设。另需在实验前预声明 `w_k`、`s_k` 估计规则、D0+D1 是否合并、provenance cap 表及其 train/validation 冻结协议；这些是用户/研究负责人需要批准的 protocol choices，而不是运行时超参数。VID30 仍是候选重建验证源，正式论文必须披露其来源并至少提供排除 VID30 的敏感性结果。
+当前 P1 时间轴、正常非负 ontology 和训练 mask 已达到带证据约束的工程可用状态；Track20 未明文发布的 PNG 抽取措辞与负数 sentinel 医学语义作为 provenance caveat 保留，但不再阻断 P2。第一版 API recognition 的粒度现已冻结为 `joint_perception_frame_v1`：I/V/T/IVT 为 frame-level multi-label，Phase 为 frame-level single-label；这关闭了当前 recognition pipeline 的 P4 粒度歧义，但不授权未来的 instance detection/tracking schema 或 matching rule。真实 API 的 exact provider/model identity 仍必须由每次真实响应和 run provenance 证明，不能由配置名推断。**TBD / BLOCKED: canonical per-sample task error semantics must be resolved before Gate dataset implementation.** 该项只阻断 P9 及之后的 Gate 数据构建，不阻断已经批准的 frame-level perception 与离线指标。canonical error 必须与唯一 EvaluationEngine 对齐，并由数据 annotation semantics 与论文评估协议共同确认，本文不自行假设。另需在实验前预声明 `w_k`、`s_k` 估计规则、D0+D1 是否合并、provenance cap 表及其 train/validation 冻结协议；这些是用户/研究负责人需要批准的 protocol choices，而不是运行时超参数。VID30 仍是候选重建验证源，正式论文必须披露其来源并至少提供排除 VID30 的敏感性结果。
 本版不保证最终达到 CCF-A 接收标准；它把当前可预见的方法学漏洞尽可能前置为代码 contract 与实验门槛。最终论文强度仍取决于 Joint Verify 的真实纠错能力、scoped Specialist 相对 Joint Verifier 的增量价值、Learned Router 在相同预算下的优势、跨视频统计稳定性，以及最好存在第二 backbone / 第二数据源的外部趋势验证。

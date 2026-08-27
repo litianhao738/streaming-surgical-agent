@@ -91,9 +91,10 @@ evidence, was not copied into the repository, and is represented as `REDACTED_NO
    provenance caveats, not permission to invent medical semantics.
 5. The declared `GPT-5.6 Terra` name is not an auditable API identity. Exact provider, endpoint
    provenance, returned model identifier, and capabilities remain blocked until P3 real smoke.
-6. Before P4, the project must freeze whether each reported I/V/T/IVT metric is instance-level or
-   frame-level and how predictions are matched. A P2 eligibility audit must precede this decision;
-   cross-granularity conversion cannot be implicit.
+6. The first recognition slice has now frozen I/V/T/IVT as frame-level multi-label and Phase as
+   frame-level single-label under `joint_perception_frame_v1`. Cross-granularity conversion remains
+   forbidden; any future instance-level schema, prediction matching, and metrics still require a
+   separate approval based on the P2 eligibility evidence.
 7. Canonical per-sample Gate error, task normalization scales, and weights remain blocked until
    they are aligned with the single EvaluationEngine before P9.
 
@@ -125,10 +126,11 @@ P3 mock infrastructure and a real OpenRouter `openai/gpt-5.6-sol` multimodal
 structured-response smoke are implemented. P3 remains `PARTIAL` only because
 the response did not expose an immutable exact-backend identity and independent
 identity evidence. The real transport, response schema, first-call accounting,
-and second-call cache replay are operational. P4 cannot start until prediction
-and evaluation granularity/matching are frozen from P2 evidence. P9 cannot
-start until the canonical per-sample task error contract is approved and implemented in the
-single EvaluationEngine.
+and second-call cache replay are operational. The former P4 granularity gate is closed only for
+the approved frame-recognition contract: I/V/T/IVT are multi-label and Phase is single-label.
+Future instance-level output and matching remain deferred and cannot reuse that approval. P9
+cannot start until the canonical per-sample task error contract is approved and implemented in
+the single EvaluationEngine.
 
 ## P2 Implementation Result
 
@@ -181,13 +183,15 @@ The official split and class ranges remain unchanged. Repository state is now P1
 
 - Research and implementation documents both freeze one canonical pipeline and
   `src/surgical_agent/` as the sole implementation package.
-- The multi-tool output contract separates instance predictions, optional frame-level multi-label
-  supervision, and frame-level phase; cross-granularity conversion fails closed.
+- At that checkpoint, the design kept future instance predictions separate from optional
+  frame-level multi-label supervision and frame-level phase; cross-granularity conversion was
+  required to fail closed.
 - The implementation specification contains P2 file ownership, routing, target/mask rules,
   minimal training, runner ordering, artifacts, commands, tests, and PASS criteria, plus a P2-P12
   file/artifact matrix.
-- `configs/base.yaml`, `configs/data/cholectrack20.yaml`, README files, and repository audit agree
-  that P1 and P2 are PASS, while P3/P4/P9 retain their stage-specific hard gates.
+- `configs/base.yaml`, `configs/data/cholectrack20.yaml`, README files, and repository audit agreed
+  that P1 and P2 were PASS, while P3/P4/P9 retained their stage-specific hard gates at that
+  historical checkpoint.
 - The default dataset config is portable (`root: null`); CLI and `CHOLECTRACK20_ROOT` resolve the
   external read-only dataset without embedding a workstation path.
 - Historical P2 evidence from 2026-08-24 includes Ruff, compileall, full Pytest (`79 passed`), a
@@ -197,6 +201,35 @@ The official split and class ranges remain unchanged. Repository state is now P1
   reports `78 passed, 1 skipped`; the skip is the optional upstream-hash check and does not bypass
   materialized VID30/VID31 runtime sidecar/hash tests. Both results are retained with their runtime
   conditions rather than overwriting the historical result.
+
+## Frame-Level Joint-Perception Contract Synchronization (2026-08-28)
+
+The approved and implemented first joint-perception slice now closes the former P4 granularity
+ambiguity for frame recognition only:
+
+- The active wire schema is `joint_perception_frame_v1`. Instrument, Verb, Target, and IVT use
+  multi-label `selected_ids`; Phase alone uses the single-label `selected_id`. Every task also
+  carries ranked `{id, score}` candidates with fixed counts of 7/10/15/20/7 respectively.
+- The active wire schema does not accept `instances`, bbox, track identity, or per-instance
+  `choice` fields. The strict parser converts it to a frame-level `InitialPrediction`; the
+  `PredictionFinalizer` then creates the durable `PredictionRecord` with `instrument_ids`,
+  `verb_ids`, `target_ids`, `triplet_ids`, `phase_id`, dense task score vectors,
+  `granularity="frame_multilabel"`, and explicit score semantics. The writer persists that record,
+  and the evaluator pairs it with supervision only at the isolated offline boundary.
+- `FrameMetricAccumulator` consumes that durable contract. For I/V/T/IVT it computes AP only for
+  task-valid video/class units with positive GT support, averages each class over eligible videos,
+  and averages defined classes into video-wise mAP; IVT null classes 94–99 retain support but are
+  excluded from AP/mAP. For Phase it computes per-video Accuracy and macro-F1 over GT-present
+  classes, then averages eligible videos equally. The separate CLI in `scripts/evaluate.py` remains
+  a blocked P12 entry point; implementing that entry point must reuse these
+  `frame_recognition_metrics_v1` semantics rather than introduce another prediction shape or
+  aggregate definition.
+- Any future instance-level detection/tracking output remains deferred. It requires a separately
+  approved, versioned schema, matching rule, and evaluator; a per-instance `choice` must never be
+  interpreted as a frame-level unique label or mixed into `joint_perception_frame_v1`.
+- This synchronization changes no dataset split, task ontology, annotation semantics, masks,
+  runtime API behavior, or paper metric definition. It only makes the architecture documents match
+  the already implemented frame-level contract.
 
 This check reduces known consistency and implementation risks but is not a proof that future
 algorithmic code will be defect-free. Each later phase must still pass its own unit, integration,
