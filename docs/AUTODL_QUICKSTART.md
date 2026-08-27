@@ -73,3 +73,47 @@ python scripts/smoke_api.py \
 
 This smoke uploads only the generated synthetic blue square. It does not upload
 any CholecTrack20 frame.
+
+## CholecTrack20 Dataset API Rollout
+
+Start with the non-paid mock transport over one real local frame. This decodes
+CholecTrack20 media locally, writes the paired prediction/evidence artifacts,
+and exercises the persistent cache without making a network call:
+
+```bash
+python scripts/run_dataset_api_pipeline.py \
+  --mode engineering \
+  --video-id VID30 \
+  --max-frames 1 \
+  --dataset-root "$CHOLECTRACK20_ROOT" \
+  --config configs/perception/joint_mock_dataset.yaml \
+  --output-root artifacts/api_dataset \
+  --cache-root artifacts/api_dataset_cache/mock_validation \
+  --run-id local_real_frame_mock_001 \
+  --max-provider-calls exact-selection \
+  --authorize-data-upload
+```
+
+Only after that command and its artifacts pass inspection, opt in to one real
+OpenRouter call. The configuration authorization and the literal CLI flag are
+both required:
+
+```bash
+python scripts/run_dataset_api_pipeline.py \
+  --mode engineering \
+  --video-id VID30 \
+  --max-frames 1 \
+  --dataset-root "$CHOLECTRACK20_ROOT" \
+  --config configs/perception/joint_openrouter_dataset.yaml \
+  --api-key-file docs/API.txt \
+  --output-root artifacts/api_dataset \
+  --cache-root artifacts/api_dataset_cache/openrouter_validation \
+  --run-id openrouter_real_frame_001 \
+  --max-provider-calls exact-selection \
+  --authorize-data-upload
+```
+
+Inspect `api_usage.jsonl` and `dataset_rollout_artifact.json`, including the
+reported token usage and provider cost, before raising the frame limit. Every
+run needs a fresh run ID; the cache directory may be reused. Paper mode must
+run complete Validation or Test videos and therefore forbids `--max-frames`.
