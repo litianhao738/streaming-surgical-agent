@@ -30,9 +30,9 @@ pytestmark = pytest.mark.skipif(
 
 
 def test_api_inference_iterator_returns_only_gold_free_samples() -> None:
-    adapter = CholecTrack20DatasetAdapter(DATASET_ROOT)
-    validation = tuple(adapter.iter_inference_video("VID30", max_samples=2))
-    testing = tuple(adapter.iter_inference_video("VID01", max_samples=2))
+    adapter = CholecTrack20DatasetAdapter(DATASET_ROOT, causal_window_size=5)
+    validation = tuple(adapter.iter_inference_video("VID30", max_samples=4))
+    testing = tuple(adapter.iter_inference_video("VID01", max_samples=4))
 
     assert all(isinstance(sample, InferenceSample) for sample in validation + testing)
     assert all(len(sample.causal_frame_ids) <= 3 for sample in validation + testing)

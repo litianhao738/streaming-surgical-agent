@@ -8,7 +8,10 @@ from types import SimpleNamespace
 import pytest
 
 from surgical_agent.data.api_rollout_selection import resolve_rollout_selection
-from surgical_agent.data.dataset import PNG_ALIGNMENT_VERSION
+from surgical_agent.data.dataset import (
+    PNG_ALIGNMENT_VERSION,
+    CholecTrack20DatasetAdapter,
+)
 from surgical_agent.data.schemas import DatasetSplit, InferenceSample
 
 
@@ -134,6 +137,25 @@ def test_paper_selection_uses_every_sorted_video_and_rejects_truncation() -> Non
         )
 
 
+@pytest.mark.parametrize("split", ["train", "training"])
+def test_paper_selection_rejects_training_split(split: str) -> None:
+    """Allowing a training rollout would violate the paper-run split contract."""
+
+    source = FakeInferenceSource(
+        {"VID02": DatasetSplit.TRAINING},
+        {"VID02": (_sample("VID02", 1, DatasetSplit.TRAINING),)},
+    )
+
+    with pytest.raises(ValueError, match="validation or testing"):
+        resolve_rollout_selection(
+            source,
+            mode="paper",
+            video_id=None,
+            max_frames=None,
+            split=split,
+        )
+
+
 def test_selection_rejects_out_of_order_samples() -> None:
     """A source that emits non-video-major frames would make API calls noncanonical."""
 
@@ -150,3 +172,22 @@ def test_selection_rejects_out_of_order_samples() -> None:
             max_frames=2,
             split=None,
         )
+
+
+def test_inference_iterator_caps_causal_context_at_three_frames() -> None:
+    """Using the adapter window directly would send more than three images."""
+
+    adapter = object.__new__(CholecTrack20DatasetAdapter)
+    adapter.causal_window_size = 5
+    entry = SimpleNamespace(video_id="VID30", split=DatasetSplit.VALIDATION)
+    resolver = SimpleNamespace(
+        available_frame_ids=(1, 2, 3, 4),
+        resolve=lambda frame_id: SimpleNamespace(media_path=f"{frame_id}.png"),
+    )
+    adapter._entry = lambda video_id: entry
+    adapter._derived = lambda video_id: None
+    adapter._png_resolver = lambda entry, derived: resolver
+
+    sample = tuple(adapter.iter_inference_video("VID30"))[-1]
+
+    assert sample.causal_frame_ids == (2, 3, 4)

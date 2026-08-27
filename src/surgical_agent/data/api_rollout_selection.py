@@ -110,6 +110,8 @@ def resolve_rollout_selection(
         if not isinstance(split, str):
             raise TypeError("paper mode requires split")
         selected_split = DatasetSplit.parse(split)
+        if selected_split not in {DatasetSplit.VALIDATION, DatasetSplit.TESTING}:
+            raise ValueError("paper mode requires validation or testing split")
         video_ids = tuple(
             sorted(
                 entry_video_id
