@@ -40,6 +40,7 @@ from surgical_agent.data.dataset import (
     CholecTrack20DatasetAdapter,
     DatasetContractError,
 )
+from surgical_agent.data.schemas import DatasetSplit
 from surgical_agent.inference.frame_result_writer import FrameResultWriter
 from surgical_agent.inference.writer import ArtifactWriteError
 from surgical_agent.systems.api_dataset_system import DatasetApiPipelineSystem
@@ -191,24 +192,32 @@ def _is_within(path: Path, root: Path) -> bool:
     return path == root or path.is_relative_to(root)
 
 
+def _paths_overlap(first: Path, second: Path) -> bool:
+    return _is_within(first, second) or _is_within(second, first)
+
+
 def _validate_paths(
     *,
     dataset_root: Path,
     output_dir: Path,
     cache_root: Path,
+    output_root: Path | None = None,
 ) -> None:
     if not dataset_root.is_dir():
         raise ApiContractError("dataset root must be an existing directory")
     if output_dir.exists():
         raise ApiContractError("dataset rollout output directory must be fresh")
-    if _is_within(output_dir, dataset_root):
-        raise ApiContractError("output directory must be outside dataset root")
     if cache_root.exists() and not cache_root.is_dir():
         raise ApiContractError("cache root must be a directory")
-    if _is_within(cache_root, dataset_root):
-        raise ApiContractError("cache root must be outside dataset root")
-    if _is_within(cache_root, output_dir):
-        raise ApiContractError("cache root must be outside output directory")
+    effective_output_root = output_dir if output_root is None else output_root
+    if (
+        _paths_overlap(dataset_root, effective_output_root)
+        or _paths_overlap(dataset_root, cache_root)
+        or _paths_overlap(effective_output_root, cache_root)
+    ):
+        raise ApiContractError(
+            "dataset, output, and cache roots must be pairwise disjoint"
+        )
     if not (dataset_root / "repair_manifest.json").is_file():
         raise ApiContractError("dataset repair manifest is missing")
 
@@ -236,6 +245,72 @@ def _resolve_call_limit(value: object, *, selection_count: int) -> int:
     return limit
 
 
+def _validate_selection_semantics(
+    selection: RolloutSelection,
+    *,
+    dataset_root: Path,
+    max_causal_frames: int,
+) -> None:
+    """Reject caller-built selections that bypass canonical rollout policy."""
+
+    if selection.mode == "engineering":
+        if selection.split is not None or len(selection.video_ids) != 1:
+            raise ApiContractError(
+                "engineering selection requires exactly one video and no split"
+            )
+        video_id = selection.video_ids[0]
+        samples = selection.samples
+        if not samples or dict(selection.frame_counts) != {video_id: len(samples)}:
+            raise ApiContractError(
+                "engineering selection requires a positive bounded frame set"
+            )
+        frame_ids = tuple(sample.target_frame_id for sample in samples)
+        if (
+            any(sample.video_id != video_id for sample in samples)
+            or any(
+                frame_ids[index] >= frame_ids[index + 1]
+                for index in range(len(frame_ids) - 1)
+            )
+        ):
+            raise ApiContractError(
+                "engineering selection samples must match one ordered video"
+            )
+        canonical_video_id = video_id
+        canonical_max_frames: int | None = len(samples)
+        canonical_split: str | None = None
+    elif selection.mode == "paper":
+        if selection.split not in {DatasetSplit.VALIDATION, DatasetSplit.TESTING}:
+            raise ApiContractError(
+                "paper selection requires validation or testing split"
+            )
+        canonical_video_id = None
+        canonical_max_frames = None
+        canonical_split = selection.split.value
+    else:
+        raise ApiContractError("selection mode must be engineering or paper")
+
+    adapter = CholecTrack20DatasetAdapter(
+        dataset_root,
+        causal_window_size=max_causal_frames,
+    )
+    try:
+        canonical = resolve_rollout_selection(
+            adapter,
+            mode=selection.mode,
+            video_id=canonical_video_id,
+            max_frames=canonical_max_frames,
+            split=canonical_split,
+        )
+    except (KeyError, TypeError, ValueError) as exc:
+        raise ApiContractError(str(exc)) from None
+    if (
+        selection.video_ids != canonical.video_ids
+        or selection.samples != canonical.samples
+        or dict(selection.frame_counts) != dict(canonical.frame_counts)
+    ):
+        raise ApiContractError("selection must match canonical dataset selection")
+
+
 def _require_transport_identity(
     config: ApiConfig,
     transport: ProviderTransport,
@@ -261,6 +336,12 @@ def _scan_secret(
     try:
         assert_secret_absent(secret, paths)
     except RuntimeError:
+        needle = secret.reveal().encode("utf-8")
+        leaked = [
+            path for path in paths if path.is_file() and needle in path.read_bytes()
+        ]
+        for path in leaked:
+            path.unlink(missing_ok=True)
         raise ApiContractError("credential scan detected persisted credential") from None
 
 
@@ -296,6 +377,11 @@ def run_dataset_api_rollout(
         dataset_root=resolved_dataset_root,
         output_dir=destination,
         cache_root=resolved_cache_root,
+    )
+    _validate_selection_semantics(
+        selection,
+        dataset_root=resolved_dataset_root,
+        max_causal_frames=config.max_causal_frames,
     )
     call_limit = _resolve_call_limit(
         max_provider_calls,
@@ -336,47 +422,51 @@ def run_dataset_api_rollout(
         writer=writer,
         media_loader=CausalApiMediaLoader(),
     )
-    result = system.run(selection, run_id=run_id)
-    artifact: dict[str, object] = {
-        "schema_version": "cholectrack20_api_rollout_v1",
-        "status": (
-            "REAL_RESPONSE_RECEIVED" if config.mode == "real" else "MOCK_COMPLETE"
-        ),
-        "run_id": run_id,
-        "mode": selection.mode,
-        "split": selection.split.value if selection.split else None,
-        "video_ids": list(selection.video_ids),
-        "expected_frame_counts": dict(selection.frame_counts),
-        "completed_frame_counts": dict(result.frame_counts),
-        "provider": config.provider,
-        "model_requested": config.requested_model_identifier,
-        "models_returned": sorted(
-            {
-                str(row["returned_model_identifier"])
-                for row in usage.records()
-                if row.get("returned_model_identifier") is not None
-            }
-        ),
-        "prompt_version": config.prompt_version,
-        "response_schema_version": config.response_schema_version,
-        "repair_manifest_sha256": repair_manifest_sha256,
-        "alignment_versions": sorted(
-            {sample.alignment_version for sample in selection.samples}
-        ),
-        "usage": result.usage_summary,
-        "cache_entry_count": len(tuple(resolved_cache_root.glob("*.json"))),
-        "track20_image_uploaded": config.mode == "real",
-        "paper_metric_eligible": False,
-        "manifest_file": "manifest.json",
-    }
-    atomic_write_json(destination / "dataset_rollout_artifact.json", artifact)
-    if config.mode == "real":
-        assert api_key is not None
-        _scan_secret(
-            api_key,
-            output_dir=destination,
-            cache_root=resolved_cache_root,
-        )
+    try:
+        result = system.run(selection, run_id=run_id)
+        artifact: dict[str, object] = {
+            "schema_version": "cholectrack20_api_rollout_v1",
+            "status": (
+                "REAL_RESPONSE_RECEIVED"
+                if config.mode == "real"
+                else "MOCK_COMPLETE"
+            ),
+            "run_id": run_id,
+            "mode": selection.mode,
+            "split": selection.split.value if selection.split else None,
+            "video_ids": list(selection.video_ids),
+            "expected_frame_counts": dict(selection.frame_counts),
+            "completed_frame_counts": dict(result.frame_counts),
+            "provider": config.provider,
+            "model_requested": config.requested_model_identifier,
+            "models_returned": sorted(
+                {
+                    str(row["returned_model_identifier"])
+                    for row in usage.records()
+                    if row.get("returned_model_identifier") is not None
+                }
+            ),
+            "prompt_version": config.prompt_version,
+            "response_schema_version": config.response_schema_version,
+            "repair_manifest_sha256": repair_manifest_sha256,
+            "alignment_versions": sorted(
+                {sample.alignment_version for sample in selection.samples}
+            ),
+            "usage": result.usage_summary,
+            "cache_entry_count": len(tuple(resolved_cache_root.glob("*.json"))),
+            "track20_image_uploaded": config.mode == "real",
+            "paper_metric_eligible": False,
+            "manifest_file": "manifest.json",
+        }
+        atomic_write_json(destination / "dataset_rollout_artifact.json", artifact)
+    finally:
+        if config.mode == "real":
+            assert api_key is not None
+            _scan_secret(
+                api_key,
+                output_dir=destination,
+                cache_root=resolved_cache_root,
+            )
     return artifact
 
 
@@ -402,6 +492,7 @@ def run(args: argparse.Namespace) -> Path:
         dataset_root=dataset_root,
         output_dir=output_dir,
         cache_root=cache_root,
+        output_root=args.output_root.expanduser().resolve(),
     )
     adapter = CholecTrack20DatasetAdapter(
         dataset_root,

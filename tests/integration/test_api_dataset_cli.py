@@ -5,11 +5,12 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
-from types import MappingProxyType
+from types import MappingProxyType, SimpleNamespace
 
 import pytest
 from PIL import Image
 
+import scripts.run_dataset_api_pipeline as dataset_cli
 from scripts.run_dataset_api_pipeline import (
     build_parser,
     run,
@@ -18,7 +19,7 @@ from scripts.run_dataset_api_pipeline import (
 )
 from surgical_agent.api.contracts import ApiRequest, ProviderResponse
 from surgical_agent.api.credentials import SecretValue
-from surgical_agent.api.errors import ApiContractError
+from surgical_agent.api.errors import ApiContractError, ApiTransportError
 from surgical_agent.api.providers.mock import MockProviderTransport
 from surgical_agent.config.loader import load_api_config
 from surgical_agent.data.api_rollout_selection import RolloutSelection
@@ -82,6 +83,27 @@ class InjectedOpenRouterTransport:
         )
 
 
+class LeakingFailureTransport:
+    provider = "openrouter"
+    endpoint_identifier = "https://openrouter.ai/api/v1/chat/completions"
+
+    def __init__(self, leak_path: Path, secret_text: str) -> None:
+        self.leak_path = leak_path
+        self.secret_text = secret_text
+        self.call_count = 0
+
+    def send(self, request: ApiRequest) -> ProviderResponse:
+        del request
+        self.call_count += 1
+        self.leak_path.parent.mkdir(parents=True, exist_ok=True)
+        self.leak_path.write_text(self.secret_text, encoding="utf-8")
+        raise ApiTransportError(
+            "injected failure after persistence",
+            code="injected_failure",
+            retryable=False,
+        )
+
+
 def _selection_with_two_pngs(media_root: Path) -> RolloutSelection:
     media_root.mkdir(parents=True)
     samples: list[InferenceSample] = []
@@ -118,6 +140,40 @@ def _persisted_text(*roots: Path) -> str:
         for path in sorted(root.rglob("*"))
         if path.is_file()
     ).lower()
+
+
+def _install_canonical_adapter(
+    monkeypatch: pytest.MonkeyPatch,
+    selection: RolloutSelection,
+) -> None:
+    samples_by_video = {
+        video_id: tuple(
+            sample for sample in selection.samples if sample.video_id == video_id
+        )
+        for video_id in selection.video_ids
+    }
+    splits = {
+        video_id: samples_by_video[video_id][0].source_split
+        for video_id in selection.video_ids
+    }
+
+    class CanonicalAdapter:
+        def __init__(self, *_args: object, **_kwargs: object) -> None:
+            self.entries = {
+                video_id: SimpleNamespace(split=split)
+                for video_id, split in splits.items()
+            }
+
+        def iter_inference_video(
+            self,
+            video_id: str,
+            *,
+            max_samples: int | None = None,
+        ) -> object:
+            samples = samples_by_video[video_id]
+            yield from samples if max_samples is None else samples[:max_samples]
+
+    monkeypatch.setattr(dataset_cli, "CholecTrack20DatasetAdapter", CanonicalAdapter)
 
 
 def test_real_dataset_cli_requires_double_upload_authorization(
@@ -170,6 +226,7 @@ def test_paper_cli_rejects_max_frames() -> None:
 
 def test_injected_mock_rollout_persists_safe_pairs_and_replays_cache(
     tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Losing shared-cache replay or safe persistence would duplicate calls or leak data."""
 
@@ -180,6 +237,7 @@ def test_injected_mock_rollout_persists_safe_pairs_and_replays_cache(
     expected_digest = hashlib.sha256(repair_manifest.read_bytes()).hexdigest()
     cache_root = tmp_path / "cache"
     config = load_api_config(MOCK_DATASET_CONFIG)
+    _install_canonical_adapter(monkeypatch, selection)
 
     first_transport = MockProviderTransport()
     first_output = tmp_path / "first"
@@ -279,12 +337,14 @@ def test_injected_mock_rollout_persists_safe_pairs_and_replays_cache(
 
 def test_injected_real_rollout_marks_dataset_image_upload_without_network(
     tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Marking injected real data as mock would conceal an authorized upload path."""
 
     dataset_root = tmp_path / "dataset"
     selection = _selection_with_two_pngs(dataset_root / "media")
     (dataset_root / "repair_manifest.json").write_text("{}\n", encoding="utf-8")
+    _install_canonical_adapter(monkeypatch, selection)
     transport = InjectedOpenRouterTransport()
     secret_text = "-".join(  # noqa: FLY002 - keep scan fixture non-contiguous
         ("injected", "dataset", "credential")
@@ -310,3 +370,198 @@ def test_injected_real_rollout_marks_dataset_image_upload_without_network(
     assert secret_text not in _persisted_text(
         tmp_path / "real-output", tmp_path / "real-cache"
     )
+
+
+def test_programmatic_paper_selection_must_match_canonical_dataset_before_work(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Trusting a caller's truncated paper selection could authorize a real upload."""
+
+    dataset_root = tmp_path / "dataset"
+    engineering = _selection_with_two_pngs(dataset_root / "media")
+    (dataset_root / "repair_manifest.json").write_text("{}\n", encoding="utf-8")
+    canonical_samples = engineering.samples
+
+    class CanonicalAdapter:
+        def __init__(self, *_args: object, **_kwargs: object) -> None:
+            self.entries = {
+                "VID30": SimpleNamespace(split=DatasetSplit.VALIDATION)
+            }
+
+        def iter_inference_video(
+            self,
+            video_id: str,
+            *,
+            max_samples: int | None = None,
+        ) -> object:
+            assert video_id == "VID30"
+            selected = (
+                canonical_samples
+                if max_samples is None
+                else canonical_samples[:max_samples]
+            )
+            yield from selected
+
+    decode_calls: list[int] = []
+    real_loader = dataset_cli.CausalApiMediaLoader
+
+    class TrackingLoader:
+        def __init__(self) -> None:
+            self.delegate = real_loader()
+
+        def load(self, sample: InferenceSample) -> object:
+            decode_calls.append(sample.target_frame_id)
+            return self.delegate.load(sample)
+
+    monkeypatch.setattr(dataset_cli, "CholecTrack20DatasetAdapter", CanonicalAdapter)
+    monkeypatch.setattr(dataset_cli, "CausalApiMediaLoader", TrackingLoader)
+    malformed = RolloutSelection(
+        mode="paper",
+        split=DatasetSplit.VALIDATION,
+        video_ids=("VID30",),
+        samples=canonical_samples[:1],
+        frame_counts=MappingProxyType({"VID30": 1}),
+    )
+    transport = InjectedOpenRouterTransport()
+
+    with pytest.raises(ApiContractError, match="canonical dataset selection"):
+        run_dataset_api_rollout(
+            config=load_api_config(REAL_DATASET_CONFIG),
+            selection=malformed,
+            dataset_root=dataset_root,
+            output_dir=tmp_path / "output",
+            cache_root=tmp_path / "cache",
+            run_id="malformed-paper",
+            max_provider_calls=1,
+            api_key=SecretValue(
+                "-".join(  # noqa: FLY002 - keep fixture non-contiguous
+                    ("malformed", "paper", "credential")
+                )
+            ),
+            authorize_data_upload=True,
+            transport=transport,
+        )
+
+    assert decode_calls == []
+    assert transport.call_count == 0
+    assert not (tmp_path / "output").exists()
+    assert not (tmp_path / "cache").exists()
+
+
+def test_failed_real_rollout_scans_and_removes_generated_secret_leak(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Scanning only successful runs would leave failed-call secret leaks on disk."""
+
+    dataset_root = tmp_path / "dataset"
+    selection = _selection_with_two_pngs(dataset_root / "media")
+    (dataset_root / "repair_manifest.json").write_text("{}\n", encoding="utf-8")
+    _install_canonical_adapter(monkeypatch, selection)
+    cache_root = tmp_path / "cache"
+    leak_path = cache_root / "generated-secret.txt"
+    secret_text = "-".join(  # noqa: FLY002 - keep fixture non-contiguous
+        ("failed", "rollout", "credential")
+    )
+    transport = LeakingFailureTransport(leak_path, secret_text)
+
+    with pytest.raises(ApiContractError, match="credential scan"):
+        run_dataset_api_rollout(
+            config=load_api_config(REAL_DATASET_CONFIG),
+            selection=selection,
+            dataset_root=dataset_root,
+            output_dir=tmp_path / "output",
+            cache_root=cache_root,
+            run_id="failed-real",
+            max_provider_calls=2,
+            api_key=SecretValue(secret_text),
+            authorize_data_upload=True,
+            transport=transport,
+        )
+
+    assert transport.call_count == 1
+    assert not leak_path.exists()
+    assert secret_text not in _persisted_text(tmp_path / "output", cache_root)
+
+
+def test_programmatic_engineering_selection_must_match_canonical_prefix(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A structurally valid non-prefix sample could upload noncanonical media."""
+
+    dataset_root = tmp_path / "dataset"
+    canonical = _selection_with_two_pngs(dataset_root / "media")
+    (dataset_root / "repair_manifest.json").write_text("{}\n", encoding="utf-8")
+    _install_canonical_adapter(monkeypatch, canonical)
+    noncanonical = RolloutSelection(
+        mode="engineering",
+        split=None,
+        video_ids=("VID30",),
+        samples=canonical.samples[1:],
+        frame_counts=MappingProxyType({"VID30": 1}),
+    )
+    transport = MockProviderTransport()
+
+    with pytest.raises(ApiContractError, match="canonical dataset selection"):
+        run_dataset_api_rollout(
+            config=load_api_config(MOCK_DATASET_CONFIG),
+            selection=noncanonical,
+            dataset_root=dataset_root,
+            output_dir=tmp_path / "output",
+            cache_root=tmp_path / "cache",
+            run_id="noncanonical-engineering",
+            max_provider_calls=1,
+            transport=transport,
+        )
+
+    assert transport.provider_call_count == 0
+
+
+def test_output_directory_cannot_be_nested_inside_cache_root(tmp_path: Path) -> None:
+    """An output child would contaminate the reusable external cache tree."""
+
+    dataset_root = tmp_path / "dataset"
+    selection = _selection_with_two_pngs(dataset_root / "media")
+    (dataset_root / "repair_manifest.json").write_text("{}\n", encoding="utf-8")
+    cache_root = tmp_path / "cache"
+    transport = MockProviderTransport()
+
+    with pytest.raises(ApiContractError, match="disjoint"):
+        run_dataset_api_rollout(
+            config=load_api_config(MOCK_DATASET_CONFIG),
+            selection=selection,
+            dataset_root=dataset_root,
+            output_dir=cache_root / "run",
+            cache_root=cache_root,
+            run_id="nested-output",
+            max_provider_calls=2,
+            transport=transport,
+        )
+
+    assert transport.provider_call_count == 0
+
+
+def test_cache_root_cannot_be_an_ancestor_of_dataset_root(tmp_path: Path) -> None:
+    """A cache ancestor could place generated envelopes in the dataset tree."""
+
+    cache_root = tmp_path / "cache"
+    dataset_root = cache_root / "dataset"
+    selection = _selection_with_two_pngs(dataset_root / "media")
+    (dataset_root / "repair_manifest.json").write_text("{}\n", encoding="utf-8")
+    transport = MockProviderTransport()
+
+    with pytest.raises(ApiContractError, match="disjoint"):
+        run_dataset_api_rollout(
+            config=load_api_config(MOCK_DATASET_CONFIG),
+            selection=selection,
+            dataset_root=dataset_root,
+            output_dir=tmp_path / "output",
+            cache_root=cache_root,
+            run_id="ancestor-cache",
+            max_provider_calls=2,
+            transport=transport,
+        )
+
+    assert transport.provider_call_count == 0
