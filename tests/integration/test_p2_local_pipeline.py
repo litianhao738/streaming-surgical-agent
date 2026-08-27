@@ -9,11 +9,12 @@ import pytest
 import torch
 
 from surgical_agent.data.dataset import (
+    MP4_ALIGNMENT_VERSION,
     CholecTrack20DatasetAdapter,
     CurrentFrameTensorDataset,
     collate_smoke_batch,
 )
-from surgical_agent.data.schemas import DatasetSplit
+from surgical_agent.data.schemas import DatasetSplit, InferenceSample
 from surgical_agent.inference.frame_result_writer import FrameResultWriter
 from surgical_agent.models.baseline import LocalSmokeModel
 from surgical_agent.systems.baseline_system import P2BaselineSystem
@@ -26,6 +27,17 @@ pytestmark = pytest.mark.skipif(
     not DATASET_ROOT.is_dir(),
     reason="CholecTrack20 local-data integration fixture is unavailable",
 )
+
+
+def test_api_inference_iterator_returns_only_gold_free_samples() -> None:
+    adapter = CholecTrack20DatasetAdapter(DATASET_ROOT)
+    validation = tuple(adapter.iter_inference_video("VID30", max_samples=2))
+    testing = tuple(adapter.iter_inference_video("VID01", max_samples=2))
+
+    assert all(isinstance(sample, InferenceSample) for sample in validation + testing)
+    assert all(len(sample.causal_frame_ids) <= 3 for sample in validation + testing)
+    assert not hasattr(validation[0], "evaluation")
+    assert testing[0].alignment_version == MP4_ALIGNMENT_VERSION
 
 
 def test_vid02_vid31_vid30_routes_and_masks_are_explicit() -> None:

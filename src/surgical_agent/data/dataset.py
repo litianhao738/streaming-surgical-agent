@@ -325,6 +325,54 @@ class CholecTrack20DatasetAdapter:
             alignment_version=PNG_ALIGNMENT_VERSION,
         )
 
+    def iter_inference_video(
+        self,
+        video_id: str,
+        *,
+        max_samples: int | None = None,
+    ) -> Iterator[InferenceSample]:
+        """Yield deterministic runtime-only samples without reading annotation labels."""
+
+        entry = self._entry(video_id)
+        if max_samples is not None and (
+            not isinstance(max_samples, int)
+            or isinstance(max_samples, bool)
+            or max_samples < 0
+        ):
+            raise ValueError("max_samples must be a non-negative integer")
+        if entry.split is DatasetSplit.TESTING:
+            frame_ids = _read_test_frame_ids(Path(entry.annotation_file), entry.video_id)
+            resolver = Mp4FrameResolver(
+                video_id=entry.video_id,
+                split=entry.split,
+                media_path=entry.media_source,
+                frame_count=max(frame_ids),
+                decoder_index_offset=-1,
+                alignment_version=MP4_ALIGNMENT_VERSION,
+            )
+        else:
+            resolver = self._png_resolver(entry, self._derived(entry.video_id))
+            frame_ids = resolver.available_frame_ids
+        selected = frame_ids if max_samples is None else frame_ids[:max_samples]
+        for frame_id in selected:
+            causal_ids = _causal_from_sorted(
+                frame_ids,
+                target_frame_id=frame_id,
+                max_frames=self.causal_window_size,
+            )
+            yield InferenceSample(
+                video_id=entry.video_id,
+                target_frame_id=frame_id,
+                causal_frame_ids=causal_ids,
+                media_refs=tuple(resolver.resolve(value).media_path for value in causal_ids),
+                source_split=entry.split,
+                alignment_version=(
+                    MP4_ALIGNMENT_VERSION
+                    if entry.split is DatasetSplit.TESTING
+                    else PNG_ALIGNMENT_VERSION
+                ),
+            )
+
     def iter_video(
         self,
         video_id: str,
