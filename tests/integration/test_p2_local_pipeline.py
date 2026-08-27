@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 import torch
 
+from surgical_agent.data.api_media import CausalApiMediaLoader
 from surgical_agent.data.dataset import (
     MP4_ALIGNMENT_VERSION,
     CholecTrack20DatasetAdapter,
@@ -38,6 +39,24 @@ def test_api_inference_iterator_returns_only_gold_free_samples() -> None:
     assert all(len(sample.causal_frame_ids) <= 3 for sample in validation + testing)
     assert not hasattr(validation[0], "evaluation")
     assert testing[0].alignment_version == MP4_ALIGNMENT_VERSION
+
+
+def test_api_test_mp4_window_loads_exact_normalized_causal_frames() -> None:
+    adapter = CholecTrack20DatasetAdapter(DATASET_ROOT, causal_window_size=3)
+    sample = next(adapter.iter_inference_video("VID01", max_samples=1))
+
+    loaded = CausalApiMediaLoader().load(sample)
+
+    assert loaded.frames.ndim == 4
+    assert loaded.frames.shape[1] == 3
+    assert torch.isfinite(loaded.frames).all()
+    assert loaded.frames.min().item() >= 0.0
+    assert loaded.frames.max().item() <= 1.0
+    assert all(
+        media_ref.startswith("cholectrack20:VID01:frame:")
+        for media_ref in loaded.runtime_sample.media_refs
+    )
+    assert str(DATASET_ROOT) not in repr(loaded.runtime_sample)
 
 
 def test_vid02_vid31_vid30_routes_and_masks_are_explicit() -> None:
