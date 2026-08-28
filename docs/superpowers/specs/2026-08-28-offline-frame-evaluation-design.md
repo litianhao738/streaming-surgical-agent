@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-28
 
-**Status:** Approved direction; implementation-level revision pending user review
+**Status:** Approved for implementation
 
 **Scope:** CholecTrack20 Validation/Test frame-recognition evaluation only
 
