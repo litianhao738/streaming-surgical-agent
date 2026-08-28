@@ -117,3 +117,22 @@ Inspect `api_usage.jsonl` and `dataset_rollout_artifact.json`, including the
 reported token usage and provider cost, before raising the frame limit. Every
 run needs a fresh run ID; the cache directory may be reused. Paper mode must
 run complete Validation or Test videos and therefore forbids `--max-frames`.
+
+## Offline Frame Evaluation
+
+After a rollout reaches `COMPLETE`, align its predictions with local GT and
+calculate Instrument/Verb/Target/IVT video-wise mAP plus Phase Accuracy and
+Macro-F1:
+
+```bash
+python scripts/evaluate.py \
+  --run-dir artifacts/api_dataset/<run-id> \
+  --dataset-root "$CHOLECTRACK20_ROOT"
+```
+
+The report is written beside the run as `<run-id>__evaluation`. Use a fresh
+`--output-dir` to override that location. Test evaluation additionally needs
+`--authorize-test-gt-evaluation`; engineering/truncated Test runs are rejected.
+Current rollout-v1 reports, including Validation results using the candidate
+VID30 repair, remain explicitly paper-ineligible even though their engineering
+metrics are usable.
