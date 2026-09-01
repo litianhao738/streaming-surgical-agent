@@ -358,7 +358,7 @@ class CholecTrack20DatasetAdapter:
             causal_ids = _causal_from_sorted(
                 frame_ids,
                 target_frame_id=frame_id,
-                max_frames=min(self.causal_window_size, 3),
+                max_frames=self.causal_window_size,
             )
             yield InferenceSample(
                 video_id=entry.video_id,

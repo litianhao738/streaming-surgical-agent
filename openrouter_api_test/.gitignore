@@ -1,0 +1,6 @@
+input_used.*
+model_info.json
+response.json
+response.txt
+test_summary.json
+generated_output_*

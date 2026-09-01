@@ -73,6 +73,12 @@ def _prediction_payload(record: PredictionRecord) -> dict[str, object]:
         "failure_reason": record.failure_reason,
         "schema_version": record.schema_version,
         "score_semantics": record.score_semantics,
+        "initial_state": record.initial_state,
+        "gate_reasons": tuple(record.gate_reasons),
+        "flagged_fields": tuple(record.flagged_fields),
+        "repaired_fields": tuple(record.repaired_fields),
+        "final_status": record.final_status,
+        "memory_action": record.memory_action,
     }
 
 

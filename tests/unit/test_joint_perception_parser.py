@@ -16,8 +16,13 @@ from surgical_agent.api.errors import ApiSchemaError
 from surgical_agent.api.schema import schema_for, validator_for
 from surgical_agent.perception.parser import parse_joint_perception_response
 from surgical_agent.perception.schema import (
+    COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
+    COMPACT_TASK_LAYOUT,
     JOINT_PERCEPTION_SCHEMA_VERSION,
+    RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
+    validate_compact_joint_perception_payload,
     validate_joint_perception_payload,
+    validate_reliability_compact_joint_perception_payload,
 )
 
 TASK_COUNTS = {
@@ -68,6 +73,74 @@ def valid_joint_payload() -> dict[str, Any]:
     }
 
 
+def valid_compact_joint_payload() -> dict[str, Any]:
+    payload: dict[str, Any] = {
+        "schema_version": COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION
+    }
+    for task, count in COMPACT_TASK_LAYOUT:
+        topk = ranked_candidates(count)
+        payload[task] = (
+            {"selected_id": topk[0]["id"], "topk": topk}
+            if task == "phase"
+            else {"selected_ids": [topk[0]["id"]], "topk": topk}
+        )
+    payload["evidence_refs"] = [
+        {"frame_id": 12, "code": "CURRENT_VISUAL_SUPPORT"}
+    ]
+    payload["self_reported_confidence"] = {
+        task: 0.8 for task, _count in COMPACT_TASK_LAYOUT
+    }
+    payload["ivt"] = {
+        "selected_ids": [99],
+        "topk": [
+            {"id": class_id, "score": score}
+            for class_id, score in zip(
+                (99, 42, 7, 11, 35, 61, 2, 0),
+                (0.99, 0.91, 0.83, 0.75, 0.67, 0.59, 0.51, 0.43),
+                strict=True,
+            )
+        ],
+    }
+    return payload
+
+
+def valid_reliability_compact_joint_payload() -> dict[str, Any]:
+    """Return a hand-authored v2 payload with one bounded uncertainty finding."""
+
+    payload: dict[str, Any] = {
+        "schema_version": RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION
+    }
+    for task, count in COMPACT_TASK_LAYOUT:
+        topk = [
+            {"id": class_id, "confidence": round(0.99 - class_id * 0.01, 2)}
+            for class_id in range(count)
+        ]
+        payload[task] = (
+            {"selected_id": topk[0]["id"], "topk": topk}
+            if task == "phase"
+            else {"selected_ids": [topk[0]["id"]], "topk": topk}
+        )
+    payload["ivt"] = {
+        "selected_ids": [99],
+        "topk": [
+            {"id": class_id, "confidence": confidence}
+            for class_id, confidence in zip(
+                (99, 42, 7, 11, 35, 61, 2, 0),
+                (0.99, 0.91, 0.83, 0.75, 0.67, 0.59, 0.51, 0.43),
+                strict=True,
+            )
+        ],
+    }
+    payload["uncertainty"] = [
+        {
+            "path": "/ivt/selected_ids",
+            "reason": "CLOSE_ALTERNATIVES",
+            "alternative_ids": [42],
+        }
+    ]
+    return payload
+
+
 def mutate(payload: dict[str, Any], mutation: str) -> dict[str, Any]:
     value = deepcopy(payload)
     if mutation == "unknown_field":
@@ -115,6 +188,119 @@ def test_parser_reconstructs_dense_scores_and_selected_sets() -> None:
     assert result.raw_evidence.source_max_frame_id == 12
     assert result.raw_evidence.evidence_refs[0].frame_id == 12
     assert result.api_provenance.request_hash == "a" * 64
+
+
+def test_compact_parser_zero_fills_full_evaluator_vectors() -> None:
+    """Compact wire rankings must preserve the full downstream task contract."""
+
+    payload = valid_compact_joint_payload()
+    result = parse_joint_perception_response(
+        api_record(parsed_payload=payload),
+        video_id="VID30",
+        frame_id=12,
+        backend="joint_openrouter_gpt56sol",
+    )
+
+    assert {
+        task: len(scores)
+        for task, scores in result.prediction.probabilities.items()
+    } == {
+        "instrument": 7,
+        "verb": 10,
+        "target": 15,
+        "ivt": 100,
+        "phase": 7,
+    }
+    assert COMPACT_TASK_LAYOUT == (
+        ("instrument", 3),
+        ("verb", 4),
+        ("target", 5),
+        ("ivt", 8),
+        ("phase", 3),
+    )
+    for task, compact_count in COMPACT_TASK_LAYOUT:
+        scores = result.prediction.probabilities[task]
+        assert sum(score > 0 for score in scores) == compact_count
+        assert len(result.raw_evidence.ranked_candidates[task]) == compact_count
+    assert result.prediction.probabilities["ivt"][99] == 0.99
+    assert result.prediction.probabilities["ivt"][98] == 0.0
+    assert result.prediction.triplet_ids == (99,)
+
+
+def test_compact_schema_is_registered_and_bounds_evidence() -> None:
+    schema = schema_for(COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION)
+
+    assert schema["properties"]["ivt"]["properties"]["topk"]["maxItems"] == 8
+    assert schema["properties"]["evidence_refs"]["maxItems"] == 6
+    assert validator_for(COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION) is not None
+
+    payload = valid_compact_joint_payload()
+    validate_compact_joint_perception_payload(payload)
+    payload["evidence_refs"] *= 7
+    with pytest.raises(ApiSchemaError):
+        validate_compact_joint_perception_payload(payload)
+
+
+def test_reliability_compact_v2_parses_confidences_and_field_uncertainty() -> None:
+    """Replacing v2 label confidences with task confidences must break this result."""
+
+    result = parse_joint_perception_response(
+        api_record(parsed_payload=valid_reliability_compact_joint_payload()),
+        video_id="VID31",
+        frame_id=12,
+        backend="joint_openrouter_gpt56sol",
+    )
+
+    assert result.prediction.probabilities["ivt"][99] == 0.99
+    assert result.prediction.probabilities["ivt"][98] == 0.0
+    assert result.raw_evidence.ranked_candidates["ivt"][1].confidence == 0.91
+    assert result.raw_evidence.self_reported_confidence == {
+        "instrument": None,
+        "verb": None,
+        "target": None,
+        "ivt": None,
+        "phase": None,
+    }
+    assert result.raw_evidence.evidence_refs == ()
+    assert result.raw_evidence.field_uncertainties[0].path == "/ivt/selected_ids"
+    assert result.raw_evidence.field_uncertainties[0].alternative_ids == (42,)
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        "status",
+        "score_key",
+        "duplicate_uncertainty_path",
+        "invalid_uncertainty_alternative",
+    ],
+)
+def test_reliability_compact_v2_rejects_forbidden_or_unbounded_content(
+    mutation: str,
+) -> None:
+    """Dropping v2 root or uncertainty guards must admit model prose or bad pools."""
+
+    payload = valid_reliability_compact_joint_payload()
+    if mutation == "status":
+        payload["status"] = "ACCEPTED"
+    elif mutation == "score_key":
+        candidate = payload["instrument"]["topk"][0]
+        candidate["score"] = candidate.pop("confidence")
+    elif mutation == "duplicate_uncertainty_path":
+        payload["uncertainty"].append(
+            {
+                "path": "/ivt/selected_ids",
+                "reason": "OCCLUSION",
+                "alternative_ids": [],
+            }
+        )
+    elif mutation == "invalid_uncertainty_alternative":
+        payload["uncertainty"][0]["alternative_ids"] = [98]
+    else:
+        raise AssertionError(f"unknown mutation: {mutation}")
+
+    with pytest.raises(ApiSchemaError):
+        validate_reliability_compact_joint_perception_payload(payload)
 
 
 @pytest.mark.parametrize(

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass, fields, is_dataclass, replace
+from dataclasses import dataclass, field, fields, is_dataclass, replace
 from enum import Enum
 from io import BytesIO
 from types import MappingProxyType
@@ -21,6 +21,7 @@ from surgical_agent.data.schemas import (
     LabelMask,
 )
 from surgical_agent.inference.schemas import PredictionRecord
+from surgical_agent.perception.adaptive_window import select_adaptive_causal_window
 
 _FORBIDDEN_SNAPSHOT_KEYS = frozenset(
     {
@@ -50,6 +51,10 @@ class PerceptionContext:
     workflow_snapshot: Mapping[str, Any]
     memory_snapshot: Mapping[str, Any]
     prior_finalized_prediction: PredictionRecord | None
+    track_snapshot: Mapping[str, Any] = field(default_factory=dict)
+    selected_image_frame_ids: tuple[int, ...] = ()
+    image_details: tuple[str, ...] = ()
+    temporal_evidence: Mapping[str, Any] = field(default_factory=dict)
 
 
 def require_gold_free(value: object) -> None:
@@ -255,10 +260,33 @@ def validate_prior(
 class CausalPerceptionContextBuilder:
     """Build the only causal, gold-free context allowed into joint perception."""
 
-    def __init__(self, *, max_frames: int = 3) -> None:
-        if not 1 <= max_frames <= 3:
-            raise ValueError("max_frames must be in 1..3")
+    def __init__(
+        self,
+        *,
+        max_frames: int = 6,
+        max_images: int = 3,
+        selection_strategy: str = "adaptive",
+        history_image_detail: str = "auto",
+        target_image_detail: str = "auto",
+    ) -> None:
+        if not 1 <= max_frames <= 6:
+            raise ValueError("max_frames must be in 1..6")
+        if not 1 <= max_images <= max_frames:
+            raise ValueError("max_images must be in 1..max_frames")
+        if selection_strategy not in {"adaptive", "fixed_all"}:
+            raise ValueError("selection_strategy must be adaptive or fixed_all")
+        if selection_strategy == "fixed_all" and max_images != max_frames:
+            raise ValueError("fixed_all requires max_images == max_frames")
+        allowed_details = {"low", "high", "auto", "original"}
+        if history_image_detail not in allowed_details:
+            raise ValueError("history_image_detail is unsupported")
+        if target_image_detail not in allowed_details:
+            raise ValueError("target_image_detail is unsupported")
         self.max_frames = max_frames
+        self.max_images = max_images
+        self.selection_strategy = selection_strategy
+        self.history_image_detail = history_image_detail
+        self.target_image_detail = target_image_detail
 
     def build(
         self,
@@ -268,6 +296,7 @@ class CausalPerceptionContextBuilder:
         workflow_snapshot: Mapping[str, Any],
         memory_snapshot: Mapping[str, Any],
         prior_finalized_prediction: PredictionRecord | None,
+        track_snapshot: Mapping[str, Any] | None = None,
     ) -> PerceptionContext:
         frozen_workflow_snapshot = freeze_snapshot(
             workflow_snapshot,
@@ -276,6 +305,10 @@ class CausalPerceptionContextBuilder:
         frozen_memory_snapshot = freeze_snapshot(
             memory_snapshot,
             name="memory",
+        )
+        frozen_track_snapshot = freeze_snapshot(
+            {} if track_snapshot is None else track_snapshot,
+            name="track",
         )
         expected_count = len(sample.causal_frame_ids)
         if expected_count > self.max_frames:
@@ -288,9 +321,43 @@ class CausalPerceptionContextBuilder:
         )
         validate_prior(sample, prior_finalized_prediction)
         ordered_frames = ordered_frames.detach().clone()
+        if self.selection_strategy == "fixed_all":
+            selected_indices = tuple(range(expected_count))
+            selection_evidence: Mapping[str, Any] = {
+                "schema_version": "fixed_causal_window_v1",
+                "selection_strategy": "fixed_all",
+                "candidate_frame_ids": sample.causal_frame_ids,
+                "selected_image_frame_ids": sample.causal_frame_ids,
+                "omitted_image_frame_ids": (),
+                "window_frame_count": expected_count,
+                "uploaded_image_count": expected_count,
+            }
+        else:
+            adaptive_window = select_adaptive_causal_window(
+                ordered_frames,
+                frame_ids=sample.causal_frame_ids,
+                track_snapshot=frozen_track_snapshot,
+                max_images=self.max_images,
+            )
+            selected_indices = adaptive_window.selected_indices
+            selection_evidence = adaptive_window.evidence
+        selected_image_frame_ids = tuple(
+            sample.causal_frame_ids[index]
+            for index in selected_indices
+        )
         images = tuple(
-            ApiImageInput(identifier, "image/png", encode_rgb_png(frame))
-            for identifier, frame in zip(sample.media_refs, ordered_frames)
+            ApiImageInput(
+                sample.media_refs[index],
+                "image/png",
+                encode_rgb_png(ordered_frames[index]),
+            )
+            for index in selected_indices
+        )
+        image_details = tuple(
+            self.target_image_detail
+            if index == expected_count - 1
+            else self.history_image_detail
+            for index in selected_indices
         )
         return PerceptionContext(
             sample=sample,
@@ -299,4 +366,11 @@ class CausalPerceptionContextBuilder:
             workflow_snapshot=frozen_workflow_snapshot,
             memory_snapshot=frozen_memory_snapshot,
             prior_finalized_prediction=prior_finalized_prediction,
+            track_snapshot=frozen_track_snapshot,
+            selected_image_frame_ids=selected_image_frame_ids,
+            image_details=image_details,
+            temporal_evidence=freeze_snapshot(
+                selection_evidence,
+                name="temporal_evidence",
+            ),
         )

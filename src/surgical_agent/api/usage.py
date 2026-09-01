@@ -14,6 +14,7 @@ from typing import Any
 from surgical_agent.api.contracts import (
     ApiResponseRecord,
     CanonicalRequestMetadata,
+    CompletionTokenDetails,
     ProviderResponse,
     _freeze_json,
     _require_count,
@@ -29,7 +30,7 @@ from surgical_agent.api.contracts import (
 )
 from surgical_agent.artifacts.manifest import atomic_write_text
 
-USAGE_SCHEMA_VERSION = "api_usage_record_v2"
+USAGE_SCHEMA_VERSION = "api_usage_record_v3"
 _ERROR_CODE_PATTERN = re.compile(r"[a-z][a-z0-9_]*")
 _USAGE_FIELDS = frozenset(
     {
@@ -51,7 +52,13 @@ _USAGE_FIELDS = frozenset(
         "input_tokens",
         "output_tokens",
         "total_tokens",
+        "prompt_tokens",
+        "completion_tokens",
+        "completion_tokens_details",
+        "visible_output_tokens",
+        "time_to_first_token_ms",
         "latency_ms",
+        "total_latency_ms",
         "provider_cost",
         "origin_provider_cost",
         "timestamp",
@@ -114,7 +121,13 @@ class UsageRecord:
     input_tokens: int | None = None
     output_tokens: int | None = None
     total_tokens: int | None = None
+    completion_tokens_details: CompletionTokenDetails = field(
+        default_factory=CompletionTokenDetails
+    )
+    visible_output_tokens: int | None = None
+    time_to_first_token_ms: float | None = None
     latency_ms: float | None = None
+    total_latency_ms: float | None = None
     provider_cost: float | None = None
     origin_provider_cost: float | None = None
     timestamp: str = ""
@@ -162,8 +175,34 @@ class UsageRecord:
             raise ValueError("cache-hit usage cannot contain current provider calls")
         for name in ("input_tokens", "output_tokens", "total_tokens"):
             _require_optional_count(getattr(self, name), name=name)
-        for name in ("latency_ms", "provider_cost", "origin_provider_cost"):
+        if not isinstance(self.completion_tokens_details, CompletionTokenDetails):
+            raise TypeError("completion_tokens_details must be CompletionTokenDetails")
+        _require_optional_count(
+            self.visible_output_tokens, name="visible_output_tokens"
+        )
+        if self.completion_tokens_details.reasoning_tokens is not None:
+            if self.output_tokens is None:
+                raise ValueError("reasoning tokens require completion tokens")
+            visible = self.output_tokens - self.completion_tokens_details.reasoning_tokens
+            if visible < 0:
+                raise ValueError("reasoning tokens cannot exceed completion tokens")
+            if self.visible_output_tokens is not None and self.visible_output_tokens != visible:
+                raise ValueError("visible output tokens must match completion usage")
+            object.__setattr__(self, "visible_output_tokens", visible)
+        for name in (
+            "time_to_first_token_ms",
+            "latency_ms",
+            "total_latency_ms",
+            "provider_cost",
+            "origin_provider_cost",
+        ):
             _require_optional_number(getattr(self, name), name=name)
+        if self.total_latency_ms is None:
+            object.__setattr__(self, "total_latency_ms", self.latency_ms)
+        elif self.latency_ms is None:
+            object.__setattr__(self, "latency_ms", self.total_latency_ms)
+        elif self.total_latency_ms != self.latency_ms:
+            raise ValueError("total latency must match legacy latency")
         if self.provider_call_count == 0 and self.provider_cost not in (None, 0.0):
             raise ValueError(
                 "usage with no provider calls cannot have current provider cost"
@@ -177,6 +216,8 @@ class UsageRecord:
             raise ValueError("cache-hit usage must have zero current provider cost")
         if self.cache_hit and self.latency_ms != 0.0:
             raise ValueError("cache-hit usage must have zero current latency")
+        if self.cache_hit and self.time_to_first_token_ms is not None:
+            raise ValueError("cache-hit usage must not report current TTFT")
         _validate_timestamp(self.timestamp)
         safe_metadata = freeze_safe_metadata(
             self.safe_provider_metadata,
@@ -190,6 +231,14 @@ class UsageRecord:
         )
         object.__setattr__(self, "safe_provider_metadata", safe_metadata)
         object.__setattr__(self, "error", error)
+
+    @property
+    def prompt_tokens(self) -> int | None:
+        return self.input_tokens
+
+    @property
+    def completion_tokens(self) -> int | None:
+        return self.output_tokens
 
     def to_mapping(self) -> dict[str, Any]:
         return {
@@ -211,7 +260,13 @@ class UsageRecord:
             "input_tokens": self.input_tokens,
             "output_tokens": self.output_tokens,
             "total_tokens": self.total_tokens,
+            "prompt_tokens": self.prompt_tokens,
+            "completion_tokens": self.completion_tokens,
+            "completion_tokens_details": self.completion_tokens_details.to_mapping(),
+            "visible_output_tokens": self.visible_output_tokens,
+            "time_to_first_token_ms": self.time_to_first_token_ms,
             "latency_ms": self.latency_ms,
+            "total_latency_ms": self.total_latency_ms,
             "provider_cost": self.provider_cost,
             "origin_provider_cost": self.origin_provider_cost,
             "timestamp": self.timestamp,
@@ -223,7 +278,17 @@ class UsageRecord:
         mapping = _require_mapping(value, name="usage record")
         if set(mapping) != _USAGE_FIELDS:
             raise ValueError("usage record has invalid fields")
-        return cls(**{name: mapping[name] for name in sorted(_USAGE_FIELDS)})
+        if mapping["prompt_tokens"] != mapping["input_tokens"]:
+            raise ValueError("usage prompt token aliases disagree")
+        if mapping["completion_tokens"] != mapping["output_tokens"]:
+            raise ValueError("usage completion token aliases disagree")
+        values = {name: mapping[name] for name in sorted(_USAGE_FIELDS)}
+        del values["prompt_tokens"]
+        del values["completion_tokens"]
+        values["completion_tokens_details"] = CompletionTokenDetails.from_mapping(
+            mapping["completion_tokens_details"]
+        )
+        return cls(**values)
 
 
 class UsageLedger:
@@ -283,7 +348,11 @@ class UsageLedger:
                 input_tokens=response.input_tokens,
                 output_tokens=response.output_tokens,
                 total_tokens=response.total_tokens,
+                completion_tokens_details=response.completion_tokens_details,
+                visible_output_tokens=response.visible_output_tokens,
+                time_to_first_token_ms=response.time_to_first_token_ms,
                 latency_ms=response.latency_ms,
+                total_latency_ms=response.total_latency_ms,
                 provider_cost=response.provider_cost,
                 origin_provider_cost=response.origin_provider_cost,
                 timestamp=response.timestamp or datetime.now(UTC).isoformat(),
@@ -339,7 +408,19 @@ class UsageLedger:
                 input_tokens=response.input_tokens if response is not None else None,
                 output_tokens=response.output_tokens if response is not None else None,
                 total_tokens=response.total_tokens if response is not None else None,
+                completion_tokens_details=(
+                    response.completion_tokens_details
+                    if response is not None
+                    else CompletionTokenDetails()
+                ),
+                visible_output_tokens=(
+                    response.visible_output_tokens if response is not None else None
+                ),
+                time_to_first_token_ms=(
+                    response.time_to_first_token_ms if response is not None else None
+                ),
                 latency_ms=latency_ms,
+                total_latency_ms=latency_ms,
                 provider_cost=response.provider_cost if response is not None else None,
                 origin_provider_cost=(
                     response.origin_provider_cost
@@ -360,7 +441,7 @@ class UsageLedger:
     def summarize(self) -> dict[str, Any]:
         records = self._typed_records()
         return {
-            "schema_version": "api_usage_summary_v2",
+            "schema_version": "api_usage_summary_v3",
             "logical_calls": sum(item.logical_call_count for item in records),
             "provider_calls": sum(item.provider_call_count for item in records),
             "retries": sum(item.retry_count for item in records),
@@ -379,6 +460,26 @@ class UsageLedger:
             ),
             "total_tokens": sum(
                 item.total_tokens or 0
+                for item in records
+                if item.provider_call_count > 0
+            ),
+            "prompt_tokens": sum(
+                item.prompt_tokens or 0
+                for item in records
+                if item.provider_call_count > 0
+            ),
+            "completion_tokens": sum(
+                item.completion_tokens or 0
+                for item in records
+                if item.provider_call_count > 0
+            ),
+            "reasoning_tokens": sum(
+                item.completion_tokens_details.reasoning_tokens or 0
+                for item in records
+                if item.provider_call_count > 0
+            ),
+            "visible_output_tokens": sum(
+                item.visible_output_tokens or 0
                 for item in records
                 if item.provider_call_count > 0
             ),

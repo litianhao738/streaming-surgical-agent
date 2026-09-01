@@ -26,6 +26,7 @@ from surgical_agent.api.errors import (
 )
 from surgical_agent.api.request_hash import canonical_request_metadata
 from surgical_agent.api.retry import RetryPolicy
+from surgical_agent.api.schema import SCHEMAS, validator_for
 from surgical_agent.api.usage import UsageLedger
 
 
@@ -47,6 +48,9 @@ class CachedMultimodalApiClient:
         self.cache = cache
         self.usage = usage
         self.validator = validator
+        self._request_bound_validation = any(
+            validator is registered for _schema, registered in SCHEMAS.values()
+        )
         self.retry_policy = retry_policy or RetryPolicy()
         self.sleep = sleep
         self.provider_call_budget = provider_call_budget
@@ -61,9 +65,18 @@ class CachedMultimodalApiClient:
         if request.endpoint_identifier != self.transport.endpoint_identifier:
             raise ApiContractError("Request endpoint does not match selected transport")
 
-    def _validate_payload(self, response: ProviderResponse | ApiResponseRecord) -> None:
+    def _validate_payload(
+        self,
+        request: ApiRequest,
+        response: ProviderResponse | ApiResponseRecord,
+    ) -> None:
+        validator = (
+            validator_for(request.response_schema_version)
+            if self._request_bound_validation
+            else self.validator
+        )
         try:
-            self.validator(response.parsed_payload)
+            validator(response.parsed_payload)
         except ApiError:
             raise
         except Exception as exc:
@@ -87,6 +100,10 @@ class CachedMultimodalApiClient:
                 input_tokens=response.input_tokens,
                 output_tokens=response.output_tokens,
                 total_tokens=response.total_tokens,
+                completion_tokens_details=response.completion_tokens_details,
+                visible_output_tokens=response.visible_output_tokens,
+                time_to_first_token_ms=response.time_to_first_token_ms,
+                total_latency_ms=response.total_latency_ms,
                 image_count=response.image_count,
                 provider_request_id=response.provider_request_id,
                 timestamp=response.timestamp,
@@ -105,7 +122,7 @@ class CachedMultimodalApiClient:
             ) from None
         if response.provider != request.provider:
             raise ApiContractError("Provider response identity mismatch")
-        self._validate_payload(response)
+        self._validate_payload(request, response)
         return ApiResponseRecord(
             provider=response.provider,
             endpoint_identifier=request.endpoint_identifier,
@@ -116,8 +133,12 @@ class CachedMultimodalApiClient:
             input_tokens=response.input_tokens,
             output_tokens=response.output_tokens,
             total_tokens=response.total_tokens,
+            completion_tokens_details=response.completion_tokens_details,
+            visible_output_tokens=response.visible_output_tokens,
+            time_to_first_token_ms=response.time_to_first_token_ms,
             image_count=response.image_count,
             latency_ms=latency_ms,
+            total_latency_ms=latency_ms,
             retry_count=retry_count,
             provider_call_count=provider_call_count,
             timestamp=response.timestamp or self._now(),
@@ -171,7 +192,7 @@ class CachedMultimodalApiClient:
             raise
         if cached is not None:
             try:
-                self._validate_payload(cached)
+                self._validate_payload(request, cached)
             except ApiError as exc:
                 failed_replay = replace(
                     cached,
@@ -179,6 +200,8 @@ class CachedMultimodalApiClient:
                     provider_call_count=0,
                     retry_count=0,
                     latency_ms=0.0,
+                    time_to_first_token_ms=None,
+                    total_latency_ms=0.0,
                     provider_cost=0.0,
                     origin_provider_cost=(
                         cached.origin_provider_cost
@@ -201,6 +224,8 @@ class CachedMultimodalApiClient:
                 provider_call_count=0,
                 retry_count=0,
                 latency_ms=0.0,
+                time_to_first_token_ms=None,
+                total_latency_ms=0.0,
                 provider_cost=0.0,
                 origin_provider_cost=(
                     cached.origin_provider_cost

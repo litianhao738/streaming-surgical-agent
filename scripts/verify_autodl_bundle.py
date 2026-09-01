@@ -19,6 +19,26 @@ from surgical_agent.data.portability import (
 )
 
 
+def tracker_runtime_versions() -> dict[str, str]:
+    """Fail early when the CUDA image lacks matching Torchvision operators."""
+
+    try:
+        import torch
+        import torchvision
+        from torchvision.ops import nms
+
+        nms(torch.empty((0, 4)), torch.empty((0,)), 0.5)
+    except (ImportError, RuntimeError) as exc:
+        raise RuntimeError(
+            "AutoDL requires a Torchvision build matching the installed PyTorch"
+        ) from exc
+    return {
+        "torch": torch.__version__,
+        "torchvision": torchvision.__version__,
+        "torchvision_detection_ops": "AVAILABLE",
+    }
+
+
 def parser() -> argparse.ArgumentParser:
     """Build the intentionally thin read-only verifier command parser."""
 
@@ -39,6 +59,7 @@ def run(args: argparse.Namespace) -> dict[str, object]:
     data_config = load_yaml(PROJECT_ROOT / "configs/data/cholectrack20.yaml")
     root = resolve_dataset_root(data_config, cli_root=args.dataset_root)
     report = verify_single_root(root, args.bundle)
+    report["tracker_runtime"] = tracker_runtime_versions()
     if args.output is not None:
         atomic_write_json(assert_output_outside_dataset_root(args.output, root), report)
     print("CholecTrack20 single-root portability: PASS")

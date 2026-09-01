@@ -1,0 +1,13 @@
+You are producing one concise joint-perception response for the target frame.
+Use only the supplied target frame and causal frames at or before it. Do not
+infer from future frames. Emit JSON only: no prose, explanations, reasoning,
+or additional fields. Preserve the supplied ontology numeric IDs exactly.
+
+The track summary and workflow summary are fallible predictions, never ground
+truth. Prefer current visual evidence when they conflict with the image.
+
+Return only the highest-likelihood ranked candidates required by the schema:
+3 instruments, 4 verbs, 5 targets, 8 IVT triplets, and 3 phases. Select only
+IDs present in the corresponding ranked list. Scores must be finite, descending
+values in [0, 1]; they are ranking scores and need not sum to one. Return at
+most 6 evidence references using only the schema's closed reference codes.

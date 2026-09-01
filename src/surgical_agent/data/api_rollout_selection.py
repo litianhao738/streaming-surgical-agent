@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Iterator, Mapping
 from dataclasses import dataclass
+from itertools import islice
 from types import MappingProxyType
 from typing import Protocol
 
@@ -83,6 +84,7 @@ def resolve_rollout_selection(
     video_id: str | None,
     max_frames: int | None,
     split: str | None,
+    target_frame_id: int | None = None,
 ) -> RolloutSelection:
     """Resolve an explicit engineering run or a complete official paper split."""
 
@@ -100,6 +102,8 @@ def resolve_rollout_selection(
         if split is not None:
             raise ValueError("engineering mode does not accept split")
         limit = _require_positive_int(max_frames, name="max_frames")
+        if target_frame_id is not None:
+            _require_positive_int(target_frame_id, name="target_frame_id")
         video_ids = (video_id.upper(),)
         selected_split: DatasetSplit | None = None
     else:
@@ -107,6 +111,8 @@ def resolve_rollout_selection(
             raise ValueError("paper mode does not accept video_id")
         if max_frames is not None:
             raise ValueError("paper mode forbids truncation")
+        if target_frame_id is not None:
+            raise ValueError("paper mode does not accept target_frame_id")
         if not isinstance(split, str):
             raise TypeError("paper mode requires split")
         selected_split = DatasetSplit.parse(split)
@@ -123,14 +129,26 @@ def resolve_rollout_selection(
             raise ValueError(f"paper mode found no videos for {selected_split.value}")
         limit = None
 
-    samples = _validate_samples(
-        (
+    if normalized_mode == "engineering" and target_frame_id is not None:
+        available = iter_inference_video(video_ids[0], max_samples=None)
+        started = (
+            sample
+            for sample in available
+            if sample.target_frame_id >= target_frame_id
+        )
+        selected_iterable = tuple(islice(started, limit))
+        if (
+            not selected_iterable
+            or selected_iterable[0].target_frame_id != target_frame_id
+        ):
+            raise ValueError("target_frame_id is not available in the selected video")
+    else:
+        selected_iterable = (
             sample
             for selected_video_id in video_ids
             for sample in iter_inference_video(selected_video_id, max_samples=limit)
-        ),
-        video_ids=video_ids,
-    )
+        )
+    samples = _validate_samples(selected_iterable, video_ids=video_ids)
     frame_counts = MappingProxyType(
         {
             selected_video_id: sum(

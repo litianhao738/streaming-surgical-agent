@@ -1,0 +1,10 @@
+You are verifying one current-frame surgical recognition hypothesis.
+Try to falsify the supplied current prediction using only the supplied causal
+images, prior finalized state, bounded candidate pool, evidence signals, and
+memory whose source frame is strictly earlier than the target. Keep the current
+selected labels unless an alternative is better supported.
+
+Return only JSON matching the supplied strict response schema. Every selected
+ID must belong to the supplied candidate_pool for its task. The ranked top-k
+arrays must still satisfy that schema and use finite descending scores in [0, 1].
+Do not use future frames, ground truth, labels, or IDs outside the ontology.

@@ -7,12 +7,14 @@ import json
 import os
 import tempfile
 from collections import defaultdict
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator, Mapping
 from dataclasses import dataclass
 from pathlib import Path
+from types import MappingProxyType
 from typing import Any
 
 from surgical_agent.data.constants import TASK_ID_BOUNDS
+from surgical_agent.data.dataset import CholecTrack20DatasetAdapter
 from surgical_agent.data.schemas import DatasetSplit
 from surgical_agent.research.signals.contracts import PhaseTransitionGraph
 
@@ -51,6 +53,70 @@ class PhaseObservation:
             raise ValueError("phase_id is outside the phase range")
         if not isinstance(self.split, DatasetSplit):
             raise TypeError("split must be a DatasetSplit")
+
+
+def iter_training_phase_observations(
+    adapter: CholecTrack20DatasetAdapter,
+) -> Iterator[PhaseObservation]:
+    """Re-enumerate only official Training phase supervision from an adapter."""
+
+    entries = sorted(adapter.entries.values(), key=lambda entry: entry.video_id)
+    for entry in entries:
+        if entry.split is not DatasetSplit.TRAINING:
+            continue
+        for record in adapter.iter_video(entry.video_id):
+            if record.inference.source_split is not DatasetSplit.TRAINING:
+                raise ValueError("training graph adapter yielded a non-training record")
+            target = record.frame_supervision
+            if target is None or not target.mask.phase or target.phase_id is None:
+                continue
+            if target.video_id != entry.video_id:
+                raise ValueError("training graph adapter yielded a cross-video record")
+            yield PhaseObservation(
+                video_id=entry.video_id,
+                frame_id=target.frame_id,
+                phase_id=target.phase_id,
+                split=DatasetSplit.TRAINING,
+            )
+
+
+def build_phase_transition_graph_from_training_adapter(
+    adapter: CholecTrack20DatasetAdapter,
+) -> PhaseTransitionGraph:
+    """Build the expected graph by re-enumerating official Training labels."""
+
+    return build_phase_transition_graph(iter_training_phase_observations(adapter))
+
+
+def build_phase_ivt_compatibility_from_training_adapter(
+    adapter: CholecTrack20DatasetAdapter,
+) -> Mapping[int, tuple[int, ...]]:
+    """Build phase-to-IVT support using official Training supervision only."""
+
+    allowed: dict[int, set[int]] = defaultdict(set)
+    entries = sorted(adapter.entries.values(), key=lambda entry: entry.video_id)
+    for entry in entries:
+        if entry.split is not DatasetSplit.TRAINING:
+            continue
+        for record in adapter.iter_video(entry.video_id):
+            if record.inference.source_split is not DatasetSplit.TRAINING:
+                raise ValueError("phase-IVT builder received a non-training record")
+            target = record.frame_supervision
+            if (
+                target is None
+                or not target.mask.phase
+                or target.phase_id is None
+                or not target.mask.ivt
+            ):
+                continue
+            allowed[target.phase_id].update(target.triplet_ids)
+    phase_lower, phase_upper = TASK_ID_BOUNDS["phase"]
+    missing = set(range(phase_lower, phase_upper + 1)) - set(allowed)
+    if missing:
+        raise ValueError(f"Training phase-IVT support is missing phases: {sorted(missing)}")
+    return MappingProxyType(
+        {phase_id: tuple(sorted(allowed[phase_id])) for phase_id in sorted(allowed)}
+    )
 
 
 def canonical_graph_payload(

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import importlib.util
 import json
 from dataclasses import FrozenInstanceError
 from pathlib import Path
@@ -15,6 +14,8 @@ from surgical_agent.research.signals.contracts import PhaseTransitionGraph
 from surgical_agent.research.signals.phase_graph import (
     PhaseObservation,
     build_phase_transition_graph,
+    build_phase_transition_graph_from_training_adapter,
+    iter_training_phase_observations,
     load_phase_transition_graph,
     write_phase_transition_graph,
 )
@@ -27,15 +28,6 @@ def obs(
     split: DatasetSplit = DatasetSplit.TRAINING,
 ) -> PhaseObservation:
     return PhaseObservation(video_id, frame_id, phase_id, split)
-
-
-def _script_module():
-    script_path = Path(__file__).parents[2] / "scripts" / "build_phase_transition_graph.py"
-    spec = importlib.util.spec_from_file_location("build_phase_transition_graph", script_path)
-    assert spec is not None and spec.loader is not None
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
 
 
 def test_graph_contains_self_edges_and_observed_directed_edges_only() -> None:
@@ -124,8 +116,7 @@ def test_loaded_graph_is_immutable_and_round_trips(tmp_path: Path) -> None:
         loaded.transitions = ((0, 0),)  # type: ignore[misc]
 
 
-def test_cli_adapter_uses_training_records_and_excludes_missing_phase_labels() -> None:
-    script = _script_module()
+def test_training_adapter_helper_uses_only_official_training_records() -> None:
     requested_video_ids: list[str] = []
     adapter = SimpleNamespace(
         entries={
@@ -162,5 +153,81 @@ def test_cli_adapter_uses_training_records_and_excludes_missing_phase_labels() -
 
     adapter.iter_video = iter_video
 
-    assert tuple(script._training_phase_observations(adapter)) == (obs("VID01", 1, 0),)
+    assert tuple(iter_training_phase_observations(adapter)) == (obs("VID01", 1, 0),)
     assert requested_video_ids == ["VID01"]
+
+
+def test_training_adapter_helper_skips_missing_phase_labels() -> None:
+    adapter = SimpleNamespace(
+        entries={
+            "VID01": SimpleNamespace(
+                video_id="VID01", split=DatasetSplit.TRAINING
+            )
+        }
+    )
+    adapter.iter_video = lambda _video_id: iter(
+        (
+            SimpleNamespace(
+                inference=SimpleNamespace(source_split=DatasetSplit.TRAINING),
+                frame_supervision=None,
+            ),
+            SimpleNamespace(
+                inference=SimpleNamespace(source_split=DatasetSplit.TRAINING),
+                frame_supervision=SimpleNamespace(
+                    video_id="VID01",
+                    frame_id=1,
+                    phase_id=None,
+                    mask=SimpleNamespace(phase=True),
+                ),
+            ),
+            SimpleNamespace(
+                inference=SimpleNamespace(source_split=DatasetSplit.TRAINING),
+                frame_supervision=SimpleNamespace(
+                    video_id="VID01",
+                    frame_id=2,
+                    phase_id=3,
+                    mask=SimpleNamespace(phase=False),
+                ),
+            ),
+            SimpleNamespace(
+                inference=SimpleNamespace(source_split=DatasetSplit.TRAINING),
+                frame_supervision=SimpleNamespace(
+                    video_id="VID01",
+                    frame_id=3,
+                    phase_id=4,
+                    mask=SimpleNamespace(phase=True),
+                ),
+            ),
+        )
+    )
+
+    graph = build_phase_transition_graph_from_training_adapter(adapter)
+
+    assert graph.source_video_ids == ("VID01",)
+    assert graph.transitions == ((4, 4),)
+
+
+def test_training_adapter_helper_rejects_non_training_record() -> None:
+    adapter = SimpleNamespace(
+        entries={
+            "VID01": SimpleNamespace(
+                video_id="VID01", split=DatasetSplit.TRAINING
+            )
+        }
+    )
+    adapter.iter_video = lambda _video_id: iter(
+        (
+            SimpleNamespace(
+                inference=SimpleNamespace(source_split=DatasetSplit.VALIDATION),
+                frame_supervision=SimpleNamespace(
+                    video_id="VID01",
+                    frame_id=1,
+                    phase_id=0,
+                    mask=SimpleNamespace(phase=True),
+                ),
+            ),
+        )
+    )
+
+    with pytest.raises(ValueError, match="non-training"):
+        tuple(iter_training_phase_observations(adapter))

@@ -55,6 +55,16 @@ _PREDICTION_KEYS = frozenset(
         "score_semantics",
     }
 )
+_RELIABILITY_PREDICTION_KEYS = frozenset(
+    {
+        "initial_state",
+        "gate_reasons",
+        "flagged_fields",
+        "repaired_fields",
+        "final_status",
+        "memory_action",
+    }
+)
 _EVIDENCE_KEYS = frozenset(
     {
         "run_id",
@@ -195,7 +205,11 @@ def load_completed_run(run_dir: str | Path) -> CompletedRun:
     if mode not in {"engineering", "paper"}:
         raise OfflineEvaluationError("mode must be engineering or paper")
     provider = _text(rollout["provider"], "provider")
-    expected_status = {"mock": "MOCK_COMPLETE", "openrouter": "REAL_RESPONSE_RECEIVED"}.get(
+    expected_status = {
+        "mock": "MOCK_COMPLETE",
+        "openai": "REAL_RESPONSE_RECEIVED",
+        "openrouter": "REAL_RESPONSE_RECEIVED",
+    }.get(
         provider
     )
     if expected_status is None or rollout["status"] != expected_status:
@@ -355,7 +369,13 @@ def load_completed_run(run_dir: str | Path) -> CompletedRun:
 
 
 def _prediction(row: dict[str, Any], *, run_id: str, video_id: str) -> PredictionRecord:
-    _require_keys(row, _PREDICTION_KEYS, "prediction record")
+    if set(row) not in {
+        _PREDICTION_KEYS,
+        _PREDICTION_KEYS | _RELIABILITY_PREDICTION_KEYS,
+    }:
+        raise OfflineEvaluationError(
+            "prediction record fields do not match the required schema"
+        )
     frame_id = _nonnegative_int(row["frame_id"], "frame_id")
     if row["run_id"] != run_id or row["video_id"] != video_id:
         raise OfflineEvaluationError("prediction identity does not match its run file")
@@ -401,6 +421,42 @@ def _prediction(row: dict[str, Any], *, run_id: str, video_id: str) -> Predictio
             failure_reason=row["failure_reason"],
             schema_version=_text(row["schema_version"], "schema_version"),
             score_semantics=_text(row["score_semantics"], "score_semantics"),
+            initial_state=(
+                "Candidate"
+                if "initial_state" not in row
+                else _text(row["initial_state"], "initial_state")
+            ),
+            gate_reasons=(
+                ()
+                if "gate_reasons" not in row
+                else _string_tuple(
+                    row["gate_reasons"], "gate_reasons", allow_empty=True
+                )
+            ),
+            flagged_fields=(
+                ()
+                if "flagged_fields" not in row
+                else _string_tuple(
+                    row["flagged_fields"], "flagged_fields", allow_empty=True
+                )
+            ),
+            repaired_fields=(
+                ()
+                if "repaired_fields" not in row
+                else _string_tuple(
+                    row["repaired_fields"], "repaired_fields", allow_empty=True
+                )
+            ),
+            final_status=(
+                "Candidate"
+                if "final_status" not in row
+                else _text(row["final_status"], "final_status")
+            ),
+            memory_action=(
+                "SKIP"
+                if "memory_action" not in row
+                else _text(row["memory_action"], "memory_action")
+            ),
         )
     except (TypeError, ValueError) as error:
         raise OfflineEvaluationError(f"invalid prediction record: {error}") from error

@@ -1,8 +1,17 @@
 experiment: v3_track_workflow
-phase_required: P4
+phase_required: track_workflow_context_v1
 tracking:
-  provider: predicted
+  provider: predicted_artifact
+  enabled: true
 workflow:
+  enabled: true
   history_source: predicted_finalized_only
+memory:
+  enabled: true
 runtime:
   allow_oracle_track_provider: false
+  context_profile: track_workflow
+  event_memory_enabled: true
+  phase_transition_graph: artifacts/training/phase_transition_graph.json
+  predicted_track_artifact: artifacts/training/tracker/predicted_tracks.json
+status: PREDICTED_TRACK_ARTIFACT_REQUIRED

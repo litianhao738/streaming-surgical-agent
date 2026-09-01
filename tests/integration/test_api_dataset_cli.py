@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from dataclasses import replace
 from pathlib import Path
 from types import MappingProxyType, SimpleNamespace
 
@@ -18,26 +19,29 @@ from scripts.run_dataset_api_pipeline import (
     run_dataset_api_rollout,
     validate_cli_selection,
 )
-from surgical_agent.api.contracts import ApiRequest, ProviderResponse
+from surgical_agent.api.contracts import (
+    ApiRequest,
+    CompletionTokenDetails,
+    ProviderResponse,
+)
 from surgical_agent.api.credentials import SecretValue
 from surgical_agent.api.errors import ApiContractError, ApiTransportError
 from surgical_agent.api.providers.mock import MockProviderTransport
-from surgical_agent.config.loader import load_api_config
+from surgical_agent.config.loader import load_api_config, load_yaml
 from surgical_agent.data.api_rollout_selection import RolloutSelection
 from surgical_agent.data.dataset import PNG_ALIGNMENT_VERSION, DatasetContractError
 from surgical_agent.data.schemas import DatasetSplit, InferenceSample
 from surgical_agent.inference.writer import ArtifactWriteError
 from surgical_agent.perception.schema import (
-    JOINT_PERCEPTION_SCHEMA_VERSION,
-    TASK_LAYOUT,
+    COMPACT_TASK_LAYOUT,
+    RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
 )
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-MOCK_DATASET_CONFIG = (
-    PROJECT_ROOT / "configs/perception/joint_mock_dataset.yaml"
-)
-REAL_DATASET_CONFIG = (
-    PROJECT_ROOT / "configs/perception/joint_openrouter_dataset.yaml"
+MOCK_DATASET_CONFIG = PROJECT_ROOT / "configs/perception/joint_mock_dataset.yaml"
+REAL_DATASET_CONFIG = PROJECT_ROOT / "configs/perception/joint_openrouter_dataset.yaml"
+LATENCY_DATASET_CONFIG = (
+    PROJECT_ROOT / "configs/perception/joint_openrouter_latency_dataset.yaml"
 )
 
 
@@ -47,18 +51,27 @@ class InjectedOpenRouterTransport:
 
     def __init__(self) -> None:
         self.call_count = 0
+        self.generation_parameters: list[dict[str, object]] = []
 
     def send(self, request: ApiRequest) -> ProviderResponse:
         self.call_count += 1
+        self.generation_parameters.append(dict(request.generation_parameters))
         input_text = request.payload.get("input_text")
         decoded = json.loads(input_text) if isinstance(input_text, str) else {}
         frame_id = int(decoded["target_frame_id"])
-        payload: dict[str, object] = {
-            "schema_version": JOINT_PERCEPTION_SCHEMA_VERSION
-        }
-        for task, count in TASK_LAYOUT:
+        reliability_v2 = (
+            request.response_schema_version
+            == RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION
+        )
+        payload: dict[str, object] = {"schema_version": request.response_schema_version}
+        for task, count in COMPACT_TASK_LAYOUT:
             topk = [
-                {"id": index, "score": 1.0 - index / (count + 1)}
+                {
+                    "id": index,
+                    "confidence" if reliability_v2 else "score": (
+                        1.0 - index / (count + 1)
+                    ),
+                }
                 for index in range(count)
             ]
             payload[task] = (
@@ -66,12 +79,15 @@ class InjectedOpenRouterTransport:
                 if task == "phase"
                 else {"selected_ids": [0], "topk": topk}
             )
-        payload["evidence_refs"] = [
-            {"frame_id": frame_id, "code": "CURRENT_VISUAL_SUPPORT"}
-        ]
-        payload["self_reported_confidence"] = {
-            task: 0.8 for task, _count in TASK_LAYOUT
-        }
+        if reliability_v2:
+            payload["uncertainty"] = []
+        else:
+            payload["evidence_refs"] = [
+                {"frame_id": frame_id, "code": "CURRENT_VISUAL_SUPPORT"}
+            ]
+            payload["self_reported_confidence"] = {
+                task: 0.8 for task, _count in COMPACT_TASK_LAYOUT
+            }
         return ProviderResponse(
             provider=self.provider,
             returned_model_identifier="openai/gpt-5.6-sol:injected",
@@ -79,6 +95,10 @@ class InjectedOpenRouterTransport:
             input_tokens=101,
             output_tokens=37,
             total_tokens=138,
+            completion_tokens_details=CompletionTokenDetails(reasoning_tokens=0),
+            visible_output_tokens=37,
+            time_to_first_token_ms=1.0,
+            total_latency_ms=2.0,
             image_count=len(request.images),
             provider_request_id=f"injected-{self.call_count}",
             provider_cost=0.00125,
@@ -119,8 +139,7 @@ def _selection_with_two_pngs(media_root: Path) -> RolloutSelection:
                 target_frame_id=frame_id,
                 causal_frame_ids=causal_ids,
                 media_refs=tuple(
-                    str(media_root / f"frame_{value}.png")
-                    for value in causal_ids
+                    str(media_root / f"frame_{value}.png") for value in causal_ids
                 ),
                 source_split=DatasetSplit.VALIDATION,
                 alignment_version=PNG_ALIGNMENT_VERSION,
@@ -142,6 +161,335 @@ def _persisted_text(*roots: Path) -> str:
         for path in sorted(root.rglob("*"))
         if path.is_file()
     ).lower()
+
+
+def test_cli_exposes_explicit_no_training_verification_profiles() -> None:
+    args = build_parser().parse_args(
+        [
+            "--mode",
+            "engineering",
+            "--video-id",
+            "VID30",
+            "--max-frames",
+            "2",
+            "--pipeline-profile",
+            "always_verify",
+        ]
+    )
+
+    assert args.pipeline_profile == "always_verify"
+    assert args.evidence_threshold == 0.75
+    assert (
+        dataset_cli._resolve_call_limit(
+            "exact-selection",
+            selection_count=2,
+            calls_per_state=2,
+        )
+        == 4
+    )
+
+
+def test_cli_exposes_selective_cascade_and_event_report_controls() -> None:
+    base = ["--mode", "engineering", "--video-id", "VID30", "--max-frames", "1"]
+    parser = build_parser()
+
+    selective = parser.parse_args(
+        [
+            *base,
+            "--pipeline-profile",
+            "selective_verify",
+            "--report-mode",
+            "template_report",
+            "--report-window-frames",
+            "12",
+        ]
+    )
+    cascade = parser.parse_args([*base, "--pipeline-profile", "cascade_verify"])
+
+    assert selective.report_mode == "template_report"
+    assert selective.report_window_frames == 12
+    assert cascade.pipeline_profile == "cascade_verify"
+    assert cascade.report_mode == "template_report"
+    assert cascade.report_window_frames == 30
+
+
+def test_profile_call_budget_is_the_exact_n_or_two_n_reservation() -> None:
+    assert (
+        dataset_cli._resolve_profile_call_limit(
+            "exact-selection", pipeline_profile="single_pass", selection_count=3
+        )
+        == 3
+    )
+    for profile in ("always_verify", "selective_verify", "cascade_verify"):
+        assert (
+            dataset_cli._resolve_profile_call_limit(
+                "exact-selection", pipeline_profile=profile, selection_count=3
+            )
+            == 6
+        )
+    with pytest.raises(ApiContractError, match="exact profile reservation"):
+        dataset_cli._resolve_profile_call_limit(
+            3, pipeline_profile="always_verify", selection_count=2
+        )
+
+
+def test_dataset_cli_enables_progress_by_default_and_can_disable_it() -> None:
+    parser = build_parser()
+
+    base = ["--mode", "engineering", "--video-id", "VID30", "--max-frames", "1"]
+    assert parser.parse_args(base).no_progress is False
+    assert parser.parse_args([*base, "--no-progress"]).no_progress is True
+
+
+def test_cli_exposes_explicit_model_key_and_causal_parallelism_controls() -> None:
+    parser = build_parser()
+    args = parser.parse_args(
+        [
+            "--mode",
+            "engineering",
+            "--video-id",
+            "VID30",
+            "--max-frames",
+            "1",
+            "--api-key",
+            "temporary-test-key",
+            "--model",
+            "openai/gpt-5.6-sol",
+            "--parallelism",
+            "1",
+        ]
+    )
+
+    assert args.api_key == "temporary-test-key"
+    assert args.api_key_file is None
+    assert args.model == "openai/gpt-5.6-sol"
+    assert args.parallelism == 1
+    with pytest.raises(SystemExit):
+        parser.parse_args(
+            [
+                "--mode",
+                "engineering",
+                "--video-id",
+                "VID30",
+                "--max-frames",
+                "1",
+                "--api-key",
+                "temporary-test-key",
+                "--api-key-file",
+                "docs/API.txt",
+            ]
+        )
+
+
+def test_cli_model_override_preserves_the_approved_experiment_backbone() -> None:
+    config = load_api_config(REAL_DATASET_CONFIG)
+
+    overridden = dataset_cli._apply_cli_model_override(
+        config,
+        mode="engineering",
+        model=" openai/gpt-5.6-sol ",
+    )
+
+    assert overridden.requested_model_identifier == "openai/gpt-5.6-sol"
+    with pytest.raises(ApiContractError, match="paper mode forbids"):
+        dataset_cli._apply_cli_model_override(
+            config,
+            mode="paper",
+            model="openai/gpt-5.6-sol",
+        )
+    with pytest.raises(ApiContractError, match="approves only"):
+        dataset_cli._apply_cli_model_override(
+            config,
+            mode="engineering",
+            model="openai/gpt-5.6-luna",
+        )
+
+
+def test_parallelism_rejects_state_races_inside_one_causal_video() -> None:
+    dataset_cli._validate_parallelism(1)
+
+    with pytest.raises(ApiContractError, match="positive integer"):
+        dataset_cli._validate_parallelism(0)
+    with pytest.raises(ApiContractError, match="causal video stream"):
+        dataset_cli._validate_parallelism(2)
+
+
+def test_experiment_yaml_resolves_real_context_and_memory_switches() -> None:
+    source = PROJECT_ROOT / "configs/ablations/workflow_only.yaml"
+
+    resolved = dataset_cli._resolve_context_runtime(
+        context_profile="auto",
+        event_memory="auto",
+        phase_transition_graph=None,
+        predicted_track_artifact=None,
+        experiment_config=source,
+    )
+
+    assert resolved[:2] == ("workflow", False)
+    assert (
+        resolved[2]
+        == (PROJECT_ROOT / "artifacts/training/phase_transition_graph.json").resolve()
+    )
+    assert resolved[3] is None
+    assert resolved[4] == hashlib.sha256(source.read_bytes()).hexdigest()
+
+
+def test_cli_rejects_switch_that_conflicts_with_experiment_yaml() -> None:
+    with pytest.raises(ApiContractError, match="context-profile conflicts"):
+        dataset_cli._resolve_context_runtime(
+            context_profile="frames_only",
+            event_memory="auto",
+            phase_transition_graph=None,
+            predicted_track_artifact=None,
+            experiment_config=(PROJECT_ROOT / "configs/ablations/workflow_only.yaml"),
+        )
+
+
+def test_context_profiles_are_explicit_and_track_mode_requires_predictions(
+    tmp_path: Path,
+) -> None:
+    selection = _selection_with_two_pngs(tmp_path / "media")
+    resolved, graph, provider = dataset_cli._load_context_components(
+        pipeline_profile="single_pass",
+        context_profile="auto",
+        phase_transition_graph=None,
+        predicted_track_artifact=None,
+        dataset_root=tmp_path,
+        selection=selection,
+    )
+    assert (resolved, graph, provider) == ("workflow", None, None)
+
+    with pytest.raises(ApiContractError, match="requires predicted-track"):
+        dataset_cli._load_context_components(
+            pipeline_profile="single_pass",
+            context_profile="track_workflow",
+            phase_transition_graph=None,
+            predicted_track_artifact=None,
+            dataset_root=tmp_path,
+            selection=selection,
+        )
+    with pytest.raises(ApiContractError, match="requires predicted-track"):
+        dataset_cli._load_context_components(
+            pipeline_profile="single_pass",
+            context_profile="track_only",
+            phase_transition_graph=None,
+            predicted_track_artifact=None,
+            dataset_root=tmp_path,
+            selection=selection,
+        )
+
+
+def test_phase_graph_must_equal_graph_rebuilt_from_current_training_labels(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    selection = _selection_with_two_pngs(tmp_path / "media")
+    declared = dataset_cli.PhaseTransitionGraph(
+        transitions=((0, 0),),
+        source_video_ids=("VID01",),
+        version="phase_transition_train_v1",
+        sha256="a" * 64,
+    )
+    rebuilt = dataset_cli.PhaseTransitionGraph(
+        transitions=((0, 0), (0, 1), (1, 1)),
+        source_video_ids=("VID01",),
+        version="phase_transition_train_v1",
+        sha256="b" * 64,
+    )
+    monkeypatch.setattr(
+        dataset_cli,
+        "load_phase_transition_graph",
+        lambda _path: declared,
+    )
+    monkeypatch.setattr(
+        dataset_cli,
+        "CholecTrack20DatasetAdapter",
+        lambda _root: object(),
+    )
+    monkeypatch.setattr(
+        dataset_cli,
+        "build_phase_transition_graph_from_training_adapter",
+        lambda _adapter: rebuilt,
+    )
+
+    with pytest.raises(ApiContractError, match="does not match current Training"):
+        dataset_cli._load_context_components(
+            pipeline_profile="rule_gate",
+            context_profile="workflow",
+            phase_transition_graph=tmp_path / "declared.json",
+            predicted_track_artifact=None,
+            dataset_root=tmp_path,
+            selection=selection,
+        )
+
+
+def test_track_artifact_must_match_current_dataset_manifest(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    dataset_root = tmp_path / "dataset"
+    selection = _selection_with_two_pngs(dataset_root / "media")
+    (dataset_root / "repair_manifest.json").write_text("{}\n", encoding="utf-8")
+    provider = SimpleNamespace(dataset_repair_manifest_sha256="a" * 64)
+    monkeypatch.setattr(
+        dataset_cli,
+        "PrecomputedPredictedTrackProvider",
+        SimpleNamespace(from_json=lambda _path: provider),
+    )
+
+    with pytest.raises(ApiContractError, match="invalid predicted-track"):
+        dataset_cli._load_context_components(
+            pipeline_profile="rule_gate",
+            context_profile="track_workflow",
+            phase_transition_graph=None,
+            predicted_track_artifact=tmp_path / "tracks.json",
+            dataset_root=dataset_root,
+            selection=selection,
+        )
+
+
+def test_cli_requires_an_artifact_for_the_learned_gate_profile(tmp_path: Path) -> None:
+    args = build_parser().parse_args(
+        [
+            "--mode",
+            "engineering",
+            "--video-id",
+            "VID30",
+            "--max-frames",
+            "1",
+            "--pipeline-profile",
+            "learned_gate",
+        ]
+    )
+
+    with pytest.raises(ApiContractError, match="gate-artifact"):
+        dataset_cli._validate_runtime_profile(
+            args.pipeline_profile,
+            evidence_threshold=args.evidence_threshold,
+            gate_artifact=args.gate_artifact,
+        )
+
+    artifact_path = tmp_path / "gate.json"
+    artifact_path.write_text("{}", encoding="utf-8")
+    parsed = build_parser().parse_args(
+        [
+            "--mode",
+            "engineering",
+            "--video-id",
+            "VID30",
+            "--max-frames",
+            "1",
+            "--pipeline-profile",
+            "learned_gate",
+            "--gate-artifact",
+            str(artifact_path),
+        ]
+    )
+    dataset_cli._validate_runtime_profile(
+        parsed.pipeline_profile,
+        evidence_threshold=parsed.evidence_threshold,
+        gate_artifact=parsed.gate_artifact,
+    )
 
 
 def _install_canonical_adapter(
@@ -277,13 +625,36 @@ def test_injected_mock_rollout_persists_safe_pairs_and_replays_cache(
         "expected_frame_counts",
         "completed_frame_counts",
         "provider",
+        "provider_routing_profile",
         "model_requested",
         "models_returned",
         "prompt_version",
         "response_schema_version",
+        "causal_window",
+        "pipeline_profile",
+        "backbone_policy",
+        "initial_model_requested",
+        "verification_model_requested",
+        "main_profile_backbone_match",
+        "context_profile",
+        "event_memory_enabled",
+        "context_experiment_sha256",
+        "phase_transition_graph",
+        "predicted_track_artifact_sha256",
+        "predicted_track_provenance",
+        "evidence_threshold",
+        "gate_artifact_sha256",
+        "verification_summary",
+        "final_status_counts",
+        "memory_action_counts",
+        "report_manifest_path",
+        "causal_window_audit_path",
+        "report_count",
+        "report_mode",
         "repair_manifest_sha256",
         "alignment_versions",
         "usage",
+        "telemetry_summary",
         "cache_entry_count",
         "track20_image_uploaded",
         "paper_metric_eligible",
@@ -294,26 +665,56 @@ def test_injected_mock_rollout_persists_safe_pairs_and_replays_cache(
     assert first["completed_frame_counts"] == {"VID30": 2}
     assert first["repair_manifest_sha256"] == expected_digest
     assert first["track20_image_uploaded"] is False
+    assert first["provider_routing_profile"] is None
     assert first["paper_metric_eligible"] is False
+    assert first["context_profile"] == "workflow"
+    assert first["event_memory_enabled"] is True
+    assert first["context_experiment_sha256"] is None
+    assert first["phase_transition_graph"] is None
+    assert first["predicted_track_artifact_sha256"] is None
+    assert first["predicted_track_provenance"] is None
+    assert first["report_manifest_path"] == "event_report_manifest.json"
+    assert first["report_count"] == 1
+    assert first["report_mode"] == "template_report"
+    assert first["backbone_policy"] == "shared"
+    assert first["initial_model_requested"] == "mock-joint-perception-v1"
+    assert first["verification_model_requested"] == "mock-joint-perception-v1"
+    assert first["main_profile_backbone_match"] is True
+    assert first["final_status_counts"] == {"Accepted": 2}
+    assert first["memory_action_counts"] == {"WRITE_SHORT_TERM": 2}
+    telemetry = first["telemetry_summary"]
+    assert telemetry["schema_version"] == "api_rollout_telemetry_v1"
+    assert telemetry["prompt_tokens"] == 24
+    assert telemetry["completion_tokens"] == 14
+    assert telemetry["reasoning_tokens"] == 0
+    assert telemetry["visible_output_tokens"] == 14
+    assert telemetry["time_to_first_token_ms"]["count"] == 2
+    assert telemetry["total_latency_ms"]["count"] == 2
     assert first["usage"]["logical_calls"] == 2
     assert first["usage"]["provider_calls"] == 2
     assert first_transport.provider_call_count == 2
     assert second["usage"]["logical_calls"] == 2
     assert second["usage"]["provider_calls"] == 0
     assert second["usage"]["cache_hits"] == 2
+    assert second["telemetry_summary"]["time_to_first_token_ms"]["count"] == 0
+    assert second["telemetry_summary"]["total_latency_ms"]["count"] == 0
     assert second_transport.provider_call_count == 0
     assert first["cache_entry_count"] == second["cache_entry_count"] == 2
 
     for output_dir in (first_output, second_output):
-        prediction_lines = (output_dir / "predictions/VID30.jsonl").read_text(
-            encoding="utf-8"
-        ).splitlines()
-        evidence_lines = (output_dir / "evidence/VID30.jsonl").read_text(
-            encoding="utf-8"
-        ).splitlines()
-        usage_lines = (output_dir / "api_usage.jsonl").read_text(
-            encoding="utf-8"
-        ).splitlines()
+        prediction_lines = (
+            (output_dir / "predictions/VID30.jsonl")
+            .read_text(encoding="utf-8")
+            .splitlines()
+        )
+        evidence_lines = (
+            (output_dir / "evidence/VID30.jsonl")
+            .read_text(encoding="utf-8")
+            .splitlines()
+        )
+        usage_lines = (
+            (output_dir / "api_usage.jsonl").read_text(encoding="utf-8").splitlines()
+        )
         assert len(prediction_lines) == len(evidence_lines) == len(usage_lines) == 2
 
     persisted = _persisted_text(first_output, second_output, cache_root)
@@ -332,9 +733,12 @@ def test_injected_mock_rollout_persists_safe_pairs_and_replays_cache(
     ):
         assert forbidden not in persisted
 
-    assert json.loads(
-        (first_output / "dataset_rollout_artifact.json").read_text(encoding="utf-8")
-    ) == first
+    assert (
+        json.loads(
+            (first_output / "dataset_rollout_artifact.json").read_text(encoding="utf-8")
+        )
+        == first
+    )
 
 
 def test_injected_real_rollout_marks_dataset_image_upload_without_network(
@@ -383,12 +787,175 @@ def test_injected_real_rollout_marks_dataset_image_upload_without_network(
     )
 
     assert transport.call_count == 2
+    assert transport.generation_parameters == [
+        {"max_output_tokens": 1536, "reasoning": {"effort": "none"}},
+        {"max_output_tokens": 1536, "reasoning": {"effort": "none"}},
+    ]
     assert artifact["status"] == "REAL_RESPONSE_RECEIVED"
     assert artifact["track20_image_uploaded"] is True
     assert artifact["paper_metric_eligible"] is False
     assert secret_text not in _persisted_text(
         tmp_path / "real-output", tmp_path / "real-cache"
     )
+
+
+def test_dataset_rollout_freezes_compact_json_budget_at_lowest_reasoning_effort() -> (
+    None
+):
+    """The real dataset configuration must preserve the compact lowest-effort budget."""
+
+    real = load_api_config(REAL_DATASET_CONFIG)
+    latency = load_api_config(LATENCY_DATASET_CONFIG)
+    mock = load_api_config(MOCK_DATASET_CONFIG)
+
+    assert real.prompt_version == RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION
+    assert (
+        real.response_schema_version
+        == RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION
+    )
+    assert mock.prompt_version == RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION
+    assert (
+        mock.response_schema_version
+        == RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION
+    )
+    assert dict(real.generation_parameters) == {
+        "max_output_tokens": 1536,
+        "reasoning": {"effort": "none"},
+    }
+    assert real.provider_options["routing_profile"] == "strict_openai"
+    assert latency.provider_options["routing_profile"] == "latency_fallback"
+    assert latency.generation_parameters == real.generation_parameters
+    assert latency.max_causal_frames == real.max_causal_frames == 6
+    assert latency.max_api_images == real.max_api_images == 3
+    assert dict(mock.generation_parameters) == {"max_output_tokens": 4096}
+    dataset_cli._require_exact_dataset_config(
+        real,
+        has_credential=True,
+        authorize_data_upload=True,
+        selection_mode="paper",
+    )
+    dataset_cli._require_exact_dataset_config(
+        latency,
+        has_credential=True,
+        authorize_data_upload=True,
+        selection_mode="engineering",
+    )
+    dataset_cli._require_exact_dataset_config(
+        mock,
+        has_credential=False,
+        authorize_data_upload=True,
+    )
+    with pytest.raises(ApiContractError, match="strict OpenAI routing profile"):
+        dataset_cli._require_exact_dataset_config(
+            latency,
+            has_credential=True,
+            authorize_data_upload=True,
+            selection_mode="paper",
+        )
+
+    reasoning_enabled = replace(
+        real,
+        generation_parameters={
+            "max_output_tokens": 1536,
+            "reasoning": {"effort": "low"},
+        },
+    )
+    with pytest.raises(ApiContractError, match="exact generation settings"):
+        dataset_cli._require_exact_dataset_config(
+            reasoning_enabled,
+            has_credential=True,
+            authorize_data_upload=True,
+        )
+
+
+def test_luna_dataset_config_and_fair_experiment_profiles_are_explicit() -> None:
+    luna = load_api_config(
+        PROJECT_ROOT / "configs/perception/joint_openrouter_luna_dataset.yaml"
+    )
+    assert luna.requested_model_identifier == "openai/gpt-5.6-luna"
+    assert luna.prompt_version == RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION
+    assert dict(luna.generation_parameters) == {
+        "max_output_tokens": 1536,
+        "reasoning": {"effort": "none"},
+    }
+
+    paths = (
+        "configs/experiments/api_single_pass.yaml",
+        "configs/experiments/v3_always_verify.yaml",
+        "configs/experiments/v3_selective_verify.yaml",
+    )
+    configs = [load_yaml(PROJECT_ROOT / path) for path in paths]
+    frozen = {
+        (
+            config["perception_config"],
+            config["runtime"]["context_profile"],
+            config["runtime"]["event_memory_enabled"],
+            config["runtime"]["phase_transition_graph"],
+            config["runtime"]["predicted_track_artifact"],
+            tuple(sorted(config["report"].items())),
+        )
+        for config in configs
+    }
+    assert len(frozen) == 1
+    assert {config["backbone_policy"] for config in configs} == {"shared"}
+    assert {config["initial_model_requested"] for config in configs} == {
+        "openai/gpt-5.6-sol"
+    }
+    cascade = load_yaml(PROJECT_ROOT / "configs/experiments/v3_cascade_efficiency.yaml")
+    assert cascade["comparison_group"] == "efficiency_only"
+    assert cascade["backbone_policy"] == "cascade_efficiency"
+
+
+def test_llm_report_without_python_generator_fails_before_provider_call(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    dataset_root = tmp_path / "dataset"
+    selection = _selection_with_two_pngs(dataset_root / "media")
+    (dataset_root / "repair_manifest.json").write_text("{}\n", encoding="utf-8")
+    _install_canonical_adapter(monkeypatch, selection)
+    transport = MockProviderTransport()
+
+    with pytest.raises(ApiContractError, match="injected event-level generator"):
+        run_dataset_api_rollout(
+            config=load_api_config(MOCK_DATASET_CONFIG),
+            selection=selection,
+            dataset_root=dataset_root,
+            output_dir=tmp_path / "output",
+            cache_root=tmp_path / "cache",
+            run_id="llm-rejected",
+            max_provider_calls=2,
+            transport=transport,
+            report_mode="llm_report",
+        )
+    assert transport.provider_call_count == 0
+
+
+def test_mock_always_verify_smoke_uses_two_calls_per_frame(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    dataset_root = tmp_path / "dataset"
+    selection = _selection_with_two_pngs(dataset_root / "media")
+    (dataset_root / "repair_manifest.json").write_text("{}\n", encoding="utf-8")
+    _install_canonical_adapter(monkeypatch, selection)
+    transport = MockProviderTransport()
+
+    artifact = run_dataset_api_rollout(
+        config=load_api_config(MOCK_DATASET_CONFIG),
+        selection=selection,
+        dataset_root=dataset_root,
+        output_dir=tmp_path / "output",
+        cache_root=tmp_path / "cache",
+        run_id="always-smoke",
+        max_provider_calls=4,
+        transport=transport,
+        pipeline_profile="always_verify",
+        context_profile="workflow",
+    )
+
+    assert transport.provider_call_count == 4
+    assert artifact["usage"]["provider_calls"] == 4
 
 
 def test_first_frame_failure_persists_sanitized_incomplete_status(
@@ -567,9 +1134,7 @@ def test_programmatic_paper_selection_must_match_canonical_dataset_before_work(
 
     class CanonicalAdapter:
         def __init__(self, *_args: object, **_kwargs: object) -> None:
-            self.entries = {
-                "VID30": SimpleNamespace(split=DatasetSplit.VALIDATION)
-            }
+            self.entries = {"VID30": SimpleNamespace(split=DatasetSplit.VALIDATION)}
 
         def iter_inference_video(
             self,

@@ -256,9 +256,18 @@ def test_cache_replay_is_validated_and_not_counted_as_provider_call(
     assert replay.cache_hit
     assert not replay.provider_call
     assert replay.retry_count == 0
+    assert first.prompt_tokens == 12
+    assert first.completion_tokens == 7
+    assert first.completion_tokens_details.reasoning_tokens == 0
+    assert first.visible_output_tokens == 7
+    assert first.time_to_first_token_ms == 0.0
+    assert first.total_latency_ms == first.latency_ms
+    assert replay.time_to_first_token_ms is None
+    assert replay.total_latency_ms == 0.0
+    assert replay.latency_ms == 0.0
     assert transport.provider_call_count == 1
     assert usage.summarize() == {
-        "schema_version": "api_usage_summary_v2",
+        "schema_version": "api_usage_summary_v3",
         "logical_calls": 2,
         "provider_calls": 1,
         "retries": 0,
@@ -268,6 +277,10 @@ def test_cache_replay_is_validated_and_not_counted_as_provider_call(
         "input_tokens": 12,
         "output_tokens": 7,
         "total_tokens": 19,
+        "prompt_tokens": 12,
+        "completion_tokens": 7,
+        "reasoning_tokens": 0,
+        "visible_output_tokens": 7,
         "provider_cost": 0.0,
     }
 
@@ -539,7 +552,7 @@ def test_failed_cache_validation_never_recounts_origin_usage(tmp_path: Path) -> 
 
     assert transport.provider_call_count == 1
     assert usage.summarize() == {
-        "schema_version": "api_usage_summary_v2",
+        "schema_version": "api_usage_summary_v3",
         "logical_calls": 3,
         "provider_calls": 1,
         "retries": 0,
@@ -549,6 +562,10 @@ def test_failed_cache_validation_never_recounts_origin_usage(tmp_path: Path) -> 
         "input_tokens": 12,
         "output_tokens": 7,
         "total_tokens": 19,
+        "prompt_tokens": 12,
+        "completion_tokens": 7,
+        "reasoning_tokens": 0,
+        "visible_output_tokens": 7,
         "provider_cost": 0.25,
     }
 

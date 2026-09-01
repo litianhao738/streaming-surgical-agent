@@ -36,6 +36,7 @@ from surgical_agent.research.signals.contracts import (
 from surgical_agent.research.signals.frame_evidence import (
     FrameEvidenceSignalExtractor,
 )
+from surgical_agent.research.verification.contracts import CoordinationResult
 from surgical_agent.systems.pipeline import (
     CanonicalStreamingPipeline,
     DisabledCandidateGenerator,
@@ -49,6 +50,23 @@ from surgical_agent.systems.pipeline import (
     PipelineComponents,
     PipelineContractError,
     PredictionFinalizer,
+)
+
+_INVALID_STATE_ACTION_PAIRS = (
+    ("Candidate", "WRITE_RELIABLE"),
+    ("Candidate", "WRITE_SHORT_TERM"),
+    ("Candidate", "BUFFER_PENDING"),
+    ("Rejected", "WRITE_RELIABLE"),
+    ("Rejected", "WRITE_SHORT_TERM"),
+    ("Rejected", "BUFFER_PENDING"),
+    ("Pending", "WRITE_RELIABLE"),
+    ("Pending", "WRITE_SHORT_TERM"),
+    ("Pending", "SKIP"),
+    ("Verified", "WRITE_SHORT_TERM"),
+    ("Verified", "BUFFER_PENDING"),
+    ("Verified", "SKIP"),
+    ("Accepted", "BUFFER_PENDING"),
+    ("Accepted", "SKIP"),
 )
 
 
@@ -144,15 +162,15 @@ class RecordingFinalizer:
         *,
         run_id: str,
         sample: InferenceSample,
-        prediction: InitialPrediction,
+        coordinated: CoordinationResult,
         decision: GateDecision,
         trace: tuple[str, ...],
     ) -> tuple[PredictionRecord, FinalizedEvent]:
-        self.received_predictions.append(prediction)
+        self.received_predictions.append(coordinated.prediction)
         return self._delegate.finalize(
             run_id=run_id,
             sample=sample,
-            prediction=prediction,
+            coordinated=coordinated,
             decision=decision,
             trace=trace,
         )
@@ -191,8 +209,26 @@ class VerifyGate:
         return GateDecision(action="VERIFY", scope="forbidden", reason="test")
 
 
+class ContextAwareGate:
+    def __init__(self) -> None:
+        self.context: PerceptionContext | None = None
+        self.result: JointPerceptionResult | None = None
+
+    def decide(
+        self,
+        signals: EvidenceProfile,
+        *,
+        context: PerceptionContext,
+        perception_result: JointPerceptionResult,
+    ) -> GateDecision:
+        del signals
+        self.context = context
+        self.result = perception_result
+        return GateDecision(action="ACCEPT", scope=None, reason="context-aware")
+
+
 class RecordingSpecialist:
-    enabled_scopes = ("forbidden",)
+    enabled_scopes: tuple[str, ...] = ()
 
     def __init__(self) -> None:
         self.call_count = 0
@@ -200,9 +236,12 @@ class RecordingSpecialist:
     def verify(
         self,
         scope: str,
+        context: object,
         prediction: InitialPrediction,
-    ) -> InitialPrediction:
-        del scope
+        candidates: object,
+        evidence: object,
+    ) -> object:
+        del scope, context, candidates, evidence
         self.call_count += 1
         return prediction
 
@@ -217,14 +256,14 @@ class AlteringFinalizer:
         *,
         run_id: str,
         sample: InferenceSample,
-        prediction: InitialPrediction,
+        coordinated: CoordinationResult,
         decision: GateDecision,
         trace: tuple[str, ...],
     ) -> tuple[object, object]:
         record, event = self._delegate.finalize(
             run_id=run_id,
             sample=sample,
-            prediction=prediction,
+            coordinated=coordinated,
             decision=decision,
             trace=trace,
         )
@@ -246,7 +285,42 @@ class AlteringFinalizer:
             return record, replace(event, video_id="VID30")
         if self.alteration == "event_frame":
             return record, replace(event, frame_id=13)
+        if self.alteration == "event_state":
+            return record, replace(
+                event,
+                final_status="Rejected",
+                memory_action="SKIP",
+            )
         raise AssertionError(f"unknown alteration: {self.alteration}")
+
+
+class InconsistentStateFinalizer:
+    def __init__(self, final_status: str, memory_action: str) -> None:
+        self.final_status = final_status
+        self.memory_action = memory_action
+        self._delegate = PredictionFinalizer()
+
+    def finalize(
+        self,
+        *,
+        run_id: str,
+        sample: InferenceSample,
+        coordinated: CoordinationResult,
+        decision: GateDecision,
+        trace: tuple[str, ...],
+    ) -> tuple[PredictionRecord, FinalizedEvent]:
+        record, event = self._delegate.finalize(
+            run_id=run_id,
+            sample=sample,
+            coordinated=coordinated,
+            decision=decision,
+            trace=trace,
+        )
+        object.__setattr__(record, "final_status", self.final_status)
+        object.__setattr__(record, "memory_action", self.memory_action)
+        object.__setattr__(event, "final_status", self.final_status)
+        object.__setattr__(event, "memory_action", self.memory_action)
+        return record, event
 
 
 def _pipeline(
@@ -294,6 +368,25 @@ def test_pipeline_extracts_evidence_before_never_verify_and_persists_pair() -> N
     )
     assert sink.calls[0][0] is result.prediction
     assert sink.calls[0][1] is result.evidence
+
+
+def test_pipeline_passes_context_and_result_to_new_gate_contract() -> None:
+    gate = ContextAwareGate()
+    perception = RecordingPerception()
+    pipeline = _pipeline(gate_policy=gate, perception=perception)
+
+    pipeline.run(_sample(), _frames(), run_id="run")
+
+    assert gate.context is perception.contexts[0]
+    assert gate.result is perception.results[0]
+
+
+def test_pipeline_keeps_legacy_one_argument_custom_gate_compatible() -> None:
+    pipeline = _pipeline(gate_policy=VerifyGate())
+
+    result = pipeline.run(_sample(), _frames(), run_id="run")
+
+    assert result.prediction.gate_action == "VERIFY"
 
 
 def test_failed_first_pair_write_does_not_commit_any_causal_state() -> None:
@@ -523,7 +616,7 @@ def test_finalized_record_is_detached_and_frozen_before_sink_and_prior(
     assert perception.contexts[1].prior_finalized_prediction is first.prediction
 
 
-def test_verify_decision_fails_closed_without_calling_specialist() -> None:
+def test_verify_decision_falls_back_without_enabled_specialist() -> None:
     specialist = RecordingSpecialist()
     sink = RecordingSink()
     pipeline = _pipeline(
@@ -532,14 +625,14 @@ def test_verify_decision_fails_closed_without_calling_specialist() -> None:
         specialist_registry=specialist,
     )
 
-    with pytest.raises(PipelineContractError, match="only ACCEPT"):
-        pipeline.run(_sample(), _frames(), run_id="run")
+    result = pipeline.run(_sample(), _frames(), run_id="run")
 
     assert specialist.call_count == 0
-    assert sink.attempt_count == 0
-    assert pipeline.prior_finalized_prediction is None
-    assert pipeline.components.workflow_store.committed_frames == []
-    assert pipeline.components.event_memory.committed_frames == []
+    assert result.prediction.verification_status == "FALLBACK_KEEP"
+    assert sink.attempt_count == 1
+    assert pipeline.prior_finalized_prediction is result.prediction
+    assert pipeline.components.workflow_store.committed_frames == [12]
+    assert pipeline.components.event_memory.committed_frames == [12]
 
 
 @pytest.mark.parametrize("alteration", ["record_type", "event_type"])
@@ -587,3 +680,36 @@ def test_finalizer_output_identity_is_validated_before_persistence(
     assert pipeline.prior_finalized_prediction is None
     assert pipeline.components.workflow_store.committed_frames == []
     assert pipeline.components.event_memory.committed_frames == []
+
+
+def test_finalizer_record_and_event_reliability_state_must_match() -> None:
+    sink = RecordingSink()
+    pipeline = _pipeline(
+        result_sink=sink,
+        finalizer=AlteringFinalizer("event_state"),
+    )
+
+    with pytest.raises(PipelineContractError, match="reliability state"):
+        pipeline.run(_sample(), _frames(), run_id="run")
+
+    assert sink.attempt_count == 0
+
+
+@pytest.mark.parametrize(
+    ("final_status", "memory_action"),
+    _INVALID_STATE_ACTION_PAIRS,
+)
+def test_pipeline_rejects_matching_but_incoherent_finalizer_state_action(
+    final_status: str,
+    memory_action: str,
+) -> None:
+    sink = RecordingSink()
+    pipeline = _pipeline(
+        result_sink=sink,
+        finalizer=InconsistentStateFinalizer(final_status, memory_action),
+    )
+
+    with pytest.raises(PipelineContractError, match="reliability state"):
+        pipeline.run(_sample(), _frames(), run_id="run")
+
+    assert sink.attempt_count == 0

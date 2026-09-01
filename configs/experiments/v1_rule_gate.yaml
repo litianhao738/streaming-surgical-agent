@@ -4,4 +4,8 @@ gate:
   policy: v1_rule
   statistical_signals_only: true
 runtime:
+  entrypoint: scripts/infer_v3.py
+  pipeline_profile: rule_gate
   allow_oracle_track_provider: false
+training_required: false
+status: RUNTIME_READY_NOT_RUN

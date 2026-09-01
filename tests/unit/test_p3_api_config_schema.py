@@ -59,8 +59,10 @@ def test_joint_upload_policy_and_causal_frame_limit_survive_typed_loading() -> N
 
     assert defaults.data_upload_authorized is False
     assert defaults.max_causal_frames == 3
+    assert defaults.max_api_images == 3
     assert configured.data_upload_authorized is True
     assert configured.max_causal_frames == 2
+    assert configured.max_api_images == 2
 
 
 def test_registry_routes_openrouter_with_secret() -> None:
@@ -109,6 +111,7 @@ def test_incomplete_disabled_config_fails_contract_validation() -> None:
         ("cache_required", 0),
         ("data_upload_authorized", "false"),
         ("max_causal_frames", True),
+        ("max_api_images", True),
     ),
 )
 def test_config_rejects_coerced_scalar_values(
@@ -120,12 +123,20 @@ def test_config_rejects_coerced_scalar_values(
     assert "false" not in str(error.value)
 
 
-@pytest.mark.parametrize("value", (-1, 0, 4, 1.5, "3"))
+@pytest.mark.parametrize("value", (-1, 0, 7, 1.5, "3"))
 def test_config_rejects_causal_frame_limits_outside_exact_integer_range(
     value: object,
 ) -> None:
     with pytest.raises(ApiContractError, match="max_causal_frames"):
         ApiConfig.from_mapping(_valid_api_mapping(max_causal_frames=value))
+
+
+@pytest.mark.parametrize("value", (-1, 0, 4, 1.5, "3"))
+def test_config_rejects_image_budget_outside_causal_window(value: object) -> None:
+    with pytest.raises(ApiContractError, match="max_api_images"):
+        ApiConfig.from_mapping(
+            _valid_api_mapping(max_causal_frames=3, max_api_images=value)
+        )
 
 
 @pytest.mark.parametrize(

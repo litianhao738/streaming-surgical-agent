@@ -1,0 +1,51 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"type": "string", "const": "joint_perception_reliability_compact_v2"},
+    "instrument": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "selected_ids": {"type": "array", "maxItems": 3, "items": {"type": "integer", "minimum": 0, "maximum": 6}},
+        "topk": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "object", "additionalProperties": false, "properties": {"id": {"type": "integer", "minimum": 0, "maximum": 6}, "confidence": {"type": "number", "minimum": 0, "maximum": 1}}, "required": ["id", "confidence"]}}
+      }, "required": ["selected_ids", "topk"]
+    },
+    "verb": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "selected_ids": {"type": "array", "maxItems": 4, "items": {"type": "integer", "minimum": 0, "maximum": 9}},
+        "topk": {"type": "array", "minItems": 4, "maxItems": 4, "items": {"type": "object", "additionalProperties": false, "properties": {"id": {"type": "integer", "minimum": 0, "maximum": 9}, "confidence": {"type": "number", "minimum": 0, "maximum": 1}}, "required": ["id", "confidence"]}}
+      }, "required": ["selected_ids", "topk"]
+    },
+    "target": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "selected_ids": {"type": "array", "maxItems": 5, "items": {"type": "integer", "minimum": 0, "maximum": 14}},
+        "topk": {"type": "array", "minItems": 5, "maxItems": 5, "items": {"type": "object", "additionalProperties": false, "properties": {"id": {"type": "integer", "minimum": 0, "maximum": 14}, "confidence": {"type": "number", "minimum": 0, "maximum": 1}}, "required": ["id", "confidence"]}}
+      }, "required": ["selected_ids", "topk"]
+    },
+    "ivt": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "selected_ids": {"type": "array", "maxItems": 8, "items": {"type": "integer", "minimum": 0, "maximum": 99}},
+        "topk": {"type": "array", "minItems": 8, "maxItems": 8, "items": {"type": "object", "additionalProperties": false, "properties": {"id": {"type": "integer", "minimum": 0, "maximum": 99}, "confidence": {"type": "number", "minimum": 0, "maximum": 1}}, "required": ["id", "confidence"]}}
+      }, "required": ["selected_ids", "topk"]
+    },
+    "phase": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "selected_id": {"type": "integer", "minimum": 0, "maximum": 6},
+        "topk": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "object", "additionalProperties": false, "properties": {"id": {"type": "integer", "minimum": 0, "maximum": 6}, "confidence": {"type": "number", "minimum": 0, "maximum": 1}}, "required": ["id", "confidence"]}}
+      }, "required": ["selected_id", "topk"]
+    },
+    "uncertainty": {
+      "type": "array", "maxItems": 5,
+      "items": {"type": "object", "additionalProperties": false, "properties": {
+        "path": {"type": "string", "enum": ["/instrument/selected_ids", "/verb/selected_ids", "/target/selected_ids", "/ivt/selected_ids", "/phase/selected_id"]},
+        "reason": {"type": "string", "enum": ["LOW_VISUAL_CONFIDENCE", "CLOSE_ALTERNATIVES", "OCCLUSION", "MOTION_BLUR", "TEMPORAL_AMBIGUITY", "OTHER_VISUAL_AMBIGUITY"]},
+        "alternative_ids": {"type": "array", "maxItems": 8, "items": {"type": "integer", "minimum": 0, "maximum": 99}}
+      }, "required": ["path", "reason", "alternative_ids"]}
+    }
+  },
+  "required": ["schema_version", "instrument", "verb", "target", "ivt", "phase", "uncertainty"]
+}

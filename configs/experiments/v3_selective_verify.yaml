@@ -1,0 +1,21 @@
+experiment: v3_selective_verify
+comparison_group: main_accuracy
+backbone_policy: shared
+perception_config: configs/perception/joint_openrouter_dataset.yaml
+initial_model_requested: openai/gpt-5.6-sol
+verification_model_requested: openai/gpt-5.6-sol
+workflow:
+  enabled: true
+memory:
+  enabled: true
+report:
+  mode: template_report
+  window_frames: 30
+runtime:
+  entrypoint: scripts/run_dataset_api_pipeline.py
+  pipeline_profile: selective_verify
+  context_profile: workflow
+  event_memory_enabled: true
+  phase_transition_graph: artifacts/training/phase_transition_graph.json
+  predicted_track_artifact: null
+  allow_oracle_track_provider: false

@@ -54,6 +54,19 @@ _TASK_SIGNAL_NAMES = {
     ),
 }
 _GLOBAL_SIGNAL_NAMES = frozenset({"ivt_internal_conflict"})
+GATE_FEATURE_NAMES = frozenset(
+    {
+        f"{task}.{signal}.{attribute}"
+        for task, signals in _TASK_SIGNAL_NAMES.items()
+        for signal in signals
+        for attribute in ("value", "available")
+    }
+    | {
+        f"global.{signal}.{attribute}"
+        for signal in _GLOBAL_SIGNAL_NAMES
+        for attribute in ("value", "available")
+    }
+)
 _SIGNAL_SOURCES = {
     "candidate_ambiguity": "joint_rank_margin",
     "ivt_internal_conflict": "ivt_component_map_v1",

@@ -196,19 +196,21 @@ def test_joint_configs_freeze_exact_single_pass_identity_and_policy() -> None:
         assert getattr(mock, field) == getattr(real, field)
 
     experiment = load_yaml(PROJECT_ROOT / "configs/experiments/api_single_pass.yaml")
-    assert experiment["pipeline"] == {
-        "context": "causal_frames_v1",
-        "perception": "joint_openrouter_gpt56sol",
-        "evidence_signals": "frame_evidence_v1",
-        "gate_policy": "never_verify",
-        "verifier": "disabled_traceable",
-        "coordinator": "keep_only",
-    }
-    assert experiment["perception"] == {
-        "max_causal_frames": 3,
-        "data_upload_authorized": False,
-        "prompt_version": "joint_perception_frame_v1",
-        "response_schema_version": "joint_perception_frame_v1",
+    assert experiment["comparison_group"] == "main_accuracy"
+    assert experiment["backbone_policy"] == "shared"
+    assert experiment["perception_config"] == (
+        "configs/perception/joint_openrouter_dataset.yaml"
+    )
+    assert experiment["initial_model_requested"] == "openai/gpt-5.6-sol"
+    assert experiment["verification_model_requested"] == "openai/gpt-5.6-sol"
+    assert experiment["runtime"] == {
+        "entrypoint": "scripts/run_dataset_api_pipeline.py",
+        "pipeline_profile": "single_pass",
+        "context_profile": "workflow",
+        "event_memory_enabled": True,
+        "phase_transition_graph": "artifacts/training/phase_transition_graph.json",
+        "predicted_track_artifact": None,
+        "allow_oracle_track_provider": False,
     }
 
 
@@ -261,7 +263,7 @@ def test_single_pass_mock_writes_one_safe_prediction_evidence_pair(
     assert manifest["metadata"] == {"paper_metric_eligible": False}
     assert _read_json(output_dir / artifact["artifact_file"]) == artifact
     assert artifact["cache_provenance"] == {
-        "schema_version": "api_cache_entry_v2",
+            "schema_version": "api_cache_entry_v3",
         "directory": "api_cache",
         "entry_file": f"api_cache/{artifact['request_hash']}.json",
         "request_hash": artifact["request_hash"],
@@ -321,7 +323,7 @@ def test_mock_single_pass_cache_is_safe_and_replays_with_a_fresh_client(
     ]
     envelope = _read_json(cache_files[0])
     assert set(envelope) == {"schema_version", "request", "response"}
-    assert envelope["schema_version"] == "api_cache_entry_v2"
+    assert envelope["schema_version"] == "api_cache_entry_v3"
     assert envelope["request"] == metadata.to_mapping()
     cached = cache.get(metadata)
     assert cached is not None
@@ -473,7 +475,11 @@ def test_actual_openrouter_transport_sends_exact_joint_request_body(
     assert sent["reasoning"] == {"effort": "low"}
     assert "temperature" not in sent
     assert "top_p" not in sent
-    assert sent["provider"] == {"require_parameters": True}
+    assert sent["provider"] == {
+        "only": ["openai"],
+        "allow_fallbacks": False,
+        "require_parameters": True,
+    }
     assert sent["response_format"]["type"] == "json_schema"
     assert sent["response_format"]["json_schema"]["strict"] is True
     assert len(encoded_images) == 3

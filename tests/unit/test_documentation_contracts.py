@@ -113,3 +113,49 @@ def test_docs_freeze_sparse_specialist_routing_contract() -> None:
     assert "class DeterministicCoordinator(Protocol)" in implementation
     assert "test_specialist_router_selects_at_most_one" in implementation
     assert "SPECIALIST ROUTING CLAIM = NOT SUPPORTED" in implementation
+
+
+def test_autodl_docs_expose_tracker_training_and_four_context_ablations() -> None:
+    readme = (PROJECT_ROOT / "README.md").read_text(encoding="utf-8")
+    quickstart = (PROJECT_ROOT / "docs/AUTODL_QUICKSTART.md").read_text(
+        encoding="utf-8"
+    )
+    checklist = (PROJECT_ROOT / "docs/AUTODL_TRAINING_CHECKLIST.md").read_text(
+        encoding="utf-8"
+    )
+
+    for mode in ("smoke", "full", "oof"):
+        assert f"--mode {mode}" in quickstart
+    for profile in (
+        "no_workflow.yaml",
+        "track_only.yaml",
+        "workflow_only.yaml",
+        "no_event_memory.yaml",
+    ):
+        assert profile in quickstart
+    assert "train_tracker.py" in readme
+    assert "train_tracker.py" in checklist
+    assert "remains blocked" not in checklist
+
+
+def test_architecture_documents_reliability_v2_profiles_and_safe_commands() -> None:
+    implementation = IMPLEMENTATION_SPEC.read_text(encoding="utf-8")
+
+    for term in (
+        "joint_perception_reliability_compact_v2",
+        "Candidate → Reliability Gate → Targeted Verification",
+        "Accepted / Verified / Pending / Rejected",
+        "backbone_policy=shared",
+        "main_profile_backbone_match=true",
+        "cascade_efficiency",
+        "efficiency-only",
+        "--pipeline-profile selective_verify",
+        "--pipeline-profile always_verify",
+        "--pipeline-profile cascade_verify",
+        "--report-mode template_report",
+        "--report-window-frames 30",
+        "--max-frames 1",
+        "--verification-config configs/perception/joint_openrouter_dataset.yaml",
+    ):
+        assert term in implementation
+    assert "--api-key-file <local-secret-file>" in implementation

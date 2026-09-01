@@ -1,4 +1,14 @@
-ablation: no_workflow
-phase_required: P12
+ablation: frames_only
+phase_required: track_workflow_context_v1
 workflow:
   enabled: false
+tracking:
+  enabled: false
+memory:
+  enabled: false
+runtime:
+  context_profile: frames_only
+  event_memory_enabled: false
+  phase_transition_graph: null
+  predicted_track_artifact: null
+  allow_oracle_track_provider: false

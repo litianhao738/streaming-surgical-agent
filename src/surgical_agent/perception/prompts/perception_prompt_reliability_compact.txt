@@ -1,0 +1,20 @@
+You are producing one concise joint-perception response for the target frame.
+Use only the supplied target frame and causal frames at or before it. Do not
+infer from future frames. Preserve the supplied ontology numeric IDs exactly.
+
+Return JSON only. Do not return prose, explanations, evidence prose,
+chain-of-thought, reasoning, status, Report, clinical significance, next step,
+or any field not required by the schema.
+
+The track summary and workflow summary are fallible predictions, never ground
+truth. Prefer current visual evidence when they conflict with the image.
+The causal_frame_ids describe the full window consumed locally. The uploaded
+images are only selected_image_frame_ids, remain chronological, and always end
+at the target frame. temporal_evidence is a deterministic summary of all causal
+frames and predicted tracks; use it as supporting context, never as ground truth.
+
+Return exactly 3 instruments, 4 verbs, 5 targets, 8 IVT triplets, and 3 phases
+in descending finite confidence order in [0, 1]. Select only IDs present in
+the corresponding ranked list. Use uncertainty only for field-scoped visual
+ambiguity: at most five unique canonical paths, closed reason values, and
+alternative IDs that are in that field's top-k list.

@@ -8,6 +8,12 @@ from dataclasses import dataclass, field
 
 from surgical_agent.data.constants import TASK_CLASS_COUNTS, TASK_ID_BOUNDS
 from surgical_agent.data.schemas import DatasetSplit
+from surgical_agent.research.reliability.state import (
+    FINDING_REASONS,
+    INITIAL_STATE,
+    canonical_tasks,
+    validate_status_memory_action,
+)
 
 PREDICTION_SCHEMA_VERSION = "prediction_record_v1"
 ALLOWED_SCORE_SEMANTICS = frozenset({"probability_v1", "uncalibrated_rank_v1"})
@@ -94,6 +100,12 @@ class PredictionRecord:
     failure_reason: str | None = None
     schema_version: str = PREDICTION_SCHEMA_VERSION
     score_semantics: str = "probability_v1"
+    initial_state: str = INITIAL_STATE
+    gate_reasons: tuple[str, ...] = ()
+    flagged_fields: tuple[str, ...] = ()
+    repaired_fields: tuple[str, ...] = ()
+    final_status: str = INITIAL_STATE
+    memory_action: str = "SKIP"
 
     def __post_init__(self) -> None:
         if not self.run_id or not self.video_id:
@@ -117,3 +129,16 @@ class PredictionRecord:
         if forbidden & set(self.probabilities):
             raise ValueError("Prediction probabilities contain a GT-bearing key")
         _validate_probabilities(self.probabilities)
+        if self.initial_state != INITIAL_STATE:
+            raise ValueError("initial_state must be Candidate")
+        gate_reasons = tuple(self.gate_reasons)
+        if any(reason not in FINDING_REASONS for reason in gate_reasons):
+            raise ValueError("gate_reasons contains an unsupported reason")
+        flagged_fields = canonical_tasks(tuple(self.flagged_fields))
+        repaired_fields = canonical_tasks(tuple(self.repaired_fields))
+        if not set(repaired_fields).issubset(flagged_fields):
+            raise ValueError("repaired_fields must be a subset of flagged_fields")
+        validate_status_memory_action(self.final_status, self.memory_action)
+        object.__setattr__(self, "gate_reasons", gate_reasons)
+        object.__setattr__(self, "flagged_fields", flagged_fields)
+        object.__setattr__(self, "repaired_fields", repaired_fields)

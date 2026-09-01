@@ -1,7 +1,16 @@
 ablation: no_event_memory
-phase_required: P12
+phase_required: track_workflow_context_v1
 workflow:
   enabled: true
+tracking:
+  enabled: true
+  provider: predicted_artifact
 memory:
   enabled: false
-status: PLANNED_NOT_RUN
+runtime:
+  context_profile: track_workflow
+  event_memory_enabled: false
+  phase_transition_graph: artifacts/training/phase_transition_graph.json
+  predicted_track_artifact: artifacts/training/tracker/predicted_tracks.json
+  allow_oracle_track_provider: false
+status: PREDICTED_TRACK_ARTIFACT_REQUIRED

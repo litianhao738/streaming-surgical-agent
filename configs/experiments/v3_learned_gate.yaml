@@ -7,5 +7,7 @@ gate:
   threshold_source_split: validation
   allow_test_refresh: false
 runtime:
+  entrypoint: scripts/infer_v3.py
+  pipeline_profile: learned_gate
   allow_oracle_track_provider: false
-status: PLANNED_NOT_RUN
+status: TRAINING_ARTIFACT_REQUIRED

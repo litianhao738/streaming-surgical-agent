@@ -1,0 +1,19 @@
+enabled: true
+mode: real
+provider: openrouter
+endpoint_identifier: https://openrouter.ai/api/v1/chat/completions
+requested_model_identifier: openai/gpt-5.6-sol
+prompt_version: joint_perception_reliability_compact_v2
+response_schema_version: joint_perception_reliability_compact_v2
+generation_parameters:
+  max_output_tokens: 1536
+  reasoning:
+    effort: none
+provider_options:
+  timeout_seconds: 120.0
+  routing_profile: latency_fallback
+synthetic_input_required: false
+cache_required: true
+data_upload_authorized: true
+max_causal_frames: 6
+max_api_images: 3

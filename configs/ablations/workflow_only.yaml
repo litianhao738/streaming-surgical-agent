@@ -1,7 +1,15 @@
 ablation: workflow_only
-phase_required: P12
+phase_required: track_workflow_context_v1
 workflow:
   enabled: true
+tracking:
+  enabled: false
 memory:
   enabled: false
-status: PLANNED_NOT_RUN
+runtime:
+  context_profile: workflow
+  event_memory_enabled: false
+  phase_transition_graph: artifacts/training/phase_transition_graph.json
+  predicted_track_artifact: null
+  allow_oracle_track_provider: false
+status: RUNTIME_READY

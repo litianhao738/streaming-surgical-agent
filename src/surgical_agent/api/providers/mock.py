@@ -8,12 +8,21 @@ from collections.abc import Mapping
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from surgical_agent.api.contracts import ApiRequest, ProviderResponse
+from surgical_agent.api.contracts import (
+    ApiRequest,
+    CompletionTokenDetails,
+    ProviderResponse,
+)
 from surgical_agent.api.errors import ApiContractError, ApiTransportError
-from surgical_agent.api.schema import P3_SMOKE_SCHEMA_VERSION
+from surgical_agent.api.schema import (
+    P3_SMOKE_SCHEMA_VERSION,
+    TARGETED_VERIFICATION_SCHEMA_VERSION,
+)
 from surgical_agent.perception.schema import (
+    COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
     JOINT_PERCEPTION_SCHEMA_VERSION,
-    TASK_LAYOUT,
+    RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
+    task_layout_for_schema_version,
 )
 
 if TYPE_CHECKING:
@@ -115,8 +124,14 @@ class MockProviderTransport:
                 "image_observed": bool(request.images),
                 "structured": True,
             }
-        elif request.response_schema_version == JOINT_PERCEPTION_SCHEMA_VERSION:
+        elif request.response_schema_version in {
+            JOINT_PERCEPTION_SCHEMA_VERSION,
+            COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
+            RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
+        }:
             payload = _joint_perception_payload(request)
+        elif request.response_schema_version == TARGETED_VERIFICATION_SCHEMA_VERSION:
+            payload = _targeted_verification_payload(request)
         else:
             raise ApiContractError("mock transport does not support response schema")
         return ProviderResponse(
@@ -126,6 +141,10 @@ class MockProviderTransport:
             input_tokens=12,
             output_tokens=7,
             total_tokens=19,
+            completion_tokens_details=CompletionTokenDetails(reasoning_tokens=0),
+            visible_output_tokens=7,
+            time_to_first_token_ms=0.0,
+            total_latency_ms=0.0,
             image_count=len(request.images),
             provider_request_id=f"mock-request-{self.provider_call_count}",
             timestamp=datetime.now(UTC).isoformat(),
@@ -153,10 +172,17 @@ def _joint_perception_payload(request: ApiRequest) -> dict[str, object]:
                 target_frame_id = candidate
         except (TypeError, ValueError):
             pass
-    payload: dict[str, object] = {"schema_version": JOINT_PERCEPTION_SCHEMA_VERSION}
-    for task, count in TASK_LAYOUT:
+    schema_version = request.response_schema_version
+    task_layout = task_layout_for_schema_version(schema_version)
+    confidence_key = (
+        "confidence"
+        if schema_version == RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION
+        else "score"
+    )
+    payload: dict[str, object] = {"schema_version": schema_version}
+    for task, count in task_layout:
         topk = [
-            {"id": index, "score": 1.0 - index / (count + 1)}
+            {"id": index, confidence_key: 1.0 - index / (count + 1)}
             for index in range(count)
         ]
         payload[task] = (
@@ -164,10 +190,56 @@ def _joint_perception_payload(request: ApiRequest) -> dict[str, object]:
             if task == "phase"
             else {"selected_ids": [0], "topk": topk}
         )
-    payload["evidence_refs"] = [
-        {"frame_id": target_frame_id, "code": "CURRENT_VISUAL_SUPPORT"}
-    ]
-    payload["self_reported_confidence"] = {
-        task: 0.8 for task, _count in TASK_LAYOUT
-    }
+    if schema_version == RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION:
+        payload["uncertainty"] = []
+    else:
+        payload["evidence_refs"] = [
+            {"frame_id": target_frame_id, "code": "CURRENT_VISUAL_SUPPORT"}
+        ]
+        payload["self_reported_confidence"] = {
+            task: 0.8 for task, _count in task_layout
+        }
     return payload
+
+
+def _targeted_verification_payload(request: ApiRequest) -> dict[str, object]:
+    """Echo the requested bounded hypotheses as deterministic Verified fields."""
+
+    input_text = request.payload.get("input_text")
+    try:
+        decoded = json.loads(input_text) if isinstance(input_text, str) else None
+    except (TypeError, ValueError):
+        decoded = None
+    if not isinstance(decoded, Mapping):
+        raise ApiContractError("targeted mock request input must be an object")
+    flagged_fields = decoded.get("flagged_fields")
+    current_fields = decoded.get("current_fields")
+    candidate_fields = decoded.get("candidate_fields")
+    if (
+        not isinstance(flagged_fields, list)
+        or not isinstance(current_fields, list)
+        or not isinstance(candidate_fields, Mapping)
+    ):
+        raise ApiContractError("targeted mock request fields are malformed")
+    current_by_path = {
+        field.get("path"): field.get("selected_ids")
+        for field in current_fields
+        if isinstance(field, Mapping)
+    }
+    try:
+        fields = [
+            {
+                "path": path,
+                "selected_ids": current_by_path[path],
+                "topk": candidate_fields[path],
+                "status": "Verified",
+                "uncertainty": None,
+            }
+            for path in flagged_fields
+        ]
+    except (KeyError, TypeError):
+        raise ApiContractError("targeted mock request paths are inconsistent") from None
+    return {
+        "schema_version": TARGETED_VERIFICATION_SCHEMA_VERSION,
+        "fields": fields,
+    }

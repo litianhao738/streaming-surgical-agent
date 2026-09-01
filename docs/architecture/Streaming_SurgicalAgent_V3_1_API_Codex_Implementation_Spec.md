@@ -2465,11 +2465,12 @@ maximum number of agents
 - The runner executes the canonical pipeline exactly once and probes the same
   rebuilt no-prior request through the same cached client. Mock evidence shows
   one origin provider call and one zero-call/zero-current-cost cache replay.
-- Its OpenRouter body retains strict structured output and
-  `provider.require_parameters: true`, emits `max_tokens: 4096` with
-  `reasoning: {effort: low}`, and omits unsupported `temperature`, `top_p`,
-  and provider-facing `uniqueItems`. Duplicate selected IDs remain rejected
-  by local semantic validation.
+- Its original full-ranking OpenRouter smoke body retains strict structured
+  output and `provider.require_parameters: true`. The dataset rollout now uses
+  the separately versioned `joint_perception_compact_v1` response schema,
+  emits `max_tokens: 4096`, omits the optional `reasoning` parameter, and omits
+  unsupported `temperature`, `top_p`, and provider-facing `uniqueItems`.
+  Duplicate selected IDs remain rejected by local semantic validation.
 - A real origin response cannot reach response parsing or paired persistence
   unless input/output/total token counts are exact non-null integers and
   provider cost is finite, non-null, and non-negative.
@@ -2505,6 +2506,108 @@ maximum number of agents
   detection, predicted tracking, Gate learning, Specialist verification,
   deterministic repair coordination, and EventMemory remain outside this
   implementation slice.
+
+## 2026-08-30 compact dataset-response fallback
+
+- The original `joint_perception_frame_v1` contract remains available for
+  compatibility. Dataset API configs use the distinct
+  `joint_perception_compact_v1` wire contract with exact ranked-list sizes
+  Instrument=3, Verb=4, Target=5, IVT=8, and Phase=3, plus at most six bounded
+  evidence references.
+- I/V/T/IVT remain frame-level multi-label and Phase remains single-label. The
+  parser writes returned class IDs into full 7/10/15/100/7 vectors and fills
+  omitted classes with zero; these are uncalibrated top-k ranking scores, not
+  provider-produced full logits.
+- A fresh authorized one-frame VID30 dataset request completed without retry or
+  cache reuse in 25.9 seconds. The requested and returned model were both
+  `openai/gpt-5.6-sol`; usage was 1,167 input, 1,833 output, and 3,000 total
+  tokens, with provider-reported cost 0.021246. The rollout reached
+  `REAL_RESPONSE_RECEIVED` instead of the prior `completion_length` failure.
+
+## 2026-08-30 reliability-aware selective verification rollout
+
+### Versioned wire and state contracts
+
+New dataset rollouts use `joint_perception_reliability_compact_v2` for both
+mock and OpenRouter configurations. The initial response contains compact
+ranked candidates, per-label confidence, and bounded field uncertainty. It does
+not contain final status, report prose, chain of thought, clinical significance,
+or next-step advice. Compact v1 remains readable for historical artifacts.
+
+The deterministic runtime flow is:
+
+`Candidate → Reliability Gate → Targeted Verification → Accepted / Verified / Pending / Rejected`
+
+The Reliability Gate checks ontology validity, IVT closure and compatibility,
+phase compatibility when a training-derived artifact is available, temporal
+jumps, low confidence, and declared field uncertainty. Only flagged task paths
+enter Targeted Verification, and the coordinator admits only in-pool changes to
+those paths. `rule_gate` remains the historical evidence-threshold baseline;
+the new Reliability Gate is exposed as `selective_verify`.
+
+Finalized state controls memory deterministically: Verified writes reliable
+memory; high-confidence Accepted may write reliable memory and otherwise writes
+short-term memory; Pending enters the pending buffer; Candidate and Rejected do
+not write. Workflow state accepts only Accepted or Verified events. Event
+reports are separate artifacts flushed on phase/event boundaries, fixed windows,
+and video end. `template_report` is local and adds no provider calls;
+`llm_report` requires an event-level generator injected through the Python API.
+
+### Fair profiles and telemetry
+
+Single-Pass, Always-Verify, and Selective-Verify are the main accuracy
+comparison. They freeze the same Sol `ApiConfig`, workflow context, event-memory
+switch, causal inputs, reporting mode, endpoint, provider, and credential path.
+Their artifacts declare `backbone_policy=shared`, identical initial and
+verification requested models, and `main_profile_backbone_match=true`.
+Provider-call reservations for N frames are N for Single-Pass and 2N for
+Always-Verify and Selective-Verify; the latter reserves a possible targeted call
+even when the Gate accepts locally.
+
+`cascade_verify` uses Luna for initial perception and Sol for verification on
+the same provider, endpoint, transport, and credential. It is labeled
+`cascade_efficiency` and `efficiency-only`; it is not part of the main accuracy
+comparison. Request hashes retain each exact requested model. The shared path
+still requires matching model identity; only the validated Luna-to-Sol cascade
+admits a cross-model verification result.
+
+Rollout artifacts retain compatibility keys and add prompt, completion,
+reasoning, and visible-output token totals; TTFT and total-latency aggregates
+that exclude cache replays; final-status and memory-action counts; report
+path/count/mode; and profile/backbone metadata.
+
+### Credential-free command templates
+
+Mock engineering smoke, one frame, Single-Pass:
+
+```powershell
+python scripts/run_dataset_api_pipeline.py --mode engineering --video-id VID30 --max-frames 1 --config configs/perception/joint_mock_dataset.yaml --pipeline-profile single_pass --context-profile workflow --event-memory enabled --report-mode template_report --report-window-frames 30 --no-progress
+```
+
+Mock engineering smoke, one frame, Always-Verify (exactly two provider calls):
+
+```powershell
+python scripts/run_dataset_api_pipeline.py --mode engineering --video-id VID30 --max-frames 1 --config configs/perception/joint_mock_dataset.yaml --pipeline-profile always_verify --context-profile workflow --event-memory enabled --report-mode template_report --report-window-frames 30 --no-progress
+```
+
+Mock engineering smoke, one frame, Selective-Verify:
+
+```powershell
+python scripts/run_dataset_api_pipeline.py --mode engineering --video-id VID30 --max-frames 1 --config configs/perception/joint_mock_dataset.yaml --pipeline-profile selective_verify --context-profile workflow --event-memory enabled --report-mode template_report --report-window-frames 30 --no-progress
+```
+
+Authorized real Sol run. `<local-secret-file>` is a local path and must never be
+stored in repository configs, artifacts, logs, or documentation:
+
+```powershell
+python scripts/run_dataset_api_pipeline.py --mode engineering --video-id VID30 --max-frames 1 --config configs/perception/joint_openrouter_dataset.yaml --pipeline-profile selective_verify --context-profile workflow --event-memory enabled --report-mode template_report --report-window-frames 30 --api-key-file <local-secret-file> --authorize-data-upload --no-progress
+```
+
+Authorized cascade efficiency run:
+
+```powershell
+python scripts/run_dataset_api_pipeline.py --mode engineering --video-id VID30 --max-frames 1 --config configs/perception/joint_openrouter_luna_dataset.yaml --verification-config configs/perception/joint_openrouter_dataset.yaml --pipeline-profile cascade_verify --context-profile workflow --event-memory enabled --report-mode template_report --report-window-frames 30 --api-key-file <local-secret-file> --authorize-data-upload --no-progress
+```
 
 优先：
 

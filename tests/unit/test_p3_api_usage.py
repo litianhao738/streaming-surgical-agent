@@ -35,7 +35,7 @@ def _valid_request_mapping() -> dict[str, Any]:
 
 def _valid_usage_mapping() -> dict[str, Any]:
     return {
-        "schema_version": "api_usage_record_v2",
+        "schema_version": "api_usage_record_v3",
         "request": _valid_request_mapping(),
         "request_hash": "b" * 64,
         "provider": "mock",
@@ -53,7 +53,13 @@ def _valid_usage_mapping() -> dict[str, Any]:
         "input_tokens": 12,
         "output_tokens": 7,
         "total_tokens": 19,
+        "prompt_tokens": 12,
+        "completion_tokens": 7,
+        "completion_tokens_details": {"reasoning_tokens": 0},
+        "visible_output_tokens": 7,
+        "time_to_first_token_ms": 2.5,
         "latency_ms": 10.5,
+        "total_latency_ms": 10.5,
         "provider_cost": 0.25,
         "origin_provider_cost": 0.25,
         "timestamp": "2026-08-26T00:00:00+00:00",
@@ -207,6 +213,11 @@ def test_usage_record_accepts_a_strict_failure_category() -> None:
             "input_tokens": None,
             "output_tokens": None,
             "total_tokens": None,
+            "prompt_tokens": None,
+            "completion_tokens": None,
+            "completion_tokens_details": {"reasoning_tokens": None},
+            "visible_output_tokens": None,
+            "time_to_first_token_ms": None,
             "provider_cost": None,
             "origin_provider_cost": None,
             "error": {
@@ -317,6 +328,8 @@ def test_usage_summary_counts_only_current_provider_usage(tmp_path: Path) -> Non
             "provider_call_count": 0,
             "retry_count": 0,
             "latency_ms": 0.0,
+            "total_latency_ms": 0.0,
+            "time_to_first_token_ms": None,
             "provider_cost": 0.0,
             "origin_provider_cost": 0.25,
             "timestamp": "2026-08-26T00:01:00+00:00",
@@ -328,7 +341,7 @@ def test_usage_summary_counts_only_current_provider_usage(tmp_path: Path) -> Non
     )
 
     assert ledger.summarize() == {
-        "schema_version": "api_usage_summary_v2",
+        "schema_version": "api_usage_summary_v3",
         "logical_calls": 2,
         "provider_calls": 1,
         "retries": 0,
@@ -338,6 +351,10 @@ def test_usage_summary_counts_only_current_provider_usage(tmp_path: Path) -> Non
         "input_tokens": 12,
         "output_tokens": 7,
         "total_tokens": 19,
+        "prompt_tokens": 12,
+        "completion_tokens": 7,
+        "reasoning_tokens": 0,
+        "visible_output_tokens": 7,
         "provider_cost": 0.25,
     }
 

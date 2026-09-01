@@ -154,8 +154,14 @@ def test_provenance_and_response_contracts_reject_missing_required_counts() -> N
         "input_tokens": None,
         "output_tokens": None,
         "total_tokens": None,
+        "prompt_tokens": None,
+        "completion_tokens": None,
+        "completion_tokens_details": {"reasoning_tokens": None},
+        "visible_output_tokens": None,
+        "time_to_first_token_ms": None,
         "image_count": None,
         "latency_ms": None,
+        "total_latency_ms": None,
         "retry_count": None,
         "provider_call_count": 1,
         "timestamp": None,
@@ -243,6 +249,18 @@ def test_reasoning_round_trip_and_hash_bind_reviewed_effort() -> None:
 
     assert restored.generation_parameters == {"reasoning": {"effort": "high"}}
     assert request_sha256(high) != request_sha256(low)
+
+
+@pytest.mark.parametrize(
+    "effort",
+    ("max", "xhigh", "high", "medium", "low", "minimal", "none"),
+)
+def test_request_accepts_current_openrouter_reasoning_effort_set(
+    effort: str,
+) -> None:
+    request = _request(generation_parameters={"reasoning": {"effort": effort}})
+
+    assert request.generation_parameters == {"reasoning": {"effort": effort}}
 
 
 def test_canonical_metadata_revalidates_generation_parameter_allowlist() -> None:

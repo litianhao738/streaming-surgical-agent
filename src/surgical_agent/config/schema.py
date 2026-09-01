@@ -80,6 +80,7 @@ class ApiConfig:
     cache_required: bool = True
     data_upload_authorized: bool = False
     max_causal_frames: int = 3
+    max_api_images: int = 3
 
     @classmethod
     def from_mapping(cls, raw: Mapping[str, object]) -> ApiConfig:
@@ -109,6 +110,13 @@ class ApiConfig:
         cache_required = raw.get("cache_required", True)
         data_upload_authorized = raw.get("data_upload_authorized", False)
         max_causal_frames = raw.get("max_causal_frames", 3)
+        max_api_images = raw.get(
+            "max_api_images",
+            min(max_causal_frames, 3)
+            if isinstance(max_causal_frames, int)
+            and not isinstance(max_causal_frames, bool)
+            else 3,
+        )
         if type(synthetic_input_required) is not bool:
             raise ApiContractError("API synthetic_input_required must be boolean")
         if type(cache_required) is not bool:
@@ -118,9 +126,17 @@ class ApiConfig:
         if (
             not isinstance(max_causal_frames, int)
             or isinstance(max_causal_frames, bool)
-            or not 1 <= max_causal_frames <= 3
+            or not 1 <= max_causal_frames <= 6
         ):
-            raise ApiContractError("API max_causal_frames must be an integer in 1..3")
+            raise ApiContractError("API max_causal_frames must be an integer in 1..6")
+        if (
+            not isinstance(max_api_images, int)
+            or isinstance(max_api_images, bool)
+            or not 1 <= max_api_images <= max_causal_frames
+        ):
+            raise ApiContractError(
+                "API max_api_images must be an integer in 1..max_causal_frames"
+            )
         config = cls(
             enabled=raw["enabled"],
             mode=text_values["mode"],
@@ -141,6 +157,7 @@ class ApiConfig:
             cache_required=cache_required,
             data_upload_authorized=data_upload_authorized,
             max_causal_frames=max_causal_frames,
+            max_api_images=max_api_images,
         )
         config.validate()
         return config
@@ -157,9 +174,17 @@ class ApiConfig:
         if (
             not isinstance(self.max_causal_frames, int)
             or isinstance(self.max_causal_frames, bool)
-            or not 1 <= self.max_causal_frames <= 3
+            or not 1 <= self.max_causal_frames <= 6
         ):
-            raise ApiContractError("API max_causal_frames must be an integer in 1..3")
+            raise ApiContractError("API max_causal_frames must be an integer in 1..6")
+        if (
+            not isinstance(self.max_api_images, int)
+            or isinstance(self.max_api_images, bool)
+            or not 1 <= self.max_api_images <= self.max_causal_frames
+        ):
+            raise ApiContractError(
+                "API max_api_images must be an integer in 1..max_causal_frames"
+            )
         for name in (
             "mode",
             "provider",
@@ -188,6 +213,11 @@ class ApiConfig:
                 "https://openrouter.ai/api/v1/chat/completions"
             ):
                 raise ApiContractError("OpenRouter endpoint is not approved")
+        if self.provider == "openai":
+            if self.mode != "real":
+                raise ApiContractError("OpenAI requires real mode")
+            if self.endpoint_identifier != "https://api.openai.com/v1/responses":
+                raise ApiContractError("OpenAI Responses endpoint is not approved")
         if self.provider == "mock" and self.mode != "mock":
             raise ApiContractError("mock provider requires mock mode")
 

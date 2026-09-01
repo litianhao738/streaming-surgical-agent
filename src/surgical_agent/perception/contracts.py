@@ -25,6 +25,23 @@ EVIDENCE_REF_CODES = frozenset(
         "AMBIGUOUS_VISUAL_SUPPORT",
     }
 )
+FIELD_UNCERTAINTY_PATHS = {
+    "/instrument/selected_ids": "instrument",
+    "/verb/selected_ids": "verb",
+    "/target/selected_ids": "target",
+    "/ivt/selected_ids": "ivt",
+    "/phase/selected_id": "phase",
+}
+FIELD_UNCERTAINTY_REASONS = frozenset(
+    {
+        "LOW_VISUAL_CONFIDENCE",
+        "CLOSE_ALTERNATIVES",
+        "OCCLUSION",
+        "MOTION_BLUR",
+        "TEMPORAL_AMBIGUITY",
+        "OTHER_VISUAL_AMBIGUITY",
+    }
+)
 
 
 def _require_nonempty_string(value: object, *, name: str) -> None:
@@ -72,6 +89,43 @@ class RankedCandidate:
         _require_nonnegative_int(self.class_id, name="class_id")
         _require_score(self.score)
 
+    @property
+    def confidence(self) -> float:
+        """Read the v2 wire-name without renaming the established score field."""
+
+        return self.score
+
+
+@dataclass(frozen=True)
+class FieldUncertainty:
+    """One bounded, field-scoped visual ambiguity declared by the provider."""
+
+    path: str
+    reason: str
+    alternative_ids: tuple[int, ...]
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.path, str) or self.path not in FIELD_UNCERTAINTY_PATHS:
+            raise ValueError("field uncertainty path is unsupported")
+        if (
+            not isinstance(self.reason, str)
+            or self.reason not in FIELD_UNCERTAINTY_REASONS
+        ):
+            raise ValueError("field uncertainty reason is outside the closed vocabulary")
+        alternatives = tuple(self.alternative_ids)
+        task = FIELD_UNCERTAINTY_PATHS[self.path]
+        lower, upper = TASK_ID_BOUNDS[task]
+        if any(
+            not isinstance(candidate, int)
+            or isinstance(candidate, bool)
+            or not lower <= candidate <= upper
+            for candidate in alternatives
+        ):
+            raise ValueError("field uncertainty alternative ID is outside its ontology")
+        if len(set(alternatives)) != len(alternatives):
+            raise ValueError("field uncertainty alternative IDs must be unique")
+        object.__setattr__(self, "alternative_ids", alternatives)
+
 
 @dataclass(frozen=True)
 class EvidenceReference:
@@ -95,6 +149,7 @@ class PerceptionEvidence:
     self_reported_confidence: Mapping[str, float | None]
     evidence_refs: tuple[EvidenceReference, ...]
     source_max_frame_id: int
+    field_uncertainties: tuple[FieldUncertainty, ...] = ()
 
     def __post_init__(self) -> None:
         _require_nonempty_string(self.source, name="evidence source")
@@ -149,6 +204,23 @@ class PerceptionEvidence:
         if any(ref.frame_id > self.source_max_frame_id for ref in refs):
             raise ValueError("evidence references must use causal frame IDs")
         object.__setattr__(self, "evidence_refs", refs)
+
+        uncertainties = tuple(self.field_uncertainties)
+        if len(uncertainties) > 5:
+            raise ValueError("field_uncertainties must contain at most five findings")
+        if any(not isinstance(item, FieldUncertainty) for item in uncertainties):
+            raise TypeError("field_uncertainties must contain FieldUncertainty values")
+        paths = tuple(item.path for item in uncertainties)
+        if len(set(paths)) != len(paths):
+            raise ValueError("field uncertainty paths must be unique")
+        for item in uncertainties:
+            task = FIELD_UNCERTAINTY_PATHS[item.path]
+            topk_ids = {candidate.class_id for candidate in normalized_candidates[task]}
+            if not set(item.alternative_ids) <= topk_ids:
+                raise ValueError(
+                    "field uncertainty alternatives must occur in the task ranking"
+                )
+        object.__setattr__(self, "field_uncertainties", uncertainties)
 
     @classmethod
     def local_unavailable(cls, frame_id: int) -> PerceptionEvidence:

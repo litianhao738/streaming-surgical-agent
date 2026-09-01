@@ -22,4 +22,7 @@ verification:
   bounded_candidates: true
 runtime:
   allow_oracle_track_provider: false
-status: PLANNED_NOT_RUN
+status: TRAINING_ARTIFACTS_REQUIRED
+blocking_artifacts:
+  - predicted_tracker_checkpoint
+  - final_g1_gate_artifact

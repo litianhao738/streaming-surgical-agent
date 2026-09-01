@@ -16,7 +16,7 @@ from surgical_agent.api.contracts import (
 )
 from surgical_agent.api.errors import ApiCacheError
 
-CACHE_SCHEMA_VERSION = "api_cache_entry_v2"
+CACHE_SCHEMA_VERSION = "api_cache_entry_v3"
 
 
 def _file_identity(value: os.stat_result) -> tuple[int, int]:
@@ -184,7 +184,7 @@ class FileApiCache:
             response.cache_hit
             or response.provider_call_count <= 0
             or response.retry_count != response.provider_call_count - 1
-            or response.latency_ms is None
+            or response.total_latency_ms is None
             or response.provider_cost != response.origin_provider_cost
         ):
             raise ApiCacheError("Cache can persist only a coherent origin response")

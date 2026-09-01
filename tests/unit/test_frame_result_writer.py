@@ -21,6 +21,23 @@ from surgical_agent.inference.schemas import PredictionRecord
 from surgical_agent.inference.writer import ArtifactWriteError
 from surgical_agent.research.signals.contracts import EvidenceProfile, EvidenceValue
 
+_INVALID_STATE_ACTION_PAIRS = (
+    ("Candidate", "WRITE_RELIABLE"),
+    ("Candidate", "WRITE_SHORT_TERM"),
+    ("Candidate", "BUFFER_PENDING"),
+    ("Rejected", "WRITE_RELIABLE"),
+    ("Rejected", "WRITE_SHORT_TERM"),
+    ("Rejected", "BUFFER_PENDING"),
+    ("Pending", "WRITE_RELIABLE"),
+    ("Pending", "WRITE_SHORT_TERM"),
+    ("Pending", "SKIP"),
+    ("Verified", "WRITE_SHORT_TERM"),
+    ("Verified", "BUFFER_PENDING"),
+    ("Verified", "SKIP"),
+    ("Accepted", "BUFFER_PENDING"),
+    ("Accepted", "SKIP"),
+)
+
 
 def _prediction(
     *,
@@ -120,6 +137,46 @@ def test_prediction_hash_includes_score_semantics() -> None:
     probability = replace(ranked, score_semantics="probability_v1")
 
     assert prediction_record_sha256(ranked) != prediction_record_sha256(probability)
+
+
+@pytest.mark.parametrize(
+    ("final_status", "memory_action"),
+    _INVALID_STATE_ACTION_PAIRS,
+)
+def test_prediction_record_rejects_incoherent_reliability_state_action(
+    final_status: str,
+    memory_action: str,
+) -> None:
+    with pytest.raises(ValueError, match="memory_action.*final_status"):
+        replace(
+            _prediction(),
+            final_status=final_status,
+            memory_action=memory_action,
+        )
+
+
+def test_writer_round_trips_reliability_state_fields(tmp_path: Path) -> None:
+    prediction = replace(
+        _prediction(),
+        initial_state="Candidate",
+        gate_reasons=("LOW_CONFIDENCE",),
+        flagged_fields=("verb",),
+        repaired_fields=("verb",),
+        final_status="Verified",
+        memory_action="WRITE_RELIABLE",
+    )
+    writer = FrameResultWriter(tmp_path, run_id="run")
+
+    writer.write(prediction, _evidence())
+
+    persisted = _json_lines(tmp_path / "predictions/VID02.jsonl")[0]
+    assert persisted["initial_state"] == "Candidate"
+    assert persisted["gate_reasons"] == ["LOW_CONFIDENCE"]
+    assert persisted["flagged_fields"] == ["verb"]
+    assert persisted["repaired_fields"] == ["verb"]
+    assert persisted["final_status"] == "Verified"
+    assert persisted["memory_action"] == "WRITE_RELIABLE"
+    assert writer.predictions[0] == prediction
 
 
 @pytest.mark.parametrize(

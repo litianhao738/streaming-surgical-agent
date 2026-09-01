@@ -14,6 +14,7 @@ from surgical_agent.api.contracts import (
 from surgical_agent.api.credentials import SecretValue
 from surgical_agent.api.errors import ApiContractError
 from surgical_agent.api.providers.mock import MockProviderTransport
+from surgical_agent.api.providers.openai_responses import OpenAIResponsesTransport
 from surgical_agent.api.providers.openrouter import OpenRouterTransport
 from surgical_agent.api.schema import validator_for
 from surgical_agent.config.schema import ApiConfig
@@ -107,6 +108,22 @@ def build_transport(
             ),
         )
 
+    if effective.provider == "openai":
+        if api_key is None:
+            raise ApiContractError("OpenAI provider requires a credential")
+        timeout = _require_timeout(
+            effective.provider_options.get("timeout_seconds", 120.0)
+        )
+        service_tier = effective.provider_options.get("service_tier")
+        return _require_transport_identity(
+            effective,
+            OpenAIResponsesTransport(
+                api_key=api_key,
+                endpoint_identifier=effective.endpoint_identifier,
+                timeout_seconds=timeout,
+                service_tier=service_tier,
+            ),
+        )
     raise ApiContractError(f"unknown provider: {effective.provider}")
 
 

@@ -90,8 +90,8 @@ class CausalApiMediaLoader:
     def load(self, sample: InferenceSample) -> LoadedApiWindow:
         if not isinstance(sample, InferenceSample):
             raise TypeError("Causal API media loading accepts only InferenceSample")
-        if len(sample.causal_frame_ids) > 3:
-            raise DatasetContractError("Causal API media windows may contain at most three frames")
+        if len(sample.causal_frame_ids) > 6:
+            raise DatasetContractError("Causal API media windows may contain at most six frames")
 
         if sample.source_split is DatasetSplit.TESTING:
             arrays = self._load_test_mp4(sample)

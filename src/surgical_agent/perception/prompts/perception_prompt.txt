@@ -3,6 +3,12 @@ Use only the supplied target frame and causal frames at or before it. Do not
 infer from future frames. Emit JSON only: no prose, explanations, reasoning,
 or additional fields. Preserve the supplied ontology numeric IDs exactly.
 
+The optional track summary contains predicted detector/association outputs only
+for causal frames at or before the target. The workflow summary contains only
+previously finalized predicted phases strictly before the target. Treat both as
+fallible supporting context, never as ground truth, and prefer visual evidence
+when supplied context conflicts with the current frame.
+
 For each task, populate its exact ranked-candidate list and select only IDs
 present in that task's list. Scores are finite ranking scores in [0, 1], must
 be descending, are not calibrated probabilities, and do not need to sum to

@@ -137,7 +137,9 @@ _GENERATION_PARAMETER_KEYS = frozenset(
         "top_p",
     }
 )
-_REASONING_EFFORTS = frozenset({"high", "low", "medium"})
+_REASONING_EFFORTS = frozenset(
+    {"max", "xhigh", "high", "medium", "low", "minimal", "none"}
+)
 
 
 def freeze_generation_parameters(value: object) -> Mapping[str, Any]:
@@ -409,6 +411,26 @@ class CanonicalRequestMetadata:
 
 
 @dataclass(frozen=True)
+class CompletionTokenDetails:
+    """The one allowlisted completion-token detail persisted for auditability."""
+
+    reasoning_tokens: int | None = None
+
+    def __post_init__(self) -> None:
+        _require_optional_count(self.reasoning_tokens, name="reasoning_tokens")
+
+    def to_mapping(self) -> dict[str, int | None]:
+        return {"reasoning_tokens": self.reasoning_tokens}
+
+    @classmethod
+    def from_mapping(cls, value: object) -> CompletionTokenDetails:
+        mapping = _require_mapping(value, name="completion_tokens_details")
+        if set(mapping) != {"reasoning_tokens"}:
+            raise ValueError("completion_tokens_details has invalid fields")
+        return cls(reasoning_tokens=mapping["reasoning_tokens"])
+
+
+@dataclass(frozen=True)
 class ProviderResponse:
     """Allowlisted normalized transport response before persistence."""
 
@@ -418,6 +440,12 @@ class ProviderResponse:
     input_tokens: int | None = None
     output_tokens: int | None = None
     total_tokens: int | None = None
+    completion_tokens_details: CompletionTokenDetails = field(
+        default_factory=CompletionTokenDetails
+    )
+    visible_output_tokens: int | None = None
+    time_to_first_token_ms: float | None = None
+    total_latency_ms: float | None = None
     image_count: int | None = None
     provider_request_id: str | None = None
     timestamp: str | None = None
@@ -444,6 +472,22 @@ class ProviderResponse:
         )
         for name in ("input_tokens", "output_tokens", "total_tokens", "image_count"):
             _require_optional_count(getattr(self, name), name=name)
+        if not isinstance(self.completion_tokens_details, CompletionTokenDetails):
+            raise TypeError("completion_tokens_details must be CompletionTokenDetails")
+        _require_optional_count(
+            self.visible_output_tokens, name="visible_output_tokens"
+        )
+        _require_optional_number(self.time_to_first_token_ms, name="time_to_first_token_ms")
+        _require_optional_number(self.total_latency_ms, name="total_latency_ms")
+        if self.completion_tokens_details.reasoning_tokens is not None:
+            if self.output_tokens is None:
+                raise ValueError("reasoning tokens require completion tokens")
+            visible = self.output_tokens - self.completion_tokens_details.reasoning_tokens
+            if visible < 0:
+                raise ValueError("reasoning tokens cannot exceed completion tokens")
+            if self.visible_output_tokens is not None and self.visible_output_tokens != visible:
+                raise ValueError("visible output tokens must match completion usage")
+            object.__setattr__(self, "visible_output_tokens", visible)
         _require_optional_number(self.provider_cost, name="provider_cost")
         parsed_payload = _require_mapping(self.parsed_payload, name="parsed_payload")
         safe_metadata = freeze_safe_metadata(self.safe_metadata)
@@ -453,6 +497,20 @@ class ProviderResponse:
             _freeze_json(parsed_payload, path="parsed_payload"),
         )
         object.__setattr__(self, "safe_metadata", safe_metadata)
+
+    @property
+    def prompt_tokens(self) -> int | None:
+        return self.input_tokens
+
+    @property
+    def completion_tokens(self) -> int | None:
+        return self.output_tokens
+
+    @property
+    def latency_ms(self) -> float | None:
+        """Compatibility alias for the provider-attempt total latency."""
+
+        return self.total_latency_ms
 
 
 @dataclass(frozen=True)
@@ -468,8 +526,14 @@ class ApiResponseRecord:
     input_tokens: int | None = None
     output_tokens: int | None = None
     total_tokens: int | None = None
+    completion_tokens_details: CompletionTokenDetails = field(
+        default_factory=CompletionTokenDetails
+    )
+    visible_output_tokens: int | None = None
+    time_to_first_token_ms: float | None = None
     image_count: int | None = None
     latency_ms: float | None = None
+    total_latency_ms: float | None = None
     retry_count: int = 0
     provider_call_count: int = 1
     timestamp: str | None = None
@@ -508,6 +572,21 @@ class ApiResponseRecord:
             "image_count",
         ):
             _require_optional_count(getattr(self, name), name=name)
+        if not isinstance(self.completion_tokens_details, CompletionTokenDetails):
+            raise TypeError("completion_tokens_details must be CompletionTokenDetails")
+        _require_optional_count(
+            self.visible_output_tokens, name="visible_output_tokens"
+        )
+        _require_optional_number(self.time_to_first_token_ms, name="time_to_first_token_ms")
+        if self.completion_tokens_details.reasoning_tokens is not None:
+            if self.output_tokens is None:
+                raise ValueError("reasoning tokens require completion tokens")
+            visible = self.output_tokens - self.completion_tokens_details.reasoning_tokens
+            if visible < 0:
+                raise ValueError("reasoning tokens cannot exceed completion tokens")
+            if self.visible_output_tokens is not None and self.visible_output_tokens != visible:
+                raise ValueError("visible output tokens must match completion usage")
+            object.__setattr__(self, "visible_output_tokens", visible)
         for name in ("retry_count", "provider_call_count"):
             _require_count(getattr(self, name), name=name)
         if self.provider_call_count == 0:
@@ -517,8 +596,19 @@ class ApiResponseRecord:
                 )
         elif self.retry_count != self.provider_call_count - 1:
             raise ValueError("response retry count is incoherent with provider calls")
-        for name in ("latency_ms", "provider_cost", "origin_provider_cost"):
+        for name in (
+            "latency_ms",
+            "total_latency_ms",
+            "provider_cost",
+            "origin_provider_cost",
+        ):
             _require_optional_number(getattr(self, name), name=name)
+        if self.total_latency_ms is None:
+            object.__setattr__(self, "total_latency_ms", self.latency_ms)
+        elif self.latency_ms is None:
+            object.__setattr__(self, "latency_ms", self.total_latency_ms)
+        elif self.total_latency_ms != self.latency_ms:
+            raise ValueError("total latency must match legacy latency")
         if type(self.cache_hit) is not bool:
             raise TypeError("cache_hit must be a boolean")
         if self.cache_hit and self.provider_call_count != 0:
@@ -539,6 +629,14 @@ class ApiResponseRecord:
         return self.returned_model_identifier
 
     @property
+    def prompt_tokens(self) -> int | None:
+        return self.input_tokens
+
+    @property
+    def completion_tokens(self) -> int | None:
+        return self.output_tokens
+
+    @property
     def provider_call(self) -> bool:
         """Compatibility view derived from the auditable provider call count."""
 
@@ -555,8 +653,14 @@ class ApiResponseRecord:
             "input_tokens": self.input_tokens,
             "output_tokens": self.output_tokens,
             "total_tokens": self.total_tokens,
+            "prompt_tokens": self.prompt_tokens,
+            "completion_tokens": self.completion_tokens,
+            "completion_tokens_details": self.completion_tokens_details.to_mapping(),
+            "visible_output_tokens": self.visible_output_tokens,
+            "time_to_first_token_ms": self.time_to_first_token_ms,
             "image_count": self.image_count,
             "latency_ms": self.latency_ms,
+            "total_latency_ms": self.total_latency_ms,
             "retry_count": self.retry_count,
             "provider_call_count": self.provider_call_count,
             "timestamp": self.timestamp,
@@ -584,8 +688,14 @@ class ApiResponseRecord:
             "input_tokens",
             "output_tokens",
             "total_tokens",
+            "prompt_tokens",
+            "completion_tokens",
+            "completion_tokens_details",
+            "visible_output_tokens",
+            "time_to_first_token_ms",
             "image_count",
             "latency_ms",
+            "total_latency_ms",
             "retry_count",
             "provider_call_count",
             "timestamp",
@@ -599,7 +709,17 @@ class ApiResponseRecord:
         }
         if not isinstance(value, Mapping) or set(value) != expected:
             raise ValueError("persisted API response has invalid fields")
-        return cls(**{name: value[name] for name in sorted(expected)})
+        if value["prompt_tokens"] != value["input_tokens"]:
+            raise ValueError("persisted prompt token aliases disagree")
+        if value["completion_tokens"] != value["output_tokens"]:
+            raise ValueError("persisted completion token aliases disagree")
+        values = {name: value[name] for name in sorted(expected)}
+        del values["prompt_tokens"]
+        del values["completion_tokens"]
+        values["completion_tokens_details"] = CompletionTokenDetails.from_mapping(
+            value["completion_tokens_details"]
+        )
+        return cls(**values)
 
 
 class ProviderTransport(Protocol):

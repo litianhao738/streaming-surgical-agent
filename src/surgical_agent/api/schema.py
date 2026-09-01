@@ -7,13 +7,23 @@ from types import MappingProxyType
 from typing import Any
 
 from surgical_agent.api.errors import ApiContractError, ApiSchemaError
+from surgical_agent.data.constants import TASK_ID_BOUNDS
+from surgical_agent.perception.contracts import (
+    FIELD_UNCERTAINTY_PATHS,
+    FIELD_UNCERTAINTY_REASONS,
+)
 from surgical_agent.perception.schema import (
+    COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
     JOINT_PERCEPTION_SCHEMA_VERSION,
+    RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
     joint_perception_schema,
+    validate_compact_joint_perception_payload,
     validate_joint_perception_payload,
+    validate_reliability_compact_joint_perception_payload,
 )
 
 P3_SMOKE_SCHEMA_VERSION = "p3_multimodal_smoke_v1"
+TARGETED_VERIFICATION_SCHEMA_VERSION = "targeted_verification_v1"
 P3_SMOKE_ALLOWED_KEYS = frozenset(
     {
         "schema_version",
@@ -36,6 +46,85 @@ _P3_SMOKE_JSON_SCHEMA = {
     },
     "required": sorted(P3_SMOKE_ALLOWED_KEYS),
 }
+_TARGETED_PATHS = tuple(FIELD_UNCERTAINTY_PATHS)
+_TARGETED_VERIFICATION_JSON_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "schema_version": {
+            "type": "string",
+            "const": TARGETED_VERIFICATION_SCHEMA_VERSION,
+        },
+        "fields": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 5,
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "path": {"type": "string", "enum": list(_TARGETED_PATHS)},
+                    "selected_ids": {
+                        "type": "array",
+                        "maxItems": 8,
+                        "items": {"type": "integer", "minimum": 0},
+                    },
+                    "topk": {
+                        "type": "array",
+                        "minItems": 1,
+                        "maxItems": 8,
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": False,
+                            "properties": {
+                                "id": {"type": "integer", "minimum": 0},
+                                "confidence": {
+                                    "type": "number",
+                                    "minimum": 0.0,
+                                    "maximum": 1.0,
+                                },
+                            },
+                            "required": ["id", "confidence"],
+                        },
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": ["Verified", "Pending", "Rejected"],
+                    },
+                    "uncertainty": {
+                        "anyOf": [
+                            {"type": "null"},
+                            {
+                                "type": "object",
+                                "additionalProperties": False,
+                                "properties": {
+                                    "reason": {
+                                        "type": "string",
+                                        "enum": sorted(FIELD_UNCERTAINTY_REASONS),
+                                    },
+                                    "alternative_ids": {
+                                        "type": "array",
+                                        "maxItems": 8,
+                                        "items": {"type": "integer", "minimum": 0},
+                                    },
+                                },
+                                "required": ["reason", "alternative_ids"],
+                            },
+                        ]
+                    },
+                },
+                "required": [
+                    "path",
+                    "selected_ids",
+                    "topk",
+                    "status",
+                    "uncertainty",
+                ],
+            },
+        },
+    },
+    "required": ["schema_version", "fields"],
+}
 
 
 def _freeze_schema(value: object) -> object:
@@ -57,8 +146,19 @@ def _copy_schema(value: object) -> object:
 
 
 _FROZEN_P3_SMOKE_JSON_SCHEMA = _freeze_schema(_P3_SMOKE_JSON_SCHEMA)
+_FROZEN_TARGETED_VERIFICATION_JSON_SCHEMA = _freeze_schema(
+    _TARGETED_VERIFICATION_JSON_SCHEMA
+)
 P3_SMOKE_JSON_SCHEMA = _copy_schema(_FROZEN_P3_SMOKE_JSON_SCHEMA)
-_FROZEN_JOINT_PERCEPTION_JSON_SCHEMA = _freeze_schema(joint_perception_schema())
+_FROZEN_JOINT_PERCEPTION_JSON_SCHEMA = _freeze_schema(
+    joint_perception_schema(JOINT_PERCEPTION_SCHEMA_VERSION)
+)
+_FROZEN_COMPACT_JOINT_PERCEPTION_JSON_SCHEMA = _freeze_schema(
+    joint_perception_schema(COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION)
+)
+_FROZEN_RELIABILITY_COMPACT_JOINT_PERCEPTION_JSON_SCHEMA = _freeze_schema(
+    joint_perception_schema(RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION)
+)
 
 
 def validate_p3_smoke_payload(payload: Mapping[str, Any]) -> None:
@@ -76,6 +176,110 @@ def validate_p3_smoke_payload(payload: Mapping[str, Any]) -> None:
         raise ApiSchemaError("P3 smoke response must declare structured=true")
 
 
+def _targeted_invalid() -> None:
+    raise ApiSchemaError("Targeted verification response violates the strict schema")
+
+
+def _targeted_ids(value: object, *, task: str, maximum: int = 8) -> tuple[int, ...]:
+    if (
+        not isinstance(value, (list, tuple))
+        or len(value) > maximum
+        or len(set(value)) != len(value)
+    ):
+        _targeted_invalid()
+    lower, upper = TASK_ID_BOUNDS[task]
+    values = tuple(value)
+    if any(
+        not isinstance(item, int)
+        or isinstance(item, bool)
+        or not lower <= item <= upper
+        for item in values
+    ):
+        _targeted_invalid()
+    return values
+
+
+def validate_targeted_verification_payload(payload: Mapping[str, Any]) -> None:
+    """Validate exact targeted fields and their ontology-scoped semantics."""
+
+    try:
+        if not isinstance(payload, Mapping) or set(payload) != {
+            "schema_version",
+            "fields",
+        }:
+            _targeted_invalid()
+        if payload["schema_version"] != TARGETED_VERIFICATION_SCHEMA_VERSION:
+            _targeted_invalid()
+        fields = payload["fields"]
+        if not isinstance(fields, (list, tuple)) or not 1 <= len(fields) <= 5:
+            _targeted_invalid()
+        paths: set[str] = set()
+        for field in fields:
+            if not isinstance(field, Mapping) or set(field) != {
+                "path",
+                "selected_ids",
+                "topk",
+                "status",
+                "uncertainty",
+            }:
+                _targeted_invalid()
+            path = field["path"]
+            if path not in FIELD_UNCERTAINTY_PATHS or path in paths:
+                _targeted_invalid()
+            paths.add(path)
+            task = FIELD_UNCERTAINTY_PATHS[path]
+            selected = _targeted_ids(field["selected_ids"], task=task)
+            if task == "phase" and len(selected) != 1:
+                _targeted_invalid()
+            topk = field["topk"]
+            if not isinstance(topk, (list, tuple)) or not 1 <= len(topk) <= 8:
+                _targeted_invalid()
+            topk_ids: list[int] = []
+            confidences: list[float] = []
+            for record in topk:
+                if not isinstance(record, Mapping) or set(record) != {
+                    "id",
+                    "confidence",
+                }:
+                    _targeted_invalid()
+                topk_ids.extend(_targeted_ids([record["id"]], task=task))
+                confidence = record["confidence"]
+                if (
+                    not isinstance(confidence, (int, float))
+                    or isinstance(confidence, bool)
+                    or not 0.0 <= float(confidence) <= 1.0
+                ):
+                    _targeted_invalid()
+                confidences.append(float(confidence))
+            if len(set(topk_ids)) != len(topk_ids):
+                _targeted_invalid()
+            if any(
+                confidences[index] < confidences[index + 1]
+                for index in range(len(confidences) - 1)
+            ):
+                _targeted_invalid()
+            if not set(selected).issubset(topk_ids):
+                _targeted_invalid()
+            if field["status"] not in {"Verified", "Pending", "Rejected"}:
+                _targeted_invalid()
+            uncertainty = field["uncertainty"]
+            if uncertainty is not None:
+                if not isinstance(uncertainty, Mapping) or set(uncertainty) != {
+                    "reason",
+                    "alternative_ids",
+                }:
+                    _targeted_invalid()
+                if uncertainty["reason"] not in FIELD_UNCERTAINTY_REASONS:
+                    _targeted_invalid()
+                alternatives = _targeted_ids(
+                    uncertainty["alternative_ids"], task=task
+                )
+                if not set(alternatives).issubset(topk_ids):
+                    _targeted_invalid()
+    except (KeyError, OverflowError, TypeError, ValueError):
+        _targeted_invalid()
+
+
 SCHEMAS: Mapping[
     str, tuple[Mapping[str, Any], Callable[[Mapping[str, Any]], None]]
 ] = MappingProxyType(
@@ -87,6 +291,18 @@ SCHEMAS: Mapping[
         JOINT_PERCEPTION_SCHEMA_VERSION: (
             _FROZEN_JOINT_PERCEPTION_JSON_SCHEMA,
             validate_joint_perception_payload,
+        ),
+        TARGETED_VERIFICATION_SCHEMA_VERSION: (
+            _FROZEN_TARGETED_VERIFICATION_JSON_SCHEMA,
+            validate_targeted_verification_payload,
+        ),
+        COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION: (
+            _FROZEN_COMPACT_JOINT_PERCEPTION_JSON_SCHEMA,
+            validate_compact_joint_perception_payload,
+        ),
+        RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION: (
+            _FROZEN_RELIABILITY_COMPACT_JOINT_PERCEPTION_JSON_SCHEMA,
+            validate_reliability_compact_joint_perception_payload,
         ),
     }
 )

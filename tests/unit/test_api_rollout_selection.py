@@ -75,6 +75,28 @@ def test_engineering_selection_requires_one_video_and_positive_limit() -> None:
         selected.frame_counts["VID30"] = 2  # type: ignore[index]
 
 
+def test_engineering_selection_can_start_at_an_exact_target_frame() -> None:
+    source = FakeInferenceSource(
+        {"VID30": DatasetSplit.VALIDATION},
+        {
+            "VID30": tuple(
+                _sample("VID30", frame_id) for frame_id in (1, 2, 3, 4, 5, 6, 7)
+            )
+        },
+    )
+
+    selected = resolve_rollout_selection(
+        source,
+        mode="engineering",
+        video_id="VID30",
+        max_frames=1,
+        split=None,
+        target_frame_id=6,
+    )
+
+    assert tuple(sample.target_frame_id for sample in selected.samples) == (6,)
+
+
 @pytest.mark.parametrize(
     ("video_id", "max_frames"),
     [(None, 1), ("VID30", None), ("VID30", 0), ("VID30", True)],
@@ -174,8 +196,8 @@ def test_selection_rejects_out_of_order_samples() -> None:
         )
 
 
-def test_inference_iterator_caps_causal_context_at_three_frames() -> None:
-    """Using the adapter window directly would send more than three images."""
+def test_inference_iterator_preserves_configured_six_frame_buffer() -> None:
+    """The adapter emits the full buffer before adaptive image selection."""
 
     adapter = object.__new__(CholecTrack20DatasetAdapter)
     adapter.causal_window_size = 5
@@ -190,4 +212,4 @@ def test_inference_iterator_caps_causal_context_at_three_frames() -> None:
 
     sample = tuple(adapter.iter_inference_video("VID30"))[-1]
 
-    assert sample.causal_frame_ids == (2, 3, 4)
+    assert sample.causal_frame_ids == (1, 2, 3, 4)

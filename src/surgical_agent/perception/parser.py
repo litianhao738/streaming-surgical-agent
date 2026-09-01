@@ -11,13 +11,15 @@ from surgical_agent.inference.schemas import InitialPrediction
 from surgical_agent.perception.contracts import (
     ApiCallProvenance,
     EvidenceReference,
+    FieldUncertainty,
     JointPerceptionResult,
     PerceptionEvidence,
     RankedCandidate,
 )
 from surgical_agent.perception.schema import (
-    TASK_LAYOUT,
-    validate_joint_perception_payload,
+    RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
+    task_layout_for_schema_version,
+    validate_joint_perception_payload_by_version,
 )
 
 
@@ -25,14 +27,19 @@ def _invalid() -> None:
     raise ApiSchemaError("Joint perception response violates the strict schema")
 
 
-def _dense_scores(candidates: object, *, class_count: int) -> tuple[float, ...]:
+def _dense_scores(
+    candidates: object,
+    *,
+    class_count: int,
+    confidence_key: str,
+) -> tuple[float, ...]:
     if not isinstance(candidates, tuple):
         _invalid()
     dense = [0.0] * class_count
     for candidate in candidates:
         if not isinstance(candidate, Mapping):
             _invalid()
-        dense[candidate["id"]] = float(candidate["score"])
+        dense[candidate["id"]] = float(candidate[confidence_key])
     return tuple(dense)
 
 
@@ -63,30 +70,53 @@ def parse_joint_perception_response(
             _invalid()
 
         payload = response.parsed_payload
-        validate_joint_perception_payload(payload)
-        task_payloads = {task: payload[task] for task, _count in TASK_LAYOUT}
+        validate_joint_perception_payload_by_version(payload)
+        schema_version = payload["schema_version"]
+        task_layout = task_layout_for_schema_version(schema_version)
+        confidence_key = (
+            "confidence"
+            if schema_version == RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION
+            else "score"
+        )
+        task_payloads = {task: payload[task] for task, _count in task_layout}
         dense = {
             task: _dense_scores(
                 task_payloads[task]["topk"],
                 class_count=TASK_CLASS_COUNTS[task],
+                confidence_key=confidence_key,
             )
-            for task, _count in TASK_LAYOUT
+            for task, _count in task_layout
         }
         ranked = {
             task: tuple(
-                RankedCandidate(class_id=item["id"], score=float(item["score"]))
+                RankedCandidate(
+                    class_id=item["id"], score=float(item[confidence_key])
+                )
                 for item in task_payloads[task]["topk"]
             )
-            for task, _count in TASK_LAYOUT
+            for task, _count in task_layout
         }
-        confidences = {
-            task: float(payload["self_reported_confidence"][task])
-            for task, _count in TASK_LAYOUT
-        }
-        references = tuple(
-            EvidenceReference(frame_id=item["frame_id"], code=item["code"])
-            for item in payload["evidence_refs"]
-        )
+        if schema_version == RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION:
+            confidences = {task: None for task, _count in task_layout}
+            references = ()
+            uncertainties = tuple(
+                FieldUncertainty(
+                    path=item["path"],
+                    reason=item["reason"],
+                    alternative_ids=tuple(item["alternative_ids"]),
+                )
+                for item in payload["uncertainty"]
+            )
+        else:
+            confidences = {
+                task: float(payload["self_reported_confidence"][task])
+                for task, _count in task_layout
+            }
+            references = tuple(
+                EvidenceReference(frame_id=item["frame_id"], code=item["code"])
+                for item in payload["evidence_refs"]
+            )
+            uncertainties = ()
         prediction = InitialPrediction(
             instrument_ids=_selected_ids(task_payloads, "instrument"),
             verb_ids=_selected_ids(task_payloads, "verb"),
@@ -105,6 +135,7 @@ def parse_joint_perception_response(
                 self_reported_confidence=confidences,
                 evidence_refs=references,
                 source_max_frame_id=frame_id,
+                field_uncertainties=uncertainties,
             ),
             api_provenance=ApiCallProvenance.from_response(response),
         )

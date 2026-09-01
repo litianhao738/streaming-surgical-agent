@@ -260,8 +260,8 @@ def test_builder_rejects_windows_longer_than_three_frames() -> None:
 
 
 def test_builder_rejects_invalid_maximum_frame_count() -> None:
-    with pytest.raises(ValueError, match="1..3"):
-        CausalPerceptionContextBuilder(max_frames=4)
+    with pytest.raises(ValueError, match="1..6"):
+        CausalPerceptionContextBuilder(max_frames=7)
 
 
 @pytest.mark.parametrize(
