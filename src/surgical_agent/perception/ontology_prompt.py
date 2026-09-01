@@ -55,9 +55,8 @@ _PHASES = (
 )
 
 ACADEMIC_MEDICAL_CONTEXT = (
-    "This input contains de-identified laparoscopic frames from an academic "
-    "surgical-video benchmark; they depict a routine medical procedure, not "
-    "interpersonal harm."
+    "Authorized de-identified academic analysis of routine laparoscopic "
+    "cholecystectomy benchmark frames for surgical workflow research."
 )
 
 

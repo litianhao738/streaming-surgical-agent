@@ -875,12 +875,12 @@ def _same_backend_identity(
         )
     if backbone_policy != "shared":
         return False
-    for field in (
+    for field_name in (
         "requested_model_identifier",
         "returned_model_identifier",
     ):
-        first = getattr(perception, field)
-        second = getattr(verification, field)
+        first = getattr(perception, field_name)
+        second = getattr(verification, field_name)
         if first is not None and second is not None and first != second:
             return False
     return True

@@ -38,6 +38,7 @@ from surgical_agent.research.signals.contracts import EvidenceProfile, EvidenceV
 from surgical_agent.research.verification.coordinator import DeterministicCoordinator
 from surgical_agent.research.verification.hypotheses import FactorizedCandidateGenerator
 from surgical_agent.research.verification.targeted_api import (
+    TARGETED_VERIFICATION_PROMPT_V2,
     TargetedApiVerifier,
     TargetedVerificationRequestBuilder,
     load_targeted_verification_prompt_text,
@@ -299,7 +300,7 @@ def test_request_contains_only_flagged_current_fields_and_confidence_candidates(
     body = json.loads(request.payload["input_text"])
     system_text = request.payload["system_text"]
 
-    assert request.prompt_version == TARGETED_VERIFICATION_SCHEMA_VERSION
+    assert request.prompt_version == TARGETED_VERIFICATION_PROMPT_V2
     assert request.response_schema_version == TARGETED_VERIFICATION_SCHEMA_VERSION
     assert body["flagged_fields"] == [PATHS["verb"], PATHS["phase"]]
     assert body["current_fields"] == [
@@ -322,7 +323,8 @@ def test_request_contains_only_flagged_current_fields_and_confidence_candidates(
         "next step",
     ):
         assert forbidden in system_text
-    assert "If the current IDs are wrong" in system_text
+    assert "If a supplied candidate is better" in system_text
+    assert "select it and mark Verified" in system_text
     assert "mark Verified" in system_text
 
 
@@ -333,6 +335,29 @@ def test_openrouter_targeted_context_preserves_canonical_terms() -> None:
     assert "clinical significance" in prompt
     assert "5=cut" in prompt
     assert "5=blood_vessel" in prompt
+
+
+def test_builder_uses_v2_targeted_prompt_without_changing_wire_schema() -> None:
+    perception = _perception()
+    candidates = FactorizedCandidateGenerator(max_candidates_per_task=2).build(
+        perception
+    )
+    builder = TargetedVerificationRequestBuilder(config=_config())
+
+    request = builder.build(
+        _context(),
+        perception.prediction,
+        candidates,
+        _evidence(),
+        requested_fields=("verb", "ivt"),
+    )
+    prompt = " ".join(request.payload["system_text"].split())
+
+    assert request.prompt_version == TARGETED_VERIFICATION_PROMPT_V2
+    assert request.response_schema_version == TARGETED_VERIFICATION_SCHEMA_VERSION
+    assert "tool motion and tissue interaction" in prompt
+    assert "ontology closure" in prompt
+    assert "Do not expose this cross-check as reasoning" in prompt
 
 
 def test_parser_patches_only_requested_verified_field_and_preserves_identity() -> None:

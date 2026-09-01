@@ -8,8 +8,8 @@ from dataclasses import dataclass
 from types import MappingProxyType
 
 import torch
-import torch.nn.functional as functional
 from torch import Tensor
+from torch.nn import functional
 
 
 @dataclass(frozen=True)

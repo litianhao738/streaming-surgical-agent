@@ -48,10 +48,26 @@ class _ApiClient(Protocol):
     def call(self, request: ApiRequest) -> ApiResponseRecord: ...
 
 
-def load_targeted_verification_prompt_text(*, academic_context: bool = False) -> str:
+TARGETED_VERIFICATION_PROMPT_V2 = "targeted_verification_prompt_v2"
+
+
+def load_targeted_verification_prompt_text(
+    prompt_version: str = TARGETED_VERIFICATION_PROMPT_V2,
+    *,
+    academic_context: bool = False,
+) -> str:
+    resources = {
+        TARGETED_VERIFICATION_PROMPT_V2: "targeted_verification_prompt_v2.txt",
+    }
+    try:
+        resource_name = resources[prompt_version]
+    except KeyError as exc:
+        raise ApiContractError(
+            "targeted verification prompt version is unsupported"
+        ) from exc
     prompt = (
         files("surgical_agent.research.verification.prompts")
-        .joinpath("targeted_verification_prompt.txt")
+        .joinpath(resource_name)
         .read_text(encoding="utf-8")
     )
     if academic_context:
@@ -110,6 +126,7 @@ class TargetedVerificationRequestBuilder:
             raise TypeError("config must be ApiConfig")
         self.config = config
         self.backend_name = "joint_api_vlm_targeted_verifier"
+        self.prompt_version = TARGETED_VERIFICATION_PROMPT_V2
 
     def build(
         self,
@@ -203,10 +220,11 @@ class TargetedVerificationRequestBuilder:
             provider=self.config.provider,
             model_identifier=self.config.requested_model_identifier,
             endpoint_identifier=self.config.endpoint_identifier,
-            prompt_version=TARGETED_VERIFICATION_SCHEMA_VERSION,
+            prompt_version=self.prompt_version,
             response_schema_version=TARGETED_VERIFICATION_SCHEMA_VERSION,
             payload={
                 "system_text": load_targeted_verification_prompt_text(
+                    self.prompt_version,
                     academic_context=self.config.provider in {"openai", "openrouter"}
                 ),
                 "image_details": list(image_details),
