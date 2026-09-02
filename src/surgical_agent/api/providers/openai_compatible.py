@@ -10,6 +10,7 @@ from __future__ import annotations
 import base64
 import json
 import math
+import re
 import urllib.error
 from collections.abc import Mapping
 from time import perf_counter
@@ -27,6 +28,7 @@ from surgical_agent.api.providers.openrouter import (
     HttpSender,
     urllib_send_json,
 )
+from surgical_agent.api.schema import schema_for
 
 
 def _failure(status_code: int) -> ApiTransportError:
@@ -93,7 +95,7 @@ class OpenAICompatibleTransport:
         endpoint_identifier: str,
         sender: HttpSender = urllib_send_json,
         timeout_seconds: float = 120.0,
-        response_format: str = "json_object",
+        response_format: str = "json_schema",
     ) -> None:
         if not isinstance(api_key, SecretValue):
             raise TypeError("api_key must be SecretValue")
@@ -108,8 +110,10 @@ class OpenAICompatibleTransport:
             or timeout_seconds <= 0
         ):
             raise ValueError("timeout_seconds must be positive")
-        if response_format not in {"json_object", "none"}:
-            raise ValueError("response_format must be json_object or none")
+        if response_format not in {"json_schema", "json_object", "none"}:
+            raise ValueError(
+                "response_format must be json_schema, json_object or none"
+            )
         self.api_key = api_key
         self.endpoint_identifier = endpoint_identifier
         self.sender = sender
@@ -171,7 +175,19 @@ class OpenAICompatibleTransport:
             "stream": False,
             **parameters,
         }
-        if self.response_format == "json_object":
+        if self.response_format == "json_schema":
+            schema_name = re.sub(
+                r"[^A-Za-z0-9_]", "_", request.response_schema_version
+            )
+            body["response_format"] = {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": schema_name,
+                    "strict": True,
+                    "schema": schema_for(request.response_schema_version),
+                },
+            }
+        elif self.response_format == "json_object":
             body["response_format"] = {"type": "json_object"}
         return json.dumps(body, allow_nan=False, separators=(",", ":")).encode()
 
@@ -255,8 +271,8 @@ class OpenAICompatibleTransport:
             details = CompletionTokenDetails(reasoning_tokens=reasoning_tokens)
             visible_tokens = (
                 None
-                if output_tokens is None or reasoning_tokens is None
-                else output_tokens - reasoning_tokens
+                if output_tokens is None
+                else output_tokens - (reasoning_tokens or 0)
             )
         except ApiTransportError:
             raise

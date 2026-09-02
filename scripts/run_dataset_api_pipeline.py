@@ -644,12 +644,12 @@ def _require_exact_dataset_config(
         options = dict(config.provider_options)
         if set(options) != {"timeout_seconds", "response_format"}:
             raise ApiContractError(
-                "compatible rollout requires timeout_seconds and response_format"
+            "compatible rollout requires timeout_seconds and response_format"
             )
         if (
             type(options["timeout_seconds"]) is not float
             or options["timeout_seconds"] != 120.0
-            or options["response_format"] != "json_object"
+            or options["response_format"] != "json_schema"
         ):
             raise ApiContractError("compatible rollout options are invalid")
         if not authorize_data_upload:

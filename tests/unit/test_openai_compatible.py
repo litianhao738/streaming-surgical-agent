@@ -34,7 +34,7 @@ def _config(**changes: object) -> ApiConfig:
         "generation_parameters": {"max_output_tokens": 128},
         "provider_options": {
             "timeout_seconds": 120.0,
-            "response_format": "json_object",
+            "response_format": "json_schema",
         },
     }
     raw.update(changes)
@@ -99,13 +99,16 @@ def test_compatible_transport_sends_multimodal_json_without_router_fields() -> N
     assert captured["url"] == ENDPOINT
     assert sent["model"] == "qwen-test-model"
     assert sent["stream"] is False
-    assert sent["response_format"] == {"type": "json_object"}
+    assert sent["response_format"]["type"] == "json_schema"
+    assert sent["response_format"]["json_schema"]["strict"] is True
+    assert sent["response_format"]["json_schema"]["schema"]["type"] == "object"
     assert sent["enable_thinking"] is False
     assert "provider" not in sent
     assert len(sent["messages"][1]["content"]) == 2
     assert response.returned_model_identifier == "qwen-returned-model"
     assert response.total_latency_ms == 9.0
     assert response.prompt_tokens == 20
+    assert response.visible_output_tokens == 10
 
 
 def test_compatible_endpoint_and_registry_fail_closed() -> None:

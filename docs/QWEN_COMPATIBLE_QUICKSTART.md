@@ -18,7 +18,7 @@ python scripts\run_dataset_api_pipeline.py ^
   --pipeline-profile single_pass ^
   --dataset-root "%CHOLECTRACK20_ROOT%" ^
   --config configs\perception\joint_qwen_compatible_dataset.yaml ^
-  --model "qwen3.8-max-0902" ^
+  --model "qwen3.8-max" ^
   --base-url "https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1" ^
   --api-key "PASTE_TEMPORARY_KEY_HERE" ^
   --output-root artifacts\api_dataset ^

@@ -134,7 +134,7 @@ def build_transport(
             effective.provider_options.get("timeout_seconds", 120.0)
         )
         response_format = effective.provider_options.get(
-            "response_format", "json_object"
+            "response_format", "json_schema"
         )
         if not isinstance(response_format, str):
             raise ApiContractError("compatible response_format must be text")
