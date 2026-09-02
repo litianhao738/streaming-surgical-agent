@@ -11,6 +11,7 @@ from dataclasses import replace
 from datetime import UTC, datetime
 from itertools import pairwise
 from pathlib import Path
+from urllib.parse import urlsplit, urlunsplit
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SRC_ROOT = PROJECT_ROOT / "src"
@@ -85,7 +86,7 @@ def _apply_cli_model_override(
     mode: str,
     model: str | None,
 ) -> ApiConfig:
-    """Apply an explicit engineering OpenRouter model without editing YAML."""
+    """Apply an explicit engineering model without editing YAML."""
 
     if model is None:
         return config
@@ -94,13 +95,53 @@ def _apply_cli_model_override(
         raise ApiContractError("model override must not be empty")
     if mode != "engineering":
         raise ApiContractError("paper mode forbids model overrides")
-    if config.provider != "openrouter" or config.mode != "real":
-        raise ApiContractError("--model is supported only by real OpenRouter configs")
-    if normalized != _REAL_MODEL:
+    if config.provider not in {"openrouter", "openai_compatible"} or (
+        config.mode != "real"
+    ):
+        raise ApiContractError(
+            "--model requires a real OpenRouter or OpenAI-compatible config"
+        )
+    if config.provider == "openrouter" and normalized != _REAL_MODEL:
         raise ApiContractError(
             f"the current pipeline protocol approves only {_REAL_MODEL}"
         )
     overridden = replace(config, requested_model_identifier=normalized)
+    overridden.validate()
+    return overridden
+
+
+def _normalize_compatible_endpoint(value: str) -> str:
+    normalized = value.strip()
+    if not normalized:
+        raise ApiContractError("base-url override must not be empty")
+    parsed = urlsplit(normalized)
+    if parsed.path.rstrip("/").endswith("/chat/completions"):
+        path = parsed.path.rstrip("/")
+    else:
+        path = parsed.path.rstrip("/") + "/chat/completions"
+    return urlunsplit(
+        (parsed.scheme, parsed.netloc, path, parsed.query, parsed.fragment)
+    )
+
+
+def _apply_cli_base_url_override(
+    config: ApiConfig,
+    *,
+    mode: str,
+    base_url: str | None,
+) -> ApiConfig:
+    if base_url is None:
+        return config
+    if mode != "engineering":
+        raise ApiContractError("paper mode forbids base-url overrides")
+    if config.provider != "openai_compatible" or config.mode != "real":
+        raise ApiContractError(
+            "--base-url requires a real OpenAI-compatible config"
+        )
+    overridden = replace(
+        config,
+        endpoint_identifier=_normalize_compatible_endpoint(base_url),
+    )
     overridden.validate()
     return overridden
 
@@ -149,7 +190,13 @@ def build_parser(*, fixed_profile: str | None = None) -> argparse.ArgumentParser
     parser.add_argument(
         "--model",
         help=(
-            "engineering-only OpenRouter model override, for example openai/gpt-5.6-sol"
+            "engineering-only model override; compatible configs accept any model ID"
+        ),
+    )
+    parser.add_argument(
+        "--base-url",
+        help=(
+            "engineering-only OpenAI-compatible base URL or full chat endpoint"
         ),
     )
     parser.add_argument(
@@ -478,7 +525,8 @@ def _require_exact_dataset_config(
     config.validate()
     expected_joint_version = (
         _REAL_JOINT_VERSION
-        if config.mode == "real" and config.provider in {"openai", "openrouter"}
+        if config.mode == "real"
+        and config.provider in {"openai", "openrouter", "openai_compatible"}
         else _MOCK_JOINT_VERSION
     )
     if config.prompt_version != expected_joint_version:
@@ -487,9 +535,13 @@ def _require_exact_dataset_config(
         raise ApiContractError("dataset rollout requires the exact response schema")
     generation = dict(config.generation_parameters)
     expected_generation = (
-        {"max_output_tokens": 1536, "reasoning": {"effort": "none"}}
-        if config.mode == "real" and config.provider in {"openai", "openrouter"}
-        else {"max_output_tokens": 4096}
+        {"max_output_tokens": 1536, "temperature": 0.0, "enable_thinking": False}
+        if config.mode == "real" and config.provider == "openai_compatible"
+        else (
+            {"max_output_tokens": 1536, "reasoning": {"effort": "none"}}
+            if config.mode == "real" and config.provider in {"openai", "openrouter"}
+            else {"max_output_tokens": 4096}
+        )
     )
     if generation != expected_generation:
         raise ApiContractError("dataset rollout requires exact generation settings")
@@ -574,6 +626,32 @@ def _require_exact_dataset_config(
             raise ApiContractError(
                 "real OpenAI rollout has unsupported provider options"
             )
+        if not authorize_data_upload:
+            raise ApiContractError(
+                "real dataset rollout requires --authorize-data-upload"
+            )
+        if not has_credential:
+            raise ApiContractError(
+                "real dataset rollout requires exactly one credential"
+            )
+        return
+
+    if config.mode == "real" and config.provider == "openai_compatible":
+        if selection_mode != "engineering":
+            raise ApiContractError(
+                "OpenAI-compatible gateways are engineering-only in this protocol"
+            )
+        options = dict(config.provider_options)
+        if set(options) != {"timeout_seconds", "response_format"}:
+            raise ApiContractError(
+                "compatible rollout requires timeout_seconds and response_format"
+            )
+        if (
+            type(options["timeout_seconds"]) is not float
+            or options["timeout_seconds"] != 120.0
+            or options["response_format"] != "json_object"
+        ):
+            raise ApiContractError("compatible rollout options are invalid")
         if not authorize_data_upload:
             raise ApiContractError(
                 "real dataset rollout requires --authorize-data-upload"
@@ -1214,18 +1292,26 @@ def run(args: argparse.Namespace) -> Path:
         predicted_track_artifact=args.predicted_track_artifact,
         experiment_config=args.experiment_config,
     )
-    config = _apply_cli_model_override(
-        load_api_config(args.config),
+    config = _apply_cli_base_url_override(
+        _apply_cli_model_override(
+            load_api_config(args.config),
+            mode=args.mode,
+            model=args.model,
+        ),
         mode=args.mode,
-        model=args.model,
+        base_url=args.base_url,
     )
     verification_config = (
         None
         if args.verification_config is None
-        else _apply_cli_model_override(
-            load_api_config(args.verification_config),
+        else _apply_cli_base_url_override(
+            _apply_cli_model_override(
+                load_api_config(args.verification_config),
+                mode=args.mode,
+                model=args.model,
+            ),
             mode=args.mode,
-            model=args.model,
+            base_url=args.base_url,
         )
     )
     backbone_policy, resolved_verification_config = _validate_profile_backbones(
@@ -1239,7 +1325,7 @@ def run(args: argparse.Namespace) -> Path:
     has_credential = direct_api_key is not None or args.api_key_file is not None
     expected_initial_model = (
         config.requested_model_identifier
-        if args.model is not None
+        if args.model is not None or config.provider == "openai_compatible"
         else (_LUNA_MODEL if backbone_policy == "cascade_efficiency" else _REAL_MODEL)
     )
     _require_exact_dataset_config(

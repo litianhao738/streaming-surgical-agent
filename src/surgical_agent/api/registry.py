@@ -14,6 +14,7 @@ from surgical_agent.api.contracts import (
 from surgical_agent.api.credentials import SecretValue
 from surgical_agent.api.errors import ApiContractError
 from surgical_agent.api.providers.mock import MockProviderTransport
+from surgical_agent.api.providers.openai_compatible import OpenAICompatibleTransport
 from surgical_agent.api.providers.openai_responses import OpenAIResponsesTransport
 from surgical_agent.api.providers.openrouter import OpenRouterTransport
 from surgical_agent.api.schema import validator_for
@@ -122,6 +123,28 @@ def build_transport(
                 endpoint_identifier=effective.endpoint_identifier,
                 timeout_seconds=timeout,
                 service_tier=service_tier,
+            ),
+        )
+    if effective.provider == "openai_compatible":
+        if api_key is None:
+            raise ApiContractError(
+                "OpenAI-compatible provider requires a credential"
+            )
+        timeout = _require_timeout(
+            effective.provider_options.get("timeout_seconds", 120.0)
+        )
+        response_format = effective.provider_options.get(
+            "response_format", "json_object"
+        )
+        if not isinstance(response_format, str):
+            raise ApiContractError("compatible response_format must be text")
+        return _require_transport_identity(
+            effective,
+            OpenAICompatibleTransport(
+                api_key=api_key,
+                endpoint_identifier=effective.endpoint_identifier,
+                timeout_seconds=timeout,
+                response_format=response_format,
             ),
         )
     raise ApiContractError(f"unknown provider: {effective.provider}")

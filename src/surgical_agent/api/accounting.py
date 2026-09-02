@@ -20,10 +20,10 @@ def _require_complete_real_accounting(response: ProviderResponse) -> None:
             code="response_usage_invalid",
             retryable=False,
         )
-    # The official Responses API returns token usage but no monetary charge in
-    # the response envelope. OpenRouter does return origin cost, so retain the
-    # stronger requirement there without fabricating an OpenAI cost value.
-    if response.provider == "openai":
+    # Direct OpenAI-compatible APIs commonly return token usage but no monetary
+    # charge. OpenRouter does return origin cost, so retain the stronger
+    # requirement there without fabricating a price for direct gateways.
+    if response.provider in {"openai", "openai_compatible"}:
         return
     cost = response.provider_cost
     if (

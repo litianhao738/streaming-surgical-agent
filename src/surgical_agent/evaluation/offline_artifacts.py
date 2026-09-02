@@ -241,6 +241,7 @@ def load_completed_run(run_dir: str | Path) -> CompletedRun:
     expected_status = {
         "mock": "MOCK_COMPLETE",
         "openai": "REAL_RESPONSE_RECEIVED",
+        "openai_compatible": "REAL_RESPONSE_RECEIVED",
         "openrouter": "REAL_RESPONSE_RECEIVED",
     }.get(
         provider

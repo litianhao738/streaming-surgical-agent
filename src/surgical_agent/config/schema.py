@@ -7,6 +7,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 from types import MappingProxyType
+from urllib.parse import urlsplit
 
 from surgical_agent.api.errors import ApiContractError
 
@@ -218,6 +219,22 @@ class ApiConfig:
                 raise ApiContractError("OpenAI requires real mode")
             if self.endpoint_identifier != "https://api.openai.com/v1/responses":
                 raise ApiContractError("OpenAI Responses endpoint is not approved")
+        if self.provider == "openai_compatible":
+            if self.mode != "real":
+                raise ApiContractError("OpenAI-compatible provider requires real mode")
+            endpoint = urlsplit(self.endpoint_identifier)
+            if (
+                endpoint.scheme != "https"
+                or not endpoint.hostname
+                or endpoint.username is not None
+                or endpoint.password is not None
+                or endpoint.query
+                or endpoint.fragment
+                or not endpoint.path.rstrip("/").endswith("/chat/completions")
+            ):
+                raise ApiContractError(
+                    "OpenAI-compatible endpoint must be an HTTPS chat/completions URL"
+                )
         if self.provider == "mock" and self.mode != "mock":
             raise ApiContractError("mock provider requires mock mode")
 

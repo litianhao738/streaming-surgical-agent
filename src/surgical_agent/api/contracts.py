@@ -130,6 +130,7 @@ def _require_optional_aware_iso_timestamp(value: object, *, name: str) -> None:
 _GENERATION_PARAMETER_KEYS = frozenset(
     {
         "deterministic_mock",
+        "enable_thinking",
         "max_output_tokens",
         "reasoning",
         "seed",
@@ -186,10 +187,10 @@ def freeze_generation_parameters(value: object) -> Mapping[str, Any]:
                     "generation_parameters.seed must be a signed 32-bit integer"
                 )
             result[key] = item
-        elif key == "deterministic_mock":
+        elif key in {"deterministic_mock", "enable_thinking"}:
             if type(item) is not bool:
                 raise TypeError(
-                    "generation_parameters.deterministic_mock must be boolean"
+                    f"generation_parameters.{key} must be boolean"
                 )
             result[key] = item
         elif key == "reasoning":

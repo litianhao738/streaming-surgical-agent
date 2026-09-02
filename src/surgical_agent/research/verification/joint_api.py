@@ -148,7 +148,8 @@ class JointVerificationRequestBuilder:
             raise ApiContractError("memory snapshot must be a mapping")
         payload = {
             "system_text": load_joint_verification_prompt_text(
-                academic_context=self.config.provider in {"openai", "openrouter"}
+                academic_context=self.config.provider
+                in {"openai", "openrouter", "openai_compatible"}
             ),
             "input_text": json.dumps(
                 {

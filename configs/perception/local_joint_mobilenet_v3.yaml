@@ -1,0 +1,40 @@
+schema_version: local_joint_perception_training_v1
+seed: 42
+window_size: 6
+image_size: 192
+smoke_samples_per_video: 4
+
+model:
+  architecture: mobilenet_v3_small
+  visual_feature_dim: 256
+  temporal_hidden_dim: 384
+  temporal_layers: 1
+  dropout: 0.2
+
+optimization:
+  epochs: 12
+  batch_size: 24
+  num_workers: 12
+  learning_rate: 0.0003
+  weight_decay: 0.0001
+  gradient_clip_norm: 5.0
+  max_positive_weight: 20.0
+
+task_weights:
+  instrument: 1.0
+  verb: 1.0
+  target: 1.0
+  ivt: 2.0
+  phase: 1.0
+
+threshold_grid:
+  - 0.15
+  - 0.20
+  - 0.25
+  - 0.30
+  - 0.35
+  - 0.40
+  - 0.45
+  - 0.50
+  - 0.55
+  - 0.60

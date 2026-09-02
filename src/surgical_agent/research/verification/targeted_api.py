@@ -225,7 +225,8 @@ class TargetedVerificationRequestBuilder:
             payload={
                 "system_text": load_targeted_verification_prompt_text(
                     self.prompt_version,
-                    academic_context=self.config.provider in {"openai", "openrouter"}
+                    academic_context=self.config.provider
+                    in {"openai", "openrouter", "openai_compatible"}
                 ),
                 "image_details": list(image_details),
                 "input_text": json.dumps(

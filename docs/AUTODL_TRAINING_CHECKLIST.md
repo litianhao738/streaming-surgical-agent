@@ -27,33 +27,53 @@ the rule Gate are deterministic and also require no gradient training.
    then `--mode full`. Preserve its checkpoint, training manifest, Validation
    metrics, and `predicted_tracks.json`. Run `--mode oof` before D0/D1 so every
    Training video uses a checkpoint that excluded it.
-2. **Workflow transition artifact — deterministic fit.** Build the train-only
+2. **Local Joint Perception — ready for AutoDL training.**
+   `scripts/train_perception.py` now trains one causal six-frame model with
+   Instrument/Verb/Target/IVT multi-label heads and a Phase single-label head.
+   It trains only on Training, calibrates thresholds on Validation, never opens
+   Testing, and exports a loadable checkpoint plus validation metrics.
+3. **Workflow transition artifact — deterministic fit.** Build the train-only
    phase transition graph with `scripts/build_phase_transition_graph.py`.
-3. **Surgical priors — deterministic fit.** Build train-only IVT/workflow
+4. **Surgical priors — deterministic fit.** Build train-only IVT/workflow
    priors after their exact semantics are frozen. The current
    `scripts/build_surgical_priors.py` is blocked.
-4. **Gate dataset D0 — data generation.** Produce out-of-fold, GT-aligned
+5. **Gate dataset D0 — data generation.** Produce out-of-fold, GT-aligned
    state/action benefit examples from Training only. Validation and Test must
    not enter D0. The current `scripts/build_gate_oof_dataset.py` is blocked.
-5. **Bootstrap Gate G0 — training.** Train the first small benefit predictor on
+6. **Bootstrap Gate G0 — training.** Train the first small benefit predictor on
    D0. G0 is a rollout policy, not a deployable final Gate.
-6. **Policy-matched rollout D1 — data generation.** Run G0 on Training folds and
+7. **Policy-matched rollout D1 — data generation.** Run G0 on Training folds and
    collect every encountered state plus realized bounded-verification benefit.
-7. **Final Gate G1 — training.** Train on D1 and export a strict
+8. **Final Gate G1 — training.** Train on D1 and export a strict
    `benefit_gate_linear_v1` artifact with `gate_stage=final_g1`,
    `source_split=training`, raw evidence-frame-v1 features, provenance, and the
    exact rollout recipe.
-8. **Operating threshold — validation calibration.** Select and freeze the Gate
+9. **Operating threshold — validation calibration.** Select and freeze the Gate
    threshold on Validation only. Never refresh, retrain, or calibrate on Test.
-9. **Optional reliability calibration.** Fit only if reliability-weighted
+10. **Optional reliability calibration.** Fit only if reliability-weighted
    retrieval remains in the final method; it is not needed by the current
    bounded event-memory runtime.
 
-## Not a paper model
+## Local Joint Perception commands
 
-`scripts/train_perception.py` currently aliases the one-step P2 local smoke. It
-checks CUDA, masking, checkpoint save/load, and data plumbing, but it is not the
-main GPT perception model and must not be reported as a trained paper baseline.
+Run smoke first after uploading the new code:
+
+```bash
+python scripts/train_perception.py --mode smoke \
+  --dataset-root "$CHOLECTRACK20_ROOT" --device cuda
+```
+
+Only after smoke passes, start the full run:
+
+```bash
+export CUBLAS_WORKSPACE_CONFIG=:4096:8
+python scripts/train_perception.py --mode full \
+  --dataset-root "$CHOLECTRACK20_ROOT" \
+  --config configs/perception/local_joint_mobilenet_v3.yaml \
+  --device cuda
+```
+
+The full output is written below `artifacts/training/perception/full/`.
 
 ## Upload-ready environment check
 

@@ -34,6 +34,7 @@ from surgical_agent.tracking.contracts import PredictedTrack
 
 _BACKEND_NAMES = {
     "openai": "joint_openai_gpt56sol",
+    "openai_compatible": "joint_openai_compatible",
     "openrouter": "joint_openrouter_gpt56sol",
     "mock": "joint_mock",
 }
@@ -253,13 +254,19 @@ class JointPerceptionRequestBuilder:
     def build(self, context: PerceptionContext) -> ApiRequest:
         if not isinstance(context, PerceptionContext):
             raise TypeError("context must be PerceptionContext")
-        if self.config.provider in {"openai", "openrouter"}:
-            approved_models = (
-                _OPENAI_JOINT_MODEL_IDENTIFIERS
-                if self.config.provider == "openai"
-                else _OPENROUTER_JOINT_MODEL_IDENTIFIERS
-            )
-            if self.config.requested_model_identifier not in approved_models:
+        if self.config.provider in {"openai", "openrouter", "openai_compatible"}:
+            if self.config.provider == "openai_compatible":
+                approved_models = None
+            else:
+                approved_models = (
+                    _OPENAI_JOINT_MODEL_IDENTIFIERS
+                    if self.config.provider == "openai"
+                    else _OPENROUTER_JOINT_MODEL_IDENTIFIERS
+                )
+            if (
+                approved_models is not None
+                and self.config.requested_model_identifier not in approved_models
+            ):
                 raise ApiContractError(
                     "joint OpenRouter requests require an approved GPT-5.6 Sol/Luna model"
                     if self.config.provider == "openrouter"
@@ -344,7 +351,8 @@ class JointPerceptionRequestBuilder:
         payload = {
             "system_text": load_prompt_text(
                 self.config.response_schema_version,
-                academic_context=self.config.provider in {"openai", "openrouter"},
+                academic_context=self.config.provider
+                in {"openai", "openrouter", "openai_compatible"},
             ),
             "image_details": list(image_details),
             "input_text": json.dumps(
