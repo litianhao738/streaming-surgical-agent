@@ -15,6 +15,7 @@ tmp/
 scripts/API.txt
 docs/API.txt
 docs/openaiAPI.txt
+docs/qwen_API KEY
 *.ckpt
 *.pt
 
