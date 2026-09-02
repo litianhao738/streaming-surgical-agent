@@ -54,7 +54,7 @@ from surgical_agent.data.schemas import DatasetSplit
 from surgical_agent.inference.frame_result_writer import FrameResultWriter
 from surgical_agent.inference.writer import ArtifactWriteError
 from surgical_agent.perception.schema import (
-    RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
+    GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
 )
 from surgical_agent.research.reporting import EventReportGenerator
 from surgical_agent.research.signals.contracts import PhaseTransitionGraph
@@ -67,8 +67,8 @@ from surgical_agent.tracking.predicted_provider import (
     PrecomputedPredictedTrackProvider,
 )
 
-_MOCK_JOINT_VERSION = RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION
-_REAL_JOINT_VERSION = RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION
+_MOCK_JOINT_VERSION = GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION
+_REAL_JOINT_VERSION = GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION
 _OPENROUTER_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions"
 _OPENAI_ENDPOINT = "https://api.openai.com/v1/responses"
 _REAL_MODEL = "openai/gpt-5.6-sol"

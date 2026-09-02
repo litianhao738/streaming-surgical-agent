@@ -129,3 +129,58 @@ The runtime dataset check continues to use only
 `CHOLEC80_30_31_ROOT` is absent. No sidecar, manifest, split, label semantics,
 or research-task definition changed. Formal performance and paper experiments
 did not run, and no P4 or P9 contract was frozen.
+
+## Current Gate-owned schema continuation (2026-09-02)
+
+The provider-neutral client was re-audited after the active dataset protocol
+changed to `joint_perception_gate_owned_compact_v1`. The historical
+`joint_perception_frame_v1` smoke remains reproducible, while two new explicit
+synthetic profiles cover the active contract:
+
+- `configs/perception/joint_mock_gate_owned_smoke.yaml`;
+- `configs/perception/joint_openrouter_gate_owned_smoke.yaml`.
+
+The real OpenRouter run used three generated 32x32 RGB frames and uploaded no
+Track20 data. It returned a strictly valid structured payload with requested
+and returned model strings `openai/gpt-5.6-sol`. Sanitized accounting recorded
+2,178 input tokens, 319 output tokens, 2,497 total tokens, 20,279.42 ms, one
+provider call, no retry, and a non-null response ID. The identical second
+logical call was served from the canonical cache with zero provider calls,
+zero current cost, and the same request hash. The post-run tracked-file and
+artifact credential scan passed.
+The ignored `single_pass_artifact.json` has SHA-256
+`f9688b17985f2bdacbd1e7293887e801540caae3c3d35a059ef02c26970d6de3`;
+its run directory contains seven files and exactly one cache envelope.
+
+Two failure probes remain deliberately separated from that success:
+
+- the current local official OpenAI credential returned `authentication`;
+- a VID30 OpenRouter request returned `content_moderation` before model output.
+
+Because the synthetic request using the same active prompt/schema completed,
+the VID30 result is a provider content-policy outcome rather than evidence of a
+URL, request-format, JSON Schema, cache, or parser defect. It does mean that a
+complete real Track20 rollout through that OpenRouter route is not presently
+demonstrated.
+
+Current local evidence uses Python 3.11.7, Git HEAD
+`1bd9992ca285c57cb9e7f19e42e82acd14207f57`, data root
+`D:\cholec_dataset`, and repair-manifest SHA-256
+`c3ebb7e0db734be5f8c8418ac1e85bd54a21281664f623c2dacdfba5842d8d04`.
+The single-root verifier passed; the focused portability run reported
+`21 passed, 2 skipped` (optional upstream Cholec80 source unavailable and a
+Windows symlink privilege skip). API/cache/credential regression reported
+`363 passed, 1 skipped`; active-schema single-pass regression reported
+`103 passed`.
+
+The honest verdict remains `P3_STATUS: PARTIAL`: real multimodal transport,
+active structured output, accounting, cache replay, and credential isolation
+are operational, but OpenRouter did not expose an independently verifiable
+immutable backend-model identity. Formal paper performance is outside this
+P3 evidence.
+
+Final local regression for this continuation reports `911 passed, 14 skipped`
+in 27.18 seconds. Ruff and `compileall` pass. A locally built wheel also passes
+the resource audit: it contains the active Gate-owned perception prompt/schema
+and the targeted-verification prompt, so editable-install behavior is not being
+mistaken for deployable-package behavior.

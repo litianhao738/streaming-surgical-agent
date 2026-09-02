@@ -16,6 +16,9 @@ COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION = "joint_perception_compact_v1"
 RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION = (
     "joint_perception_reliability_compact_v2"
 )
+GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION = (
+    "joint_perception_gate_owned_compact_v1"
+)
 TASK_LAYOUT = (
     ("instrument", 7),
     ("verb", 10),
@@ -35,6 +38,7 @@ JOINT_PERCEPTION_SCHEMA_VERSIONS = frozenset(
         JOINT_PERCEPTION_SCHEMA_VERSION,
         COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
         RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
+        GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
     }
 )
 _TASK_NAMES = tuple(task for task, _count in TASK_LAYOUT)
@@ -47,6 +51,7 @@ _V1_ROOT_KEYS = frozenset(
     }
 )
 _V2_ROOT_KEYS = frozenset({"schema_version", *_TASK_NAMES, "uncertainty"})
+_GATE_OWNED_ROOT_KEYS = frozenset({"schema_version", *_TASK_NAMES})
 _UNCERTAINTY_PATHS = {
     "/instrument/selected_ids": "instrument",
     "/verb/selected_ids": "verb",
@@ -77,6 +82,8 @@ def task_layout_for_schema_version(
         return COMPACT_TASK_LAYOUT
     if schema_version == RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION:
         return COMPACT_TASK_LAYOUT
+    if schema_version == GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION:
+        return COMPACT_TASK_LAYOUT
     _invalid()
 
 
@@ -90,6 +97,9 @@ def joint_perception_schema(
         COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION: "perception_schema_compact.json",
         RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION: (
             "perception_schema_reliability_compact.json"
+        ),
+        GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION: (
+            "perception_schema_gate_owned_compact.json"
         ),
     }
     try:
@@ -325,6 +335,27 @@ def validate_reliability_compact_joint_perception_payload(
         _invalid()
 
 
+def validate_gate_owned_compact_joint_perception_payload(
+    payload: Mapping[str, Any],
+) -> None:
+    """Validate compact predictions whose reliability is owned by the Gate."""
+
+    try:
+        if not isinstance(payload, Mapping) or set(payload) != _GATE_OWNED_ROOT_KEYS:
+            _invalid()
+        if payload["schema_version"] != GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION:
+            _invalid()
+        for task, expected_count in COMPACT_TASK_LAYOUT:
+            _validate_task(
+                payload[task],
+                task=task,
+                expected_count=expected_count,
+                confidence_key="score",
+            )
+    except (KeyError, OverflowError, TypeError, ValueError):
+        _invalid()
+
+
 def validate_joint_perception_payload_by_version(
     payload: Mapping[str, Any],
 ) -> None:
@@ -342,5 +373,8 @@ def validate_joint_perception_payload_by_version(
         return
     if schema_version == RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION:
         validate_reliability_compact_joint_perception_payload(payload)
+        return
+    if schema_version == GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION:
+        validate_gate_owned_compact_joint_perception_payload(payload)
         return
     _invalid()

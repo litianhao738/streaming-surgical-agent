@@ -185,10 +185,6 @@ class ReliabilityGatePolicy:
             perception_result,
             findings,
         )
-        findings.extend(
-            GateFinding(item.path, item.reason, item.alternative_ids)
-            for item in perception_result.raw_evidence.field_uncertainties
-        )
         ordered = tuple(sorted(set(findings), key=_finding_key))
         flagged = tuple(
             task

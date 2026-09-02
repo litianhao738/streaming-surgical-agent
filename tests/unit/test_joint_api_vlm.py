@@ -31,6 +31,7 @@ from surgical_agent.perception.ontology_prompt import (
 )
 from surgical_agent.perception.schema import (
     COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
+    GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
     JOINT_PERCEPTION_SCHEMA_VERSION,
     RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
     TASK_LAYOUT,
@@ -244,6 +245,36 @@ def test_reliability_compact_request_loads_v2_prompt_and_mock_payload() -> None:
         "confidence",
     }
     validator_for(RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION)(
+        response.parsed_payload
+    )
+
+
+def test_gate_owned_request_excludes_model_uncertainty_and_status() -> None:
+    config = _config(
+        prompt_version=GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
+        response_schema_version=GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
+    )
+
+    request = JointPerceptionRequestBuilder(config=config).build(_context())
+    response = MockProviderTransport().send(request)
+    normalized_prompt = " ".join(request.payload["system_text"].split())
+
+    assert "selected_ids are sparse final predictions" in normalized_prompt
+    assert "must never be padded" in normalized_prompt
+    assert "separate local Gate" in normalized_prompt
+    assert set(response.parsed_payload) == {
+        "schema_version",
+        "instrument",
+        "verb",
+        "target",
+        "ivt",
+        "phase",
+    }
+    assert set(response.parsed_payload["instrument"]["topk"][0]) == {
+        "id",
+        "score",
+    }
+    validator_for(GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION)(
         response.parsed_payload
     )
 

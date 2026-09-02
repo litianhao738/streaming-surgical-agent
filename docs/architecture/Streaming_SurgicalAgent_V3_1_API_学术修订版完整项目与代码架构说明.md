@@ -171,77 +171,60 @@ EvaluationTarget ───────────────→ offline Evalua
 ```
 Track/Workflow 不建议写成冗长自然语言故事，而应使用 compact structured context。这样既减少 prompt token 差异，也能对 B0/B1/B2 context ablation 精确控制。
 
-## 5.2 输出 schema：必须同时支持候选与审计
+## 5.2 输出 schema：初始感知只提供预测与候选
 
-当前已批准并实现的第一版保持 **frame-level recognition**：Instrument、Verb、Target、IVT 是 multi-label presence，Phase 是 single-label。CholecTrack20 一帧可包含多个器械和多个交互，因此禁止把整帧 I/V/T/IVT 实现成唯一 `choice`。下面是 `joint_perception_frame_v1` 的结构伪代码，不是可直接送入 validator 的 JSON；尖括号行表示为节省篇幅而省略的候选。可执行 schema 以 `src/surgical_agent/perception/prompts/perception_schema.json` 为准。
+当前主运行协议是 `joint_perception_gate_owned_compact_v1`，保持 **frame-level recognition**：Instrument、Verb、Target、IVT 是 multi-label presence，Phase 是 single-label。CholecTrack20 一帧可包含多个器械和多个交互，因此禁止把整帧 I/V/T/IVT 实现成唯一 `choice`。初始 VLM 只负责稀疏预测和候选排序，不输出 uncertainty、status、flagged fields、Report 或 CoT。可执行 schema 以 `src/surgical_agent/perception/prompts/perception_schema_gate_owned_compact.json` 为准；旧协议只为历史 artifact/cache 审计保留。
 
 ```text
 {
-  "schema_version": "joint_perception_frame_v1",
+  "schema_version": "joint_perception_gate_owned_compact_v1",
   "instrument": {
     "selected_ids": [0, 5],
     "topk": [
       {"id": 0, "score": 0.84}, {"id": 5, "score": 0.61},
-      <再提供 5 个唯一候选，使总数严格为 7>
+      <再提供 1 个唯一候选，使 topk 总数严格为 3>
     ]
   },
   "verb": {
     "selected_ids": [1, 2],
     "topk": [
       {"id": 1, "score": 0.72}, {"id": 2, "score": 0.66},
-      <再提供 8 个唯一候选，使总数严格为 10>
+      <再提供 2 个唯一候选，使 topk 总数严格为 4>
     ]
   },
   "target": {
     "selected_ids": [2, 4],
     "topk": [
       {"id": 2, "score": 0.68}, {"id": 4, "score": 0.63},
-      <再提供 13 个唯一候选，使总数严格为 15>
+      <再提供 3 个唯一候选，使 topk 总数严格为 5>
     ]
   },
   "ivt": {
     "selected_ids": [12, 45],
     "topk": [
       {"id": 12, "score": 0.59}, {"id": 45, "score": 0.54},
-      <再提供 18 个唯一候选，使总数严格为 20>
+      <再提供 6 个唯一候选，使 topk 总数严格为 8>
     ]
   },
   "phase": {
     "selected_id": 3,
     "topk": [
       {"id": 3, "score": 0.78}, {"id": 2, "score": 0.18},
-      <再提供 5 个唯一候选，使总数严格为 7>
+      <再提供 1 个唯一候选，使 topk 总数严格为 3>
     ]
-  },
-  "evidence_refs": [
-    {"frame_id": 123, "code": "CURRENT_VISUAL_SUPPORT"}
-  ],
-  "self_reported_confidence": {
-    "instrument": 0.84,
-    "verb": 0.66,
-    "target": 0.63,
-    "ivt": 0.59,
-    "phase": 0.78
   }
 }
 ```
 
-Instrument、Verb、Target、Phase 的 `topk` 分别覆盖 7、10、15、7 个 ontology 类；IVT 返回 100 类中的前 20 个。每个候选必须是唯一、按分数降序的 `{id, score}`；每个 `selected_ids` 必须无重复且属于同任务 `topk`，Phase 必须且只能使用单个 `selected_id`。分数是 `uncalibrated_rank_v1`，不要求和为 1；未返回的 IVT 类在构造 dense score vector 时填 0，但该 0 不等同于经过校准的“缺失概率”。
+Instrument、Verb、Target、IVT、Phase 的 `topk` 数量分别固定为 3、4、5、8、3。精确数量只约束 `topk`；`selected_ids` 是稀疏预测，可以为空，绝不能为填满 top-k 而添加标签。每个候选必须唯一并按 `{id, score}` 的 score 降序；每个 selected ID 必须属于同任务 top-k，Phase 必须且只能使用单个 `selected_id`。分数语义是 `uncalibrated_rank_v1`，只作为 Gate 的候选分差和排序证据，不解释为校准概率。
 
 严格 parser 先把 wire response 转换为 frame-level `InitialPrediction`；`PredictionFinalizer` 再创建 durable `PredictionRecord`，其中使用 `instrument_ids`、`verb_ids`、`target_ids`、`triplet_ids`、`phase_id` 和五个 dense score vectors，并显式声明 `granularity="frame_multilabel"`。落盘 writer 持久化 `PredictionRecord`，frame-level evaluator 只在隔离的离线边界将它与监督 target 配对，不直接消费 wire 字段名。整帧监督只能来自明确的 frame presence semantics 或版本化、预注册的 instance-to-frame aggregation rule；partial instance annotation 的“未出现”不得静默当成负类。
 
-**延后的 instance-level 扩展不属于 `joint_perception_frame_v1`。** 如果后续正式加入 bbox、track identity 和 per-instance I/V/T/IVT，它必须使用独立、版本化且另行批准的 schema、matching rule 与 evaluator；此时单个 `instances[]` 元素内部可以是一实例一 `choice`，但不得把该字段解释为整帧唯一预测，也不得把两种粒度塞进当前 wire contract。instance-level 与 frame-level 指标必须分表报告，除非 EvaluationEngine 中存在预注册、版本化的 aggregation rule，否则禁止互相转换。
+**延后的 instance-level 扩展不属于 `joint_perception_gate_owned_compact_v1`。** 如果后续正式加入 bbox、track identity 和 per-instance I/V/T/IVT，它必须使用独立、版本化且另行批准的 schema、matching rule 与 evaluator；此时单个 `instances[]` 元素内部可以是一实例一 `choice`，但不得把该字段解释为整帧唯一预测，也不得把两种粒度塞进当前 wire contract。instance-level 与 frame-level 指标必须分表报告，除非 EvaluationEngine 中存在预注册、版本化的 aggregation rule，否则禁止互相转换。
 
-重要：当前 wire schema 要求输出完整的 `self_reported_confidence` mapping，以保持记录 shape 固定；但这些值在方法中只能作为 diagnostic/optional feature，不能默认解释为 calibrated probability。若 API 支持 forced-choice token logprobs，可单独实现 `LogprobCapability`，并在 validation 上做 calibration；否则 Gate 应主要依赖 model-independent uncertainty proxies。
+## 5.3 Gate-owned uncertainty
 
-## 5.3 API uncertainty 的学术修正
-
-|可作为 Gate 核心特征|只作为 optional / diagnostic|
-|---|---|
-|IVT internal compatibility、Phase-IVT soft compatibility、phase transition anomaly|API 自报 0–1 confidence|
-|prediction change across time、track continuity/conflict、memory disagreement|未校准的“entropy”字样|
-|top-k candidate disagreement / structural ambiguity、ontology-validity signals|自然语言 rationale 长度/语气|
-|provider 明确支持且经过校准的 token logprob（若可用）|不同 provider 之间不可比的 raw confidence|
+不确定性和验证路由由本地 Gate 独占。Gate 从 selected cardinality、selected score summary、top-1/top-2 margin、IVT closure、triplet compatibility、Phase-IVT consistency、phase transition、temporal change 和 Tracker 支持中计算特征，再输出 `ACCEPT` 或 `VERIFY(scope)`。初始 VLM 不得通过自报 uncertainty 或 status 直接触发 Specialist。若 provider 将来提供经过验证且可校准的 token logprob，可作为新增可选特征；不同 provider 的 raw score 仍不可直接比较。
 
 
 # 6. Track–Workflow Structured Context

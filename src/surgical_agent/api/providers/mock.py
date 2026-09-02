@@ -20,6 +20,7 @@ from surgical_agent.api.schema import (
 )
 from surgical_agent.perception.schema import (
     COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
+    GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
     JOINT_PERCEPTION_SCHEMA_VERSION,
     RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
     task_layout_for_schema_version,
@@ -128,6 +129,7 @@ class MockProviderTransport:
             JOINT_PERCEPTION_SCHEMA_VERSION,
             COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
             RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
+            GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
         }:
             payload = _joint_perception_payload(request)
         elif request.response_schema_version == TARGETED_VERIFICATION_SCHEMA_VERSION:
@@ -192,7 +194,7 @@ def _joint_perception_payload(request: ApiRequest) -> dict[str, object]:
         )
     if schema_version == RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION:
         payload["uncertainty"] = []
-    else:
+    elif schema_version != GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION:
         payload["evidence_refs"] = [
             {"frame_id": target_frame_id, "code": "CURRENT_VISUAL_SUPPORT"}
         ]

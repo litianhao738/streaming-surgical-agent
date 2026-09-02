@@ -55,7 +55,8 @@ CLI option or resolved configuration; it must not be embedded in source code.
 - Main requested backbone: OpenRouter `openai/gpt-5.6-sol` for joint perception
   and same-backbone joint verification. Requested and provider-returned model
   identifiers are persisted separately for audit.
-- Dataset API rollouts use the versioned `joint_perception_compact_v1` wire
+- Dataset API rollouts use the versioned
+  `joint_perception_gate_owned_compact_v1` wire
   contract (I3/V4/T5/IVT8/P3). The parser places returned IDs into the original
   7/10/15/100/7 task vectors and zero-fills omitted classes, so evaluator shapes
   and frame-level multi-label semantics remain unchanged. These values are

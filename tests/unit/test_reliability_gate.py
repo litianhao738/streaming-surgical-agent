@@ -21,7 +21,10 @@ from surgical_agent.perception.contracts import (
     PerceptionEvidence,
     RankedCandidate,
 )
-from surgical_agent.research.gate.features import NO_TRACKER_FEATURE_ORDER
+from surgical_agent.research.gate.features import (
+    NO_TRACKER_FEATURE_ORDER,
+    extract_gate_features,
+)
 from surgical_agent.research.gate.policy import (
     ForcedTargetedVerificationPolicy,
     FrozenLinearBenefitGate,
@@ -271,7 +274,7 @@ def test_low_confidence_checks_every_selected_label_not_only_the_first() -> None
     )
 
 
-def test_vlm_uncertainty_is_preserved_as_a_field_scoped_gate_finding() -> None:
+def test_vlm_self_reported_uncertainty_does_not_control_gate_routing() -> None:
     uncertainty = FieldUncertainty(
         path="/target/selected_ids",
         reason="OCCLUSION",
@@ -280,14 +283,36 @@ def test_vlm_uncertainty_is_preserved_as_a_field_scoped_gate_finding() -> None:
 
     decision = _decide(_result(uncertainties=(uncertainty,)))
 
-    assert decision.flagged_fields == ("target",)
-    assert decision.findings == (
-        GateFinding(
-            path="/target/selected_ids",
-            reason="OCCLUSION",
-            alternative_ids=(2,),
-        ),
+    assert decision.action == "ACCEPT"
+    assert decision.flagged_fields == ()
+    assert decision.findings == ()
+
+
+def test_learned_gate_features_are_derived_without_vlm_uncertainty() -> None:
+    result = _result(
+        uncertainties=(
+            FieldUncertainty(
+                path="/target/selected_ids",
+                reason="OCCLUSION",
+                alternative_ids=(2,),
+            ),
+        )
     )
+    context = _context()
+    signals = FrameEvidenceSignalExtractor().extract(context, result)
+
+    features = extract_gate_features(
+        signals,
+        context=context,
+        perception_result=result,
+        include_tracker=False,
+    ).as_mapping()
+
+    assert "uncertainty_count" not in features
+    assert "has_field_uncertainty" not in features
+    assert "num_alternatives" not in features
+    assert features["instrument_selected_count"] == 1.0
+    assert features["global_min_margin"] == pytest.approx(0.40)
 
 
 def test_ivt_closure_and_component_compatibility_flag_only_involved_fields() -> None:

@@ -440,7 +440,9 @@ class PredictionFinalizer:
             raise ValueError("finalize accepts only one prediction input")
         prediction = coordinated.prediction
         final_status = final_status_for(coordinated.verification_status)
-        gate_reasons = tuple(finding.reason for finding in decision.findings)
+        gate_reasons = tuple(
+            dict.fromkeys(finding.reason for finding in decision.findings)
+        )
         flagged_fields = decision.flagged_fields
         repaired_fields = canonical_tasks(tuple(coordinated.touched_tasks))
         memory_action = memory_action_for(

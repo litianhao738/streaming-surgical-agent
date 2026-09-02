@@ -3,8 +3,8 @@ mode: real
 provider: openai_compatible
 endpoint_identifier: https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions
 requested_model_identifier: qwen3.8-max
-prompt_version: joint_perception_reliability_compact_v2
-response_schema_version: joint_perception_reliability_compact_v2
+prompt_version: joint_perception_gate_owned_compact_v1
+response_schema_version: joint_perception_gate_owned_compact_v1
 generation_parameters:
   max_output_tokens: 1536
   temperature: 0.0

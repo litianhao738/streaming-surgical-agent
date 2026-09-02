@@ -1,9 +1,11 @@
 # Qwen OpenAI-Compatible Engineering Run
 
 The Qwen gateway is an engineering substitute for API testing. It uses the
-same compact joint prediction prompt and runtime JSON validator, but it does
-not change the frozen paper backbone automatically. No API key is stored in
-this repository.
+same `joint_perception_gate_owned_compact_v1` prompt and runtime JSON validator
+as the other dataset providers. Initial responses contain sparse selections and
+uncalibrated top-k ranking scores; the local Gate exclusively decides
+uncertainty and routing. This configuration does not change the frozen paper
+backbone automatically. No API key is stored in this repository.
 
 From Windows CMD, provide the model, gateway, and temporary key at runtime:
 

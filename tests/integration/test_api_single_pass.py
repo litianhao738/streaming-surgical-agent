@@ -40,6 +40,12 @@ from surgical_agent.perception.schema import (
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 MOCK_CONFIG = PROJECT_ROOT / "configs/perception/joint_mock.yaml"
 REAL_CONFIG = PROJECT_ROOT / "configs/perception/joint_openrouter.yaml"
+GATE_OWNED_MOCK_CONFIG = (
+    PROJECT_ROOT / "configs/perception/joint_mock_gate_owned_smoke.yaml"
+)
+GATE_OWNED_REAL_CONFIG = (
+    PROJECT_ROOT / "configs/perception/joint_openrouter_gate_owned_smoke.yaml"
+)
 
 EXPECTED_IMAGES = [
     {
@@ -194,6 +200,45 @@ def test_joint_configs_freeze_exact_single_pass_identity_and_policy() -> None:
         "max_causal_frames",
     ):
         assert getattr(mock, field) == getattr(real, field)
+
+
+def test_gate_owned_synthetic_configs_are_exact_and_executable(
+    tmp_path: Path,
+) -> None:
+    mock = load_api_config(GATE_OWNED_MOCK_CONFIG)
+    real = load_api_config(GATE_OWNED_REAL_CONFIG)
+    expected_version = "joint_perception_gate_owned_compact_v1"
+
+    assert mock.prompt_version == expected_version
+    assert mock.response_schema_version == expected_version
+    assert real.prompt_version == expected_version
+    assert real.response_schema_version == expected_version
+    assert dict(mock.generation_parameters) == {
+        "max_output_tokens": 1536,
+        "reasoning": {"effort": "none"},
+    }
+    assert dict(real.generation_parameters) == dict(mock.generation_parameters)
+    assert dict(real.provider_options) == {
+        "timeout_seconds": 120.0,
+        "routing_profile": "strict_openai",
+    }
+    assert mock.synthetic_input_required is True
+    assert real.synthetic_input_required is True
+    assert mock.data_upload_authorized is False
+    assert real.data_upload_authorized is False
+
+    artifact = run_single_pass(
+        config=mock,
+        output_dir=tmp_path / "gate-owned-smoke",
+        api_key=None,
+    )
+
+    assert artifact["status"] == "MOCK_COMPLETE"
+    assert artifact["prompt_version"] == expected_version
+    assert artifact["response_schema_version"] == expected_version
+    assert artifact["first"]["cache_hit"] is False
+    assert artifact["second"]["cache_hit"] is True
+    assert artifact["second"]["provider_call_count"] == 0
 
     experiment = load_yaml(PROJECT_ROOT / "configs/experiments/api_single_pass.yaml")
     assert experiment["comparison_group"] == "main_accuracy"

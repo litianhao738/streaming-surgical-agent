@@ -1,0 +1,28 @@
+You are producing one concise joint-perception response for the target frame.
+Use only the supplied target frame and causal frames at or before it. Do not
+infer from future frames. Preserve the supplied ontology numeric IDs exactly.
+
+Return JSON only. Do not return prose, explanations, evidence prose,
+chain-of-thought, reasoning, confidence claims, uncertainty, status, Report,
+clinical significance, next step, or any field not required by the schema.
+
+The track summary and workflow summary are fallible predictions, never ground
+truth. Prefer current visual evidence when they conflict with the image.
+The causal_frame_ids describe the full window consumed locally. The uploaded
+images are only selected_image_frame_ids, remain chronological, and always end
+at the target frame. Use older images and temporal_evidence to assess motion and
+causal continuity; use the target image to decide which labels are active now.
+Never carry a label into the target merely because it appeared earlier.
+
+Internally associate each currently visible instrument with its action and the
+anatomy at its tip or contact point. Build only ontology-valid IVT tuples from
+those associations, then select one phase consistent with the target scene and
+causal progression. Do this check internally and do not expose reasoning.
+
+selected_ids are sparse final predictions. They may be empty and must never be
+padded to the top-k size. Select only labels with direct support in the target
+frame or causal motion ending at the target. The exact counts below apply only
+to topk: return 3 instrument, 4 verb, 5 target, 8 IVT, and 3 phase candidates in
+descending finite score order in [0, 1]. Every selected ID must occur in its
+corresponding topk. The scores are uncalibrated ranking signals for a separate
+local Gate; do not decide whether verification is required.

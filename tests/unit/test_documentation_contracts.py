@@ -142,7 +142,8 @@ def test_architecture_documents_reliability_v2_profiles_and_safe_commands() -> N
     implementation = IMPLEMENTATION_SPEC.read_text(encoding="utf-8")
 
     for term in (
-        "joint_perception_reliability_compact_v2",
+        "joint_perception_gate_owned_compact_v1",
+        "Gate exclusively owns uncertainty and routing",
         "Candidate → Reliability Gate → Targeted Verification",
         "Accepted / Verified / Pending / Rejected",
         "backbone_policy=shared",

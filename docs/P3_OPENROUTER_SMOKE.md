@@ -59,3 +59,40 @@ the parsed model message, raw provider response, image bytes, and credential.
 
 Use a new run ID when repeating the command because output directories are
 created exclusively.
+
+## Current Gate-owned contract continuation (2026-09-02)
+
+The active dataset wire contract was subsequently changed to
+`joint_perception_gate_owned_compact_v1`. A separate synthetic smoke profile
+now exercises that exact prompt/schema without uploading surgical data:
+
+```powershell
+.\.venv-p2\Scripts\python.exe scripts\run_api_single_pass.py `
+  --real `
+  --config configs\perception\joint_openrouter_gate_owned_smoke.yaml `
+  --api-key-file docs\API.txt `
+  --output-root artifacts\p3_current_schema `
+  --run-id p3_gate_owned_openrouter_synthetic_20260902
+```
+
+Sanitized evidence from that run:
+
+- three deterministic 32x32 synthetic RGB frames; no Track20 image uploaded;
+- requested and returned model strings: `openai/gpt-5.6-sol`;
+- first call: cache miss, one provider call, 2,178 input tokens, 319 output
+  tokens, 2,497 total tokens, 20,279.42 ms, and no retry;
+- second identical call: cache hit, zero provider calls, zero current cost, and
+  the same canonical request hash;
+- strict Gate-owned JSON validation, parser, prediction/evidence persistence,
+  response ID capture, and post-run credential scan all passed.
+
+The ignored local evidence artifact is
+`artifacts/p3_current_schema/p3_gate_owned_openrouter_synthetic_20260902/single_pass_artifact.json`.
+Its SHA-256 is
+`f9688b17985f2bdacbd1e7293887e801540caae3c3d35a059ef02c26970d6de3`.
+An official OpenAI probe using the separately supplied local key failed with
+the sanitized category `authentication`. A real VID30 OpenRouter probe reached
+the provider but was rejected as `content_moderation`; the successful synthetic
+run proves that this was not a URL, request-shape, schema, or parser failure.
+The verdict remains `P3 PARTIAL` only because the returned model string is a
+routing alias rather than independently verifiable immutable backend identity.

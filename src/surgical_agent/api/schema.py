@@ -14,10 +14,12 @@ from surgical_agent.perception.contracts import (
 )
 from surgical_agent.perception.schema import (
     COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
+    GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
     JOINT_PERCEPTION_SCHEMA_VERSION,
     RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
     joint_perception_schema,
     validate_compact_joint_perception_payload,
+    validate_gate_owned_compact_joint_perception_payload,
     validate_joint_perception_payload,
     validate_reliability_compact_joint_perception_payload,
 )
@@ -158,6 +160,9 @@ _FROZEN_COMPACT_JOINT_PERCEPTION_JSON_SCHEMA = _freeze_schema(
 )
 _FROZEN_RELIABILITY_COMPACT_JOINT_PERCEPTION_JSON_SCHEMA = _freeze_schema(
     joint_perception_schema(RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION)
+)
+_FROZEN_GATE_OWNED_COMPACT_JOINT_PERCEPTION_JSON_SCHEMA = _freeze_schema(
+    joint_perception_schema(GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION)
 )
 
 
@@ -303,6 +308,10 @@ SCHEMAS: Mapping[
         RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION: (
             _FROZEN_RELIABILITY_COMPACT_JOINT_PERCEPTION_JSON_SCHEMA,
             validate_reliability_compact_joint_perception_payload,
+        ),
+        GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION: (
+            _FROZEN_GATE_OWNED_COMPACT_JOINT_PERCEPTION_JSON_SCHEMA,
+            validate_gate_owned_compact_joint_perception_payload,
         ),
     }
 )

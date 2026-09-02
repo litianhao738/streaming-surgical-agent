@@ -34,6 +34,7 @@ from surgical_agent.data.schemas import DatasetSplit, InferenceSample
 from surgical_agent.inference.writer import ArtifactWriteError
 from surgical_agent.perception.schema import (
     COMPACT_TASK_LAYOUT,
+    GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
     RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
 )
 
@@ -63,6 +64,10 @@ class InjectedOpenRouterTransport:
             request.response_schema_version
             == RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION
         )
+        gate_owned = (
+            request.response_schema_version
+            == GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION
+        )
         payload: dict[str, object] = {"schema_version": request.response_schema_version}
         for task, count in COMPACT_TASK_LAYOUT:
             topk = [
@@ -81,7 +86,7 @@ class InjectedOpenRouterTransport:
             )
         if reliability_v2:
             payload["uncertainty"] = []
-        else:
+        elif not gate_owned:
             payload["evidence_refs"] = [
                 {"frame_id": frame_id, "code": "CURRENT_VISUAL_SUPPORT"}
             ]
@@ -808,15 +813,15 @@ def test_dataset_rollout_freezes_compact_json_budget_at_lowest_reasoning_effort(
     latency = load_api_config(LATENCY_DATASET_CONFIG)
     mock = load_api_config(MOCK_DATASET_CONFIG)
 
-    assert real.prompt_version == RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION
+    assert real.prompt_version == GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION
     assert (
         real.response_schema_version
-        == RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION
+        == GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION
     )
-    assert mock.prompt_version == RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION
+    assert mock.prompt_version == GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION
     assert (
         mock.response_schema_version
-        == RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION
+        == GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION
     )
     assert dict(real.generation_parameters) == {
         "max_output_tokens": 1536,
@@ -873,7 +878,7 @@ def test_luna_dataset_config_and_fair_experiment_profiles_are_explicit() -> None
         PROJECT_ROOT / "configs/perception/joint_openrouter_luna_dataset.yaml"
     )
     assert luna.requested_model_identifier == "openai/gpt-5.6-luna"
-    assert luna.prompt_version == RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION
+    assert luna.prompt_version == GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION
     assert dict(luna.generation_parameters) == {
         "max_output_tokens": 1536,
         "reasoning": {"effort": "none"},

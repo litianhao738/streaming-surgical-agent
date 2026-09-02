@@ -61,7 +61,9 @@ from surgical_agent.systems.pipeline import (
     PredictionFinalizer,
 )
 
-_JOINT_VERSION = "joint_perception_frame_v1"
+_LEGACY_JOINT_VERSION = "joint_perception_frame_v1"
+_GATE_OWNED_JOINT_VERSION = "joint_perception_gate_owned_compact_v1"
+_JOINT_VERSIONS = frozenset({_LEGACY_JOINT_VERSION, _GATE_OWNED_JOINT_VERSION})
 _OPENROUTER_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions"
 _REAL_MODEL = "openai/gpt-5.6-sol"
 _MOCK_MODEL = "mock-joint-perception-v1"
@@ -112,18 +114,17 @@ def _require_exact_config(config: ApiConfig, *, has_credential: bool) -> None:
         raise TypeError("has_credential must be boolean")
     config.require_enabled()
     config.validate()
-    if config.prompt_version != _JOINT_VERSION:
-        raise ApiContractError("single pass requires the exact prompt version")
-    if config.response_schema_version != _JOINT_VERSION:
-        raise ApiContractError("single pass requires the exact response schema")
+    if config.prompt_version not in _JOINT_VERSIONS:
+        raise ApiContractError("single pass requires an approved prompt version")
+    if config.response_schema_version != config.prompt_version:
+        raise ApiContractError("single pass requires matching prompt/schema versions")
     generation = dict(config.generation_parameters)
-    if (
-        set(generation) != {"max_output_tokens", "reasoning"}
-        or type(generation["max_output_tokens"]) is not int
-        or generation["max_output_tokens"] != 4096
-        or not isinstance(generation["reasoning"], Mapping)
-        or dict(generation["reasoning"]) != {"effort": "low"}
-    ):
+    expected_generation = (
+        {"max_output_tokens": 4096, "reasoning": {"effort": "low"}}
+        if config.prompt_version == _LEGACY_JOINT_VERSION
+        else {"max_output_tokens": 1536, "reasoning": {"effort": "none"}}
+    )
+    if generation != expected_generation:
         raise ApiContractError("single pass requires the exact generation settings")
     if config.synthetic_input_required is not True:
         raise ApiContractError("single pass requires synthetic input")
@@ -142,11 +143,12 @@ def _require_exact_config(config: ApiConfig, *, has_credential: bool) -> None:
                 "real single pass requires the exact requested model"
             )
         options = dict(config.provider_options)
-        if (
-            set(options) != {"timeout_seconds"}
-            or type(options["timeout_seconds"]) is not float
-            or options["timeout_seconds"] != 120.0
-        ):
+        expected_options = (
+            {"timeout_seconds": 120.0}
+            if config.prompt_version == _LEGACY_JOINT_VERSION
+            else {"timeout_seconds": 120.0, "routing_profile": "strict_openai"}
+        )
+        if options != expected_options:
             raise ApiContractError("real single pass requires the exact timeout")
         if not has_credential:
             raise ApiContractError("real single pass requires exactly one credential")

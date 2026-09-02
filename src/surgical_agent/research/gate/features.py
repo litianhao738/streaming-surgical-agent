@@ -14,6 +14,7 @@ from surgical_agent.research.signals.contracts import EvidenceProfile
 from surgical_agent.research.signals.frame_evidence import load_ivt_components
 
 _TASK_FEATURE_SUFFIXES = (
+    "selected_count",
     "selected_min",
     "selected_mean",
     "top1",
@@ -24,9 +25,8 @@ BASE_GATE_FEATURE_NAMES = tuple(
 ) + (
     "global_selected_min",
     "global_selected_mean",
-    "uncertainty_count",
-    "has_field_uncertainty",
-    "num_alternatives",
+    "global_min_margin",
+    "global_mean_margin",
     "ivt_closure_conflict",
     "triplet_compatibility_conflict",
     "phase_triplet_conflict",
@@ -152,6 +152,7 @@ def extract_gate_features(
     evidence = perception_result.raw_evidence
     values: dict[str, float] = {}
     all_selected_confidences: list[float] = []
+    all_margins: list[float] = []
     for task in TASK_NAMES:
         rankings = evidence.ranked_candidates[task]
         by_id = {candidate.class_id: candidate.confidence for candidate in rankings}
@@ -159,6 +160,7 @@ def extract_gate_features(
             float(by_id.get(class_id, 0.0)) for class_id in _selected(prediction, task)
         ]
         all_selected_confidences.extend(selected_confidences)
+        values[f"{task}_selected_count"] = float(len(_selected(prediction, task)))
         values[f"{task}_selected_min"] = (
             min(selected_confidences) if selected_confidences else 0.0
         )
@@ -173,6 +175,7 @@ def extract_gate_features(
             if len(rankings) > 1
             else values[f"{task}_top1"]
         )
+        all_margins.append(values[f"{task}_margin"])
     values["global_selected_min"] = (
         min(all_selected_confidences) if all_selected_confidences else 0.0
     )
@@ -181,11 +184,9 @@ def extract_gate_features(
         if all_selected_confidences
         else 0.0
     )
-    uncertainties = evidence.field_uncertainties
-    values["uncertainty_count"] = float(len(uncertainties))
-    values["has_field_uncertainty"] = float(bool(uncertainties))
-    values["num_alternatives"] = float(
-        sum(len(item.alternative_ids) for item in uncertainties)
+    values["global_min_margin"] = min(all_margins) if all_margins else 0.0
+    values["global_mean_margin"] = (
+        sum(all_margins) / len(all_margins) if all_margins else 0.0
     )
 
     components = load_ivt_components()

@@ -114,14 +114,17 @@ current local bundle format places the raw `sk-or-v1-...` credential on its
 first non-empty line; never paste the key directly into shared shell history.
 
 ```bash
-python scripts/smoke_api.py \
-  --config configs/api/openrouter.yaml \
+python scripts/run_api_single_pass.py \
+  --config configs/perception/joint_openrouter_gate_owned_smoke.yaml \
   --real \
   --api-key-file docs/API.txt
 ```
 
-This smoke uploads only the generated synthetic blue square. It does not upload
-any CholecTrack20 frame.
+This smoke uploads only three generated 32x32 RGB frames, validates the current
+`joint_perception_gate_owned_compact_v1` response, and immediately replays the
+identical request from cache. It does not upload any CholecTrack20 frame. The
+legacy `scripts/smoke_api.py` transport probe remains available as historical
+P3 coverage.
 
 ## CholecTrack20 Dataset API Rollout
 
@@ -147,7 +150,7 @@ Only after that command and its artifacts pass inspection, opt in to one real
 OpenRouter call. The configuration authorization and the literal CLI flag are
 both required:
 
-The dataset configurations use `joint_perception_compact_v1`: the provider
+The dataset configurations use `joint_perception_gate_owned_compact_v1`: the provider
 returns 3/4/5/8/3 ranked candidates, while local parsing restores the full
 7/10/15/100/7 evaluator vector shapes by zero-filling omitted IDs.
 

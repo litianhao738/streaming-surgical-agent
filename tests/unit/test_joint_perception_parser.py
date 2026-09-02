@@ -18,9 +18,11 @@ from surgical_agent.perception.parser import parse_joint_perception_response
 from surgical_agent.perception.schema import (
     COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
     COMPACT_TASK_LAYOUT,
+    GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
     JOINT_PERCEPTION_SCHEMA_VERSION,
     RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
     validate_compact_joint_perception_payload,
+    validate_gate_owned_compact_joint_perception_payload,
     validate_joint_perception_payload,
     validate_reliability_compact_joint_perception_payload,
 )
@@ -138,6 +140,16 @@ def valid_reliability_compact_joint_payload() -> dict[str, Any]:
             "alternative_ids": [42],
         }
     ]
+    return payload
+
+
+def valid_gate_owned_compact_joint_payload() -> dict[str, Any]:
+    """Return a compact initial prediction with no model-owned uncertainty."""
+
+    payload = valid_compact_joint_payload()
+    payload["schema_version"] = GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION
+    payload.pop("evidence_refs")
+    payload.pop("self_reported_confidence")
     return payload
 
 
@@ -264,6 +276,43 @@ def test_reliability_compact_v2_parses_confidences_and_field_uncertainty() -> No
     assert result.raw_evidence.evidence_refs == ()
     assert result.raw_evidence.field_uncertainties[0].path == "/ivt/selected_ids"
     assert result.raw_evidence.field_uncertainties[0].alternative_ids == (42,)
+
+
+def test_gate_owned_compact_parser_exposes_rankings_but_no_uncertainty() -> None:
+    payload = valid_gate_owned_compact_joint_payload()
+
+    validate_gate_owned_compact_joint_perception_payload(payload)
+    result = parse_joint_perception_response(
+        api_record(parsed_payload=payload),
+        video_id="VID30",
+        frame_id=12,
+        backend="joint_openrouter_gpt56sol",
+    )
+
+    assert result.prediction.triplet_ids == (99,)
+    assert result.prediction.score_semantics == "uncalibrated_rank_v1"
+    assert result.raw_evidence.ranked_candidates["ivt"][1].score == 0.91
+    assert result.raw_evidence.self_reported_confidence == {
+        task: None for task, _count in COMPACT_TASK_LAYOUT
+    }
+    assert result.raw_evidence.evidence_refs == ()
+    assert result.raw_evidence.field_uncertainties == ()
+    assert set(payload) == {
+        "schema_version",
+        "instrument",
+        "verb",
+        "target",
+        "ivt",
+        "phase",
+    }
+
+
+def test_gate_owned_compact_rejects_model_owned_decision_fields() -> None:
+    payload = valid_gate_owned_compact_joint_payload()
+    payload["uncertainty"] = []
+
+    with pytest.raises(ApiSchemaError):
+        validate_gate_owned_compact_joint_perception_payload(payload)
 
 
 @pytest.mark.parametrize(

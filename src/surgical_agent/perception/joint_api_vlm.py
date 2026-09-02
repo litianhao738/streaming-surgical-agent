@@ -26,6 +26,7 @@ from surgical_agent.perception.ontology_prompt import (
 from surgical_agent.perception.parser import parse_joint_perception_response
 from surgical_agent.perception.schema import (
     COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
+    GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
     JOINT_PERCEPTION_SCHEMA_VERSION,
     JOINT_PERCEPTION_SCHEMA_VERSIONS,
     RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
@@ -56,6 +57,9 @@ def load_prompt_text(
         COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION: "perception_prompt_compact.txt",
         RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION: (
             "perception_prompt_reliability_compact.txt"
+        ),
+        GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION: (
+            "perception_prompt_gate_owned_compact.txt"
         ),
     }
     try:

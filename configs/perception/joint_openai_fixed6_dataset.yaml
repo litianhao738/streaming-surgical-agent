@@ -3,8 +3,8 @@ mode: real
 provider: openai
 endpoint_identifier: https://api.openai.com/v1/responses
 requested_model_identifier: gpt-5.6-sol
-prompt_version: joint_perception_reliability_compact_v2
-response_schema_version: joint_perception_reliability_compact_v2
+prompt_version: joint_perception_gate_owned_compact_v1
+response_schema_version: joint_perception_gate_owned_compact_v1
 generation_parameters:
   max_output_tokens: 1536
   reasoning:

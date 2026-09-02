@@ -17,6 +17,7 @@ from surgical_agent.perception.contracts import (
     RankedCandidate,
 )
 from surgical_agent.perception.schema import (
+    GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
     RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
     task_layout_for_schema_version,
     validate_joint_perception_payload_by_version,
@@ -96,16 +97,24 @@ def parse_joint_perception_response(
             )
             for task, _count in task_layout
         }
-        if schema_version == RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION:
+        if schema_version in {
+            RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
+            GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
+        }:
             confidences = {task: None for task, _count in task_layout}
             references = ()
-            uncertainties = tuple(
-                FieldUncertainty(
-                    path=item["path"],
-                    reason=item["reason"],
-                    alternative_ids=tuple(item["alternative_ids"]),
+            uncertainties = (
+                tuple(
+                    FieldUncertainty(
+                        path=item["path"],
+                        reason=item["reason"],
+                        alternative_ids=tuple(item["alternative_ids"]),
+                    )
+                    for item in payload["uncertainty"]
                 )
-                for item in payload["uncertainty"]
+                if schema_version
+                == RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION
+                else ()
             )
         else:
             confidences = {

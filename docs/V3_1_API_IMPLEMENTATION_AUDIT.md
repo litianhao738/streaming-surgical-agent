@@ -2,9 +2,11 @@
 
 ## Audit Scope
 
-This document records the repository state after P2 Local Smoke completion. It
-does not claim completion of the API perception baseline, tracking, learned Gate,
-Specialist verification, workflow model, EventMemory, or paper evaluation.
+This document began as the post-P2 audit and retains its chronological evidence.
+The current table incorporates later implementation through the Gate-owned API
+contract. It distinguishes runnable engineering paths from paper-complete
+training and evaluation; later-stage code presence is not treated as a passed
+research gate.
 
 ## Current Stage State
 
@@ -21,7 +23,11 @@ Specialist verification, workflow model, EventMemory, or paper evaluation.
 | Gold-free boundary | PASS | Inference and evaluation target types are structurally separate |
 | P2 Local Smoke | PASS | Real masked step, checkpoint reload, canonical rollout, evaluation, and atomic artifacts passed |
 | P3 API infrastructure | PARTIAL | Mock and real OpenRouter `openai/gpt-5.6-sol` multimodal structured smoke pass; exact immutable backend identity is unavailable |
-| P4-P12 | NOT STARTED / PHASE-GATED | No later research stage has passed |
+| P4 API single-pass | ENGINEERING READY | Current compact parser/runtime pass mock and synthetic real transport; full real dataset rollout is provider-moderation dependent |
+| P5 Tracker/Workflow context | PARTIAL | Full Tracker checkpoint, predicted-track artifact and causal WorkflowState runtime exist; OOF/formal ablations remain |
+| P6-P7 priors/candidates/memory | PARTIAL | Training-derived phase graph, bounded candidates and finalized-only memory store exist; reliability-weighted retrieval is not implemented |
+| P8 Specialist verification | PARTIAL | Targeted candidate-bounded verifier and deterministic Coordinator run; three Specialist promotion evidence is absent |
+| P9-P12 learned Gate/paper evaluation | DEMO ONLY / INCOMPLETE | Demo binary Joint Gate artifacts exist; formal scoped G0/D1/G1, frozen operating point and complete paper matrix do not |
 
 P2 is an engineering baseline, not a scientific-performance baseline. VID30 remains a documented
 candidate reconstruction. VID31 contributes CholecT50 frame-level Instrument/Verb/Target/Triplet
@@ -89,10 +95,12 @@ evidence, was not copied into the repository, and is represented as `REDACTED_NO
 4. Official Synapse text does not spell out every PNG extraction/index convention or negative
    sentinel meaning. Exact local/cross-dataset rules and task-wise masks make these nonblocking
    provenance caveats, not permission to invent medical semantics.
-5. The declared `GPT-5.6 Terra` name is not an auditable API identity. Exact provider, endpoint
-   provenance, returned model identifier, and capabilities remain blocked until P3 real smoke.
+5. The active requested model is OpenRouter `openai/gpt-5.6-sol`. Real smoke
+   records provider, endpoint and the returned model string, but the latter is
+   still a routing alias rather than immutable backend identity.
 6. The first recognition slice has now frozen I/V/T/IVT as frame-level multi-label and Phase as
-   frame-level single-label under `joint_perception_frame_v1`. Cross-granularity conversion remains
+   frame-level single-label under `joint_perception_gate_owned_compact_v1`.
+   Cross-granularity conversion remains
    forbidden; any future instance-level schema, prediction matching, and metrics still require a
    separate approval based on the P2 eligibility evidence.
 7. Canonical per-sample Gate error, task normalization scales, and weights remain blocked until
@@ -207,10 +215,15 @@ The official split and class ranges remain unchanged. Repository state is now P1
 The approved and implemented first joint-perception slice now closes the former P4 granularity
 ambiguity for frame recognition only:
 
-- The active wire schema is `joint_perception_frame_v1`. Instrument, Verb, Target, and IVT use
-  multi-label `selected_ids`; Phase alone uses the single-label `selected_id`. Every task also
-  carries ranked `{id, score}` candidates with fixed counts of 7/10/15/20/7 respectively.
-- The active wire schema does not accept `instances`, bbox, track identity, or per-instance
+- The active dataset wire schema is `joint_perception_gate_owned_compact_v1`.
+  Instrument, Verb, Target, and IVT use multi-label `selected_ids`; Phase alone
+  uses the single-label `selected_id`. Every task also carries ranked
+  `{id, score}` candidates with fixed counts of 3/4/5/8/3 respectively. The
+  former `joint_perception_frame_v1` contract remains supported for historical
+  P3 cache and provenance replay, but it is not selected by current dataset
+  configurations.
+- The active wire schema does not accept model-owned uncertainty/status,
+  `instances`, bbox, track identity, or per-instance
   `choice` fields. The strict parser converts it to a frame-level `InitialPrediction`; the
   `PredictionFinalizer` then creates the durable `PredictionRecord` with `instrument_ids`,
   `verb_ids`, `target_ids`, `triplet_ids`, `phase_id`, dense task score vectors,
@@ -220,13 +233,16 @@ ambiguity for frame recognition only:
   task-valid video/class units with positive GT support, averages each class over eligible videos,
   and averages defined classes into video-wise mAP; IVT null classes 94–99 retain support but are
   excluded from AP/mAP. For Phase it computes per-video Accuracy and macro-F1 over GT-present
-  classes, then averages eligible videos equally. The separate CLI in `scripts/evaluate.py` remains
-  a blocked P12 entry point; implementing that entry point must reuse these
-  `frame_recognition_metrics_v1` semantics rather than introduce another prediction shape or
-  aggregate definition.
+  classes, then averages eligible videos equally. The offline CLI in
+  `scripts/evaluate.py` reuses these `frame_recognition_metrics_v1` semantics
+  rather than introducing another prediction shape or aggregate definition.
+  Omitted class scores are zero-filled to retain the
+  7/10/15/100/7 evaluator shape and remain explicitly uncalibrated top-k ranks,
+  not full logits.
 - Any future instance-level detection/tracking output remains deferred. It requires a separately
   approved, versioned schema, matching rule, and evaluator; a per-instance `choice` must never be
-  interpreted as a frame-level unique label or mixed into `joint_perception_frame_v1`.
+  interpreted as a frame-level unique label or mixed into
+  `joint_perception_gate_owned_compact_v1`.
 - This synchronization changes no dataset split, task ontology, annotation semantics, masks,
   runtime API behavior, or paper metric definition. It only makes the architecture documents match
   the already implemented frame-level contract.
@@ -234,3 +250,24 @@ ambiguity for frame recognition only:
 This check reduces known consistency and implementation risks but is not a proof that future
 algorithmic code will be defect-free. Each later phase must still pass its own unit, integration,
 causality, leakage, provenance, and experiment-attribution gates before advancement.
+
+## Active-schema real transport re-audit (2026-09-02)
+
+The exact active Gate-owned prompt/schema completed a real OpenRouter synthetic
+three-frame request and an identical zero-provider-call cache replay. Requested
+and returned model strings were both `openai/gpt-5.6-sol`; a response ID, token
+usage, latency, provider cost, request hash, prediction/evidence pair, and cache
+envelope were recorded without persisting the credential or raw model response.
+The run uploaded no Track20 image. The independently tested VID30 route reached
+OpenRouter but returned `content_moderation`; a separate official OpenAI probe
+returned `authentication`. These failure categories do not invalidate the
+successful provider-neutral transport/schema/cache path, but full real dataset
+rollout remains environment/provider-policy dependent. P3 therefore remains
+`PARTIAL` because immutable backend identity is unavailable, not because the
+active API contract is unimplemented.
+
+The final 2026-09-02 repository regression reports `911 passed, 14 skipped`;
+Ruff, `compileall`, the single-root verifier, and the wheel prompt/schema
+resource audit also pass. Skips remain optional/environment-specific and do not
+bypass the active API, cache, credential, VID30/VID31 sidecar, or single-root
+contract tests.

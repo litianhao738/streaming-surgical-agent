@@ -2528,22 +2528,26 @@ maximum number of agents
 
 ### Versioned wire and state contracts
 
-New dataset rollouts use `joint_perception_reliability_compact_v2` for both
-mock and OpenRouter configurations. The initial response contains compact
-ranked candidates, per-label confidence, and bounded field uncertainty. It does
-not contain final status, report prose, chain of thought, clinical significance,
-or next-step advice. Compact v1 remains readable for historical artifacts.
+New dataset rollouts use `joint_perception_gate_owned_compact_v1` for mock,
+OpenAI, OpenRouter, and OpenAI-compatible configurations. The initial response
+contains only sparse frame-level selections and bounded per-label ranking
+scores. It contains no model-owned uncertainty, gate decision, final status,
+report prose, chain of thought, clinical significance, or next-step advice.
+`joint_perception_reliability_compact_v2` and compact v1 remain readable for
+historical artifacts and cache provenance.
 
 The deterministic runtime flow is:
 
 `Candidate → Reliability Gate → Targeted Verification → Accepted / Verified / Pending / Rejected`
 
-The Reliability Gate checks ontology validity, IVT closure and compatibility,
-phase compatibility when a training-derived artifact is available, temporal
-jumps, low confidence, and declared field uncertainty. Only flagged task paths
-enter Targeted Verification, and the coordinator admits only in-pool changes to
-those paths. `rule_gate` remains the historical evidence-threshold baseline;
-the new Reliability Gate is exposed as `selective_verify`.
+The Reliability Gate exclusively owns uncertainty and routing. It derives
+candidate margins, selected-label score summaries and cardinalities, then
+combines them with ontology validity, IVT closure and compatibility, training-
+derived phase compatibility, temporal jumps, and tracker evidence. Initial-VLM
+self-reported uncertainty cannot force a Specialist call. Only Gate-flagged task
+paths enter Targeted Verification, and the coordinator admits only in-pool
+changes to those paths. `rule_gate` remains the historical evidence-threshold
+baseline; the new Reliability Gate is exposed as `selective_verify`.
 
 Finalized state controls memory deterministically: Verified writes reliable
 memory; high-confidence Accepted may write reliable memory and otherwise writes
