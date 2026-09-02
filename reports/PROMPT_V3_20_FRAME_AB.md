@@ -31,3 +31,22 @@ rollout is not run, and the v2 initial-perception prompt remains production.
 
 The separate field-targeted verifier prompt is still upgraded because it only
 rechecks Gate-flagged fields and does not replace the full initial prediction.
+
+## Targeted-verifier follow-up
+
+A six-frame OpenRouter diagnostic used VID110 frames 4076, 4326, 4401, 4676,
+6976, and 7251. The Learned Gate verified 1/6 frames; the deterministic
+reliability Gate verified 6/6. Both produced the same aggregate recognition
+scores: Instrument F1 0.8889, Verb F1 0.0000, Target F1 0.1944, IVT F1 0.0000,
+and Phase accuracy 0.8333. The rule Gate made one IVT repair, but it did not
+improve GT agreement. This isolates the current bottleneck to visual
+interaction recognition and candidate quality rather than verification rate.
+
+The diagnostic also exposed and fixed a real parser defect: confidence-ordered
+multi-label selections such as `[10, 0]` are now normalized to canonical
+ascending order before constructing the prediction. A short null-aware v3
+targeted prompt and coupled-field expansion were tested on frames 4076 and
+4326; neither improved the output and mean verification latency rose from about
+20--21 seconds to about 27 seconds. That candidate was rejected and removed.
+Production therefore remains initial prompt v2 plus targeted verifier v2, and
+no 80-frame rerun is justified by these changes.

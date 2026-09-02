@@ -154,6 +154,44 @@ def test_load_completed_run_reconstructs_verified_predictions(tmp_path: Path) ->
     ).hexdigest()
 
 
+def test_load_completed_run_accepts_current_runtime_rollout_fields(
+    tmp_path: Path,
+) -> None:
+    run_dir = _write_completed_run(tmp_path)
+    rollout_path = run_dir / "dataset_rollout_artifact.json"
+    rollout = json.loads(rollout_path.read_text(encoding="utf-8"))
+    rollout.update(
+        {
+            "provider_routing_profile": None,
+            "causal_window": {},
+            "pipeline_profile": "single_pass",
+            "backbone_policy": "shared",
+            "initial_model_requested": "mock-joint-perception-v1",
+            "verification_model_requested": "mock-joint-perception-v1",
+            "main_profile_backbone_match": True,
+            "context_profile": "frames_only",
+            "event_memory_enabled": False,
+            "context_experiment_sha256": None,
+            "phase_transition_graph": None,
+            "predicted_track_artifact_sha256": None,
+            "predicted_track_provenance": None,
+            "evidence_threshold": None,
+            "gate_artifact_sha256": None,
+            "verification_summary": {},
+            "final_status_counts": {"Accepted": 1},
+            "memory_action_counts": {"SKIP": 1},
+            "report_manifest_path": "event_report_manifest.json",
+            "causal_window_audit_path": "causal_window_audit.jsonl",
+            "report_count": 1,
+            "report_mode": "template_report",
+            "telemetry_summary": {},
+        }
+    )
+    _write_json(rollout_path, rollout)
+
+    assert load_completed_run(run_dir).run_id == "eval-unit"
+
+
 def test_load_completed_run_rejects_boolean_frame_id(tmp_path: Path) -> None:
     run_dir = _write_completed_run(tmp_path)
     prediction_path = run_dir / "predictions/VID110.jsonl"

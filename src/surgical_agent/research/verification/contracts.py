@@ -179,6 +179,13 @@ class FieldVerificationOutcome:
             raise ValueError("phase verification must select exactly one ID")
         if len(set(selected)) != len(selected):
             raise ValueError("verification selected IDs must be unique")
+        # The wire response commonly follows confidence order, while
+        # InitialPrediction uses a canonical ascending representation for
+        # multi-label sets.  Normalize at the verification boundary so an
+        # otherwise valid repair cannot fail merely because the provider
+        # returned the same set in a different order.
+        if task != "phase":
+            selected = tuple(sorted(selected))
         if any(not isinstance(value, RankedCandidate) for value in records):
             raise TypeError("candidate_records must contain RankedCandidate values")
         if not set(selected).issubset(value.class_id for value in records):

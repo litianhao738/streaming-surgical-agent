@@ -77,6 +77,57 @@ _EVIDENCE_KEYS = frozenset(
         "schema_version",
     }
 )
+_ROLLOUT_BASE_KEYS = frozenset(
+    {
+        "schema_version",
+        "status",
+        "run_id",
+        "mode",
+        "split",
+        "video_ids",
+        "expected_frame_counts",
+        "completed_frame_counts",
+        "provider",
+        "model_requested",
+        "models_returned",
+        "prompt_version",
+        "response_schema_version",
+        "repair_manifest_sha256",
+        "alignment_versions",
+        "usage",
+        "cache_entry_count",
+        "track20_image_uploaded",
+        "paper_metric_eligible",
+        "manifest_file",
+    }
+)
+_ROLLOUT_RUNTIME_EXTENSION_KEYS = frozenset(
+    {
+        "provider_routing_profile",
+        "causal_window",
+        "pipeline_profile",
+        "backbone_policy",
+        "initial_model_requested",
+        "verification_model_requested",
+        "main_profile_backbone_match",
+        "context_profile",
+        "event_memory_enabled",
+        "context_experiment_sha256",
+        "phase_transition_graph",
+        "predicted_track_artifact_sha256",
+        "predicted_track_provenance",
+        "evidence_threshold",
+        "gate_artifact_sha256",
+        "verification_summary",
+        "final_status_counts",
+        "memory_action_counts",
+        "report_manifest_path",
+        "causal_window_audit_path",
+        "report_count",
+        "report_mode",
+        "telemetry_summary",
+    }
+)
 
 
 class OfflineEvaluationError(RuntimeError):
@@ -164,30 +215,12 @@ def load_completed_run(run_dir: str | Path) -> CompletedRun:
         raise OfflineEvaluationError("frame manifest does not describe this completed run")
 
     rollout = _read_object(rollout_path)
-    _require_keys(
+    _require_key_variant(
         rollout,
-        {
-            "schema_version",
-            "status",
-            "run_id",
-            "mode",
-            "split",
-            "video_ids",
-            "expected_frame_counts",
-            "completed_frame_counts",
-            "provider",
-            "model_requested",
-            "models_returned",
-            "prompt_version",
-            "response_schema_version",
-            "repair_manifest_sha256",
-            "alignment_versions",
-            "usage",
-            "cache_entry_count",
-            "track20_image_uploaded",
-            "paper_metric_eligible",
-            "manifest_file",
-        },
+        (
+            _ROLLOUT_BASE_KEYS,
+            _ROLLOUT_BASE_KEYS | _ROLLOUT_RUNTIME_EXTENSION_KEYS,
+        ),
         "rollout artifact",
     )
     if rollout["schema_version"] != "cholectrack20_api_rollout_v1":
@@ -525,6 +558,16 @@ def _reject_constant(value: str) -> object:
 
 def _require_keys(value: Mapping[str, Any], keys: set[str] | frozenset[str], name: str) -> None:
     if set(value) != set(keys):
+        raise OfflineEvaluationError(f"{name} fields do not match the required schema")
+
+
+def _require_key_variant(
+    value: Mapping[str, Any],
+    variants: tuple[frozenset[str], ...],
+    name: str,
+) -> None:
+    actual = frozenset(value)
+    if actual not in variants:
         raise OfflineEvaluationError(f"{name} fields do not match the required schema")
 
 

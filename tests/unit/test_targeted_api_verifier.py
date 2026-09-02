@@ -384,6 +384,19 @@ def test_parser_patches_only_requested_verified_field_and_preserves_identity() -
     assert result.prediction.probabilities["phase"] is initial.probabilities["phase"]
 
 
+def test_parser_canonicalizes_confidence_ordered_multilabel_selection() -> None:
+    initial = _prediction(target_ids=(0,))
+    result = parse_targeted_verification_response(
+        _response(_payload(_field("target", selected_ids=[1, 0]))),
+        initial=initial,
+        requested_fields=("target",),
+    )
+
+    assert result.prediction.target_ids == (0, 1)
+    assert result.field_outcomes[0].selected_ids == (0, 1)
+    assert result.repaired_fields == ("target",)
+
+
 @pytest.mark.parametrize("status", ["Pending", "Rejected"])
 def test_parser_keeps_entire_initial_object_for_unresolved_field(status: str) -> None:
     initial = _prediction()
