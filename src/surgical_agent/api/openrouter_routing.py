@@ -8,9 +8,16 @@ from surgical_agent.api.errors import ApiContractError
 
 OPENROUTER_ROUTING_PAYLOAD_KEY = "openrouter_routing_profile"
 STRICT_OPENAI_ROUTING_PROFILE = "strict_openai"
+STRICT_GOOGLE_AI_STUDIO_ROUTING_PROFILE = "strict_google_ai_studio"
+STRICT_ANTHROPIC_ROUTING_PROFILE = "strict_anthropic"
 LATENCY_FALLBACK_ROUTING_PROFILE = "latency_fallback"
 OPENROUTER_ROUTING_PROFILES = frozenset(
-    {STRICT_OPENAI_ROUTING_PROFILE, LATENCY_FALLBACK_ROUTING_PROFILE}
+    {
+        STRICT_OPENAI_ROUTING_PROFILE,
+        STRICT_GOOGLE_AI_STUDIO_ROUTING_PROFILE,
+        STRICT_ANTHROPIC_ROUTING_PROFILE,
+        LATENCY_FALLBACK_ROUTING_PROFILE,
+    }
 )
 
 
@@ -45,6 +52,18 @@ def provider_preferences(profile: str) -> dict[str, object]:
     if profile == STRICT_OPENAI_ROUTING_PROFILE:
         return {
             "only": ["openai"],
+            "allow_fallbacks": False,
+            "require_parameters": True,
+        }
+    if profile == STRICT_GOOGLE_AI_STUDIO_ROUTING_PROFILE:
+        return {
+            "only": ["google-ai-studio"],
+            "allow_fallbacks": False,
+            "require_parameters": True,
+        }
+    if profile == STRICT_ANTHROPIC_ROUTING_PROFILE:
+        return {
+            "only": ["anthropic"],
             "allow_fallbacks": False,
             "require_parameters": True,
         }

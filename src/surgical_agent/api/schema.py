@@ -268,6 +268,12 @@ def validate_targeted_verification_payload(payload: Mapping[str, Any]) -> None:
             if field["status"] not in {"Verified", "Pending", "Rejected"}:
                 _targeted_invalid()
             uncertainty = field["uncertainty"]
+            # A decisive selection and an explicit ambiguity finding are
+            # mutually exclusive.  Keeping this invariant at the wire
+            # boundary prevents a provider from labelling a close alternative
+            # as Verified and having it silently admitted as a repair.
+            if field["status"] == "Verified" and uncertainty is not None:
+                _targeted_invalid()
             if uncertainty is not None:
                 if not isinstance(uncertainty, Mapping) or set(uncertainty) != {
                     "reason",

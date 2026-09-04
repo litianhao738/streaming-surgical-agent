@@ -16,6 +16,8 @@ from surgical_agent.api.errors import ApiContractError, ApiTransportError
 from surgical_agent.api.openrouter_routing import (
     LATENCY_FALLBACK_ROUTING_PROFILE,
     OPENROUTER_ROUTING_PAYLOAD_KEY,
+    STRICT_ANTHROPIC_ROUTING_PROFILE,
+    STRICT_GOOGLE_AI_STUDIO_ROUTING_PROFILE,
     STRICT_OPENAI_ROUTING_PROFILE,
 )
 from surgical_agent.api.providers import openrouter as openrouter_module
@@ -166,6 +168,41 @@ def test_openrouter_sends_chat_multimodal_structured_json() -> None:
     assert response.exact_identity_evidence_source is None
 
 
+def test_openrouter_accepts_six_ordered_images() -> None:
+    captured: dict[str, object] = {}
+
+    def sender(
+        url: str,
+        headers: object,
+        body: bytes,
+        timeout: float,
+    ) -> HttpResponse:
+        del url, headers, timeout
+        captured["body"] = body
+        return HttpResponse(
+            status_code=200,
+            headers={},
+            body=json.dumps(success_response()).encode(),
+        )
+
+    images = tuple(
+        ApiImageInput(f"synthetic:{index}", "image/png", f"png-{index}".encode())
+        for index in range(6)
+    )
+    response = OpenRouterTransport(
+        api_key=_fixture_secret(),
+        endpoint_identifier=ENDPOINT,
+        sender=sender,
+    ).send(sample_request_value(images=images))
+
+    sent = json.loads(captured["body"])
+    image_parts = [
+        item for item in sent["messages"][1]["content"] if item["type"] == "image_url"
+    ]
+    assert len(image_parts) == 6
+    assert response.image_count == 6
+
+
 @pytest.mark.parametrize(
     ("profile", "expected"),
     (
@@ -173,6 +210,22 @@ def test_openrouter_sends_chat_multimodal_structured_json() -> None:
             STRICT_OPENAI_ROUTING_PROFILE,
             {
                 "only": ["openai"],
+                "allow_fallbacks": False,
+                "require_parameters": True,
+            },
+        ),
+        (
+            STRICT_ANTHROPIC_ROUTING_PROFILE,
+            {
+                "only": ["anthropic"],
+                "allow_fallbacks": False,
+                "require_parameters": True,
+            },
+        ),
+        (
+            STRICT_GOOGLE_AI_STUDIO_ROUTING_PROFILE,
+            {
+                "only": ["google-ai-studio"],
                 "allow_fallbacks": False,
                 "require_parameters": True,
             },
@@ -668,14 +721,12 @@ def test_openrouter_parse_failures_use_safe_stage_taxonomy(
         pytest.param(sample_request_value(images=()), id="no-image"),
         pytest.param(
             sample_request_value(
-                images=(
-                    ApiImageInput("one", "image/png", b"a"),
-                    ApiImageInput("two", "image/png", b"b"),
-                    ApiImageInput("three", "image/png", b"c"),
-                    ApiImageInput("four", "image/png", b"d"),
-                )
-            ),
-            id="four-images",
+                    images=tuple(
+                        ApiImageInput(str(index), "image/png", bytes([index]))
+                        for index in range(7)
+                    )
+                ),
+                id="seven-images",
         ),
         pytest.param(
             sample_request_value(payload={"input_text": ""}),

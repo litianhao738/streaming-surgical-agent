@@ -274,6 +274,10 @@ def test_gate_owned_request_excludes_model_uncertainty_and_status() -> None:
         "id",
         "score",
     }
+    assert response.parsed_payload["instrument"]["selected_ids"] == (0,)
+    assert response.parsed_payload["verb"]["selected_ids"] == (2,)
+    assert response.parsed_payload["target"]["selected_ids"] == (1,)
+    assert response.parsed_payload["ivt"]["selected_ids"] == (0,)
     validator_for(GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION)(
         response.parsed_payload
     )

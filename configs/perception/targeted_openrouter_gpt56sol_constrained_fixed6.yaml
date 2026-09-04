@@ -1,0 +1,26 @@
+# Conservative same-model Verifier. Repairs are admitted only when they remove
+# a deterministic hard violation; hard-valid H0 is protected.
+enabled: true
+mode: real
+provider: openrouter
+endpoint_identifier: https://openrouter.ai/api/v1/chat/completions
+requested_model_identifier: openai/gpt-5.6-sol
+prompt_version: targeted_verification_prompt_v7
+response_schema_version: targeted_verification_v1
+generation_parameters:
+  max_output_tokens: 1536
+  reasoning:
+    effort: none
+provider_options:
+  timeout_seconds: 120.0
+  routing_profile: strict_openai
+  frame_selection_strategy: fixed_all
+  history_image_detail: low
+  target_image_detail: auto
+  initial_prompt_profile: fixed_visual_only
+  verification_prompt_profile: fixed_visual_only
+synthetic_input_required: false
+cache_required: true
+data_upload_authorized: true
+max_causal_frames: 6
+max_api_images: 6

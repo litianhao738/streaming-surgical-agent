@@ -16,13 +16,29 @@ scripts/API.txt
 docs/API.txt
 docs/openaiAPI.txt
 docs/qwen_API KEY
+docs/grok_API.txt
 *.ckpt
 *.pt
+*.tar.gz
+
+# Local release bundles duplicate files already represented in the repository.
+dist/
 
 logs/*
 !logs/.gitkeep
 artifacts/*
 !artifacts/.gitkeep
+# Publish the completed tracker artifacts; large tensors are stored with Git LFS.
+!artifacts/training/
+artifacts/training/*
+!artifacts/training/tracker/
+artifacts/training/tracker/*
+!artifacts/training/tracker/full/
+!artifacts/training/tracker/full/**
+!artifacts/training/tracker/predicted_tracks.json
+!artifacts/training/tracker/full_run_summary.json
+!artifacts/training/tracker_oof5/
+!artifacts/training/tracker_oof5/**
 outputs/*
 !outputs/.gitkeep
 

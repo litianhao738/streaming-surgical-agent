@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from types import MappingProxyType
 
+from surgical_agent.research.gate.contracts import FORMAL_GATE_FEATURE_ORDER
 from surgical_agent.research.gate.features import (
     ALL_DEMO_GATE_FEATURE_NAMES,
     NO_TRACKER_FEATURE_ORDER,
@@ -16,7 +17,9 @@ from surgical_agent.research.gate.features import (
 )
 from surgical_agent.research.signals.contracts import GATE_FEATURE_NAMES
 
-_DEPLOYABLE_FEATURE_NAMES = GATE_FEATURE_NAMES | ALL_DEMO_GATE_FEATURE_NAMES
+_DEPLOYABLE_FEATURE_NAMES = (
+    GATE_FEATURE_NAMES | ALL_DEMO_GATE_FEATURE_NAMES | set(FORMAL_GATE_FEATURE_ORDER)
+)
 
 _REQUIRED_KEYS = frozenset(
     {
@@ -68,7 +71,12 @@ class FrozenLinearBenefitArtifact:
     source_split: str = "training"
 
     @classmethod
-    def from_json(cls, path: str | Path) -> FrozenLinearBenefitArtifact:
+    def from_json(
+        cls,
+        path: str | Path,
+        *,
+        allow_bootstrap: bool = False,
+    ) -> FrozenLinearBenefitArtifact:
         source = Path(path)
         if not source.is_file():
             raise ValueError("Benefit Gate artifact file is missing")
@@ -80,8 +88,11 @@ class FrozenLinearBenefitArtifact:
             raise ValueError("Benefit Gate artifact fields do not match the schema")
         if payload["schema_version"] != "benefit_gate_linear_v1":
             raise ValueError("unsupported Benefit Gate artifact schema")
-        if payload["gate_stage"] != "final_g1":
-            raise ValueError("only a final_g1 artifact is deployable")
+        gate_stage = payload["gate_stage"]
+        if gate_stage not in {"bootstrap_g0", "final_g1"}:
+            raise ValueError("unsupported Benefit Gate stage; only final_g1 is deployable")
+        if gate_stage != "final_g1" and not allow_bootstrap:
+            raise ValueError("bootstrap_g0 is not deployable; final_g1 is required")
         if payload["source_split"] != "training":
             raise ValueError("Benefit Gate artifact must be train-derived")
         raw_feature_order = payload["feature_order"]
@@ -98,7 +109,8 @@ class FrozenLinearBenefitArtifact:
             NO_TRACKER_FEATURE_ORDER,
             WITH_TRACKER_FEATURE_ORDER,
         }
-        if not (is_evidence_schema or is_demo_schema):
+        is_formal_schema = feature_order == FORMAL_GATE_FEATURE_ORDER
+        if not (is_evidence_schema or is_demo_schema or is_formal_schema):
             raise ValueError("feature_order mixes incompatible Gate schemas")
         raw_scope_order = payload["scope_order"]
         if not isinstance(raw_scope_order, (list, tuple)):
@@ -143,15 +155,16 @@ class FrozenLinearBenefitArtifact:
         if normalization_version not in {
             "evidence_frame_v1_raw",
             "demo_gate_features_v1_raw",
+            "formal_gate_features_v1_raw",
         }:
             raise ValueError(
                 "only an allowlisted raw normalization is deployable"
             )
-        expected_normalization = (
-            "demo_gate_features_v1_raw"
-            if is_demo_schema
-            else "evidence_frame_v1_raw"
-        )
+        expected_normalization = "evidence_frame_v1_raw"
+        if is_demo_schema:
+            expected_normalization = "demo_gate_features_v1_raw"
+        elif is_formal_schema:
+            expected_normalization = "formal_gate_features_v1_raw"
         if normalization_version != expected_normalization:
             raise ValueError("normalization_version does not match feature_order")
         return cls(
@@ -168,4 +181,5 @@ class FrozenLinearBenefitArtifact:
             rollout_policy_id=_nonempty_text(
                 payload["rollout_policy_id"], name="rollout_policy_id"
             ),
+            gate_stage=gate_stage,
         )

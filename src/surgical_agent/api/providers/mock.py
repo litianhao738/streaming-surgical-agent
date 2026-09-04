@@ -85,12 +85,20 @@ class MockProviderTransport:
         if not isinstance(overrides, Mapping):
             raise TypeError("mock options must be a mapping")
         values = {**dict(config.provider_options), **dict(overrides)}
-        unknown = set(values) - {
+        transport_keys = {
             "returned_model_identifier",
             "retryable_failures_before_success",
             "malformed_payload",
             "provider_cost",
         }
+        runtime_keys = {
+            "frame_selection_strategy",
+            "history_image_detail",
+            "target_image_detail",
+            "initial_prompt_profile",
+            "verification_prompt_profile",
+        }
+        unknown = set(values) - transport_keys - runtime_keys
         if unknown:
             raise ApiContractError("mock options contain unknown fields")
         return cls(
@@ -182,15 +190,27 @@ def _joint_perception_payload(request: ApiRequest) -> dict[str, object]:
         else "score"
     )
     payload: dict[str, object] = {"schema_version": schema_version}
+    gate_owned_selection = {
+        "instrument": 0,
+        "verb": 2,
+        "target": 1,
+        "ivt": 0,
+        "phase": 0,
+    }
     for task, count in task_layout:
         topk = [
             {"id": index, confidence_key: 1.0 - index / (count + 1)}
             for index in range(count)
         ]
+        selected = (
+            gate_owned_selection[task]
+            if schema_version == GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION
+            else 0
+        )
         payload[task] = (
-            {"selected_id": 0, "topk": topk}
+            {"selected_id": selected, "topk": topk}
             if task == "phase"
-            else {"selected_ids": [0], "topk": topk}
+            else {"selected_ids": [selected], "topk": topk}
         )
     if schema_version == RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION:
         payload["uncertainty"] = []
@@ -205,7 +225,7 @@ def _joint_perception_payload(request: ApiRequest) -> dict[str, object]:
 
 
 def _targeted_verification_payload(request: ApiRequest) -> dict[str, object]:
-    """Echo the requested bounded hypotheses as deterministic Verified fields."""
+    """Select the first blind candidate as deterministic Verified mock output."""
 
     input_text = request.payload.get("input_text")
     try:
@@ -215,30 +235,56 @@ def _targeted_verification_payload(request: ApiRequest) -> dict[str, object]:
     if not isinstance(decoded, Mapping):
         raise ApiContractError("targeted mock request input must be an object")
     flagged_fields = decoded.get("flagged_fields")
-    current_fields = decoded.get("current_fields")
     candidate_fields = decoded.get("candidate_fields")
+    required_fields = decoded.get("required_fields", [])
     if (
         not isinstance(flagged_fields, list)
-        or not isinstance(current_fields, list)
         or not isinstance(candidate_fields, Mapping)
+        or not isinstance(required_fields, list)
     ):
         raise ApiContractError("targeted mock request fields are malformed")
-    current_by_path = {
-        field.get("path"): field.get("selected_ids")
-        for field in current_fields
-        if isinstance(field, Mapping)
+    required_by_path = {
+        item.get("path"): item.get("required_ids")
+        for item in required_fields
+        if isinstance(item, Mapping)
     }
     try:
-        fields = [
-            {
-                "path": path,
-                "selected_ids": current_by_path[path],
-                "topk": candidate_fields[path],
-                "status": "Verified",
-                "uncertainty": None,
-            }
-            for path in flagged_fields
-        ]
+        fields = []
+        for path in flagged_fields:
+            candidate_ids = candidate_fields[path]
+            if (
+                not isinstance(candidate_ids, list)
+                or not candidate_ids
+                or any(
+                    not isinstance(candidate_id, int)
+                    or isinstance(candidate_id, bool)
+                    for candidate_id in candidate_ids
+                )
+            ):
+                raise TypeError
+            denominator = len(candidate_ids) + 1
+            selected_ids = required_by_path.get(path, [candidate_ids[0]])
+            if (
+                not isinstance(selected_ids, list)
+                or not selected_ids
+                or not set(selected_ids).issubset(candidate_ids)
+            ):
+                raise TypeError
+            fields.append(
+                {
+                    "path": path,
+                    "selected_ids": selected_ids,
+                    "topk": [
+                        {
+                            "id": candidate_id,
+                            "confidence": 1.0 - rank / denominator,
+                        }
+                        for rank, candidate_id in enumerate(candidate_ids)
+                    ],
+                    "status": "Verified",
+                    "uncertainty": None,
+                }
+            )
     except (KeyError, TypeError):
         raise ApiContractError("targeted mock request paths are inconsistent") from None
     return {

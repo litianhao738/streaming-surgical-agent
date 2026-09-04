@@ -1,0 +1,20 @@
+enabled: true
+mode: mock
+provider: mock
+endpoint_identifier: mock://local/p3
+requested_model_identifier: mock-joint-perception-v1
+prompt_version: joint_perception_gate_owned_compact_v1
+response_schema_version: joint_perception_gate_owned_compact_v1
+generation_parameters:
+  max_output_tokens: 4096
+provider_options:
+  frame_selection_strategy: fixed_all
+  history_image_detail: low
+  target_image_detail: auto
+  initial_prompt_profile: fixed_visual_only
+  verification_prompt_profile: fixed_visual_only
+synthetic_input_required: false
+cache_required: true
+data_upload_authorized: true
+max_causal_frames: 6
+max_api_images: 6

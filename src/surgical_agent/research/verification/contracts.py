@@ -61,7 +61,7 @@ def candidate_id_for(prediction: InitialPrediction) -> str:
 
 @dataclass(frozen=True)
 class CandidateSet:
-    """Factorized bounded label pool derived only from current perception ranks."""
+    """Factorized bounded label pool frozen before targeted verification."""
 
     initial_prediction: InitialPrediction
     allowed_ids: Mapping[str, tuple[int, ...]]
@@ -194,6 +194,8 @@ class FieldVerificationOutcome:
             self.uncertainty, VerificationUncertainty
         ):
             raise TypeError("uncertainty must be VerificationUncertainty or None")
+        if self.status == "Verified" and self.uncertainty is not None:
+            raise ValueError("Verified outcomes cannot carry uncertainty")
         object.__setattr__(self, "selected_ids", selected)
         object.__setattr__(self, "candidate_records", records)
 

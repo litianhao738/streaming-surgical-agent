@@ -1,0 +1,715 @@
+{
+  "coverage": {
+    "all_runtime_frames_have_predictions": true,
+    "all_training_video_ids": [
+      "VID02",
+      "VID04",
+      "VID103",
+      "VID11",
+      "VID13",
+      "VID17",
+      "VID23",
+      "VID31",
+      "VID37",
+      "VID96"
+    ],
+    "indexed_video_count": 10,
+    "metric_eligible_video_ids": [
+      "VID02",
+      "VID04",
+      "VID103",
+      "VID11",
+      "VID13",
+      "VID17",
+      "VID23",
+      "VID37",
+      "VID96"
+    ],
+    "metric_excluded_video_ids": [
+      "VID31"
+    ],
+    "scored_video_count": 9
+  },
+  "leakage_audit": {
+    "fold_count": 5,
+    "folds": {
+      "fold_0": {
+        "checkpoint_sha256": "49b8f109fd8d3941ed59954786b007fa6594d50b84e63ff11e6346575a9e8b92",
+        "fold_index": 0,
+        "held_out_excluded_from_optimizer": true,
+        "held_out_video_ids": [
+          "VID02",
+          "VID17"
+        ],
+        "training_manifest_sha256": "ebcb60982605cde32348f52da766ab3d662e37b4e07071eb370731dacfddff1d",
+        "training_video_ids": [
+          "VID04",
+          "VID103",
+          "VID11",
+          "VID13",
+          "VID23",
+          "VID37",
+          "VID96"
+        ]
+      },
+      "fold_1": {
+        "checkpoint_sha256": "9909f9f9bd0e2b756bff93442fb4605f53fadec0f1023a7004a59e9fa90f78b7",
+        "fold_index": 1,
+        "held_out_excluded_from_optimizer": true,
+        "held_out_video_ids": [
+          "VID04",
+          "VID23"
+        ],
+        "training_manifest_sha256": "9ef0380a1a13e5b57c8dbd804947c2332760db7e14f3ad6bb1943bc5a6a17194",
+        "training_video_ids": [
+          "VID02",
+          "VID103",
+          "VID11",
+          "VID13",
+          "VID17",
+          "VID37",
+          "VID96"
+        ]
+      },
+      "fold_2": {
+        "checkpoint_sha256": "51ad425ec5c148e2d48dbf64158fb81d230d9a08e07afbb3a799228eaaee4d3c",
+        "fold_index": 2,
+        "held_out_excluded_from_optimizer": true,
+        "held_out_video_ids": [
+          "VID103",
+          "VID37"
+        ],
+        "training_manifest_sha256": "ec4a4408ac331d9b1642b206414b08ecf54c96b6f8da4d4127b4044d4c180a1c",
+        "training_video_ids": [
+          "VID02",
+          "VID04",
+          "VID11",
+          "VID13",
+          "VID17",
+          "VID23",
+          "VID96"
+        ]
+      },
+      "fold_3": {
+        "checkpoint_sha256": "462026003e2b2849c2f6edb47c65decc58dc76792d11200f60b9297044614b23",
+        "fold_index": 3,
+        "held_out_excluded_from_optimizer": true,
+        "held_out_video_ids": [
+          "VID11",
+          "VID96"
+        ],
+        "training_manifest_sha256": "ec940bb0069d769a0a7ff1bc86332597db84d1e990393e6014415e91654d31a0",
+        "training_video_ids": [
+          "VID02",
+          "VID04",
+          "VID103",
+          "VID13",
+          "VID17",
+          "VID23",
+          "VID37"
+        ]
+      },
+      "fold_4": {
+        "checkpoint_sha256": "63ba06d4bda9aa0a6658e05866b5ca63a5639268da59a75075ac02f8624056ab",
+        "fold_index": 4,
+        "held_out_excluded_from_optimizer": true,
+        "held_out_video_ids": [
+          "VID13"
+        ],
+        "training_manifest_sha256": "ef26429c732df25967cea3b26a20c0937b4eadbafa98491ed8f19dc3de9d6783",
+        "training_video_ids": [
+          "VID02",
+          "VID04",
+          "VID103",
+          "VID11",
+          "VID17",
+          "VID23",
+          "VID37",
+          "VID96"
+        ]
+      }
+    },
+    "status": "PASS",
+    "vid31": {
+      "checkpoint_sha256": "a741e13dee1e3d54d153e6fec5ec4f196241c9963363e2f99571af3efb909a9f",
+      "source": "FULL_CHECKPOINT_WITHOUT_VID31_INSTANCE_SUPERVISION",
+      "training_manifest_sha256": "40551988291bb78fda9785b890c51f74971aac30e46077a4a956acb7f6a46429",
+      "training_video_ids": [
+        "VID02",
+        "VID04",
+        "VID103",
+        "VID11",
+        "VID13",
+        "VID17",
+        "VID23",
+        "VID37",
+        "VID96"
+      ],
+      "vid31_excluded_from_optimizer": true
+    }
+  },
+  "metric_protocol": {
+    "ap_interpolation": "ALL_POINT_PRECISION_ENVELOPE",
+    "instrument_class_ids": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "iou_threshold": 0.5,
+    "label_based_threshold_tuning": false,
+    "matching": "ONE_TO_ONE_WITHIN_FRAME_AND_INSTRUMENT_CLASS",
+    "prediction_source": "STORED_CURRENT_FRAME_PREDICTED_TRACKS",
+    "primary_aggregation": "POOLED_SCORED_FRAMES",
+    "score_threshold": 0.35
+  },
+  "overall_pooled": {
+    "metrics": {
+      "ap50_by_instrument": {
+        "0": 0.8142635296552696,
+        "1": 0.6084826440777206,
+        "2": 0.9478682236653522,
+        "3": 0.3820782367005778,
+        "4": 0.6090941012842812,
+        "5": 0.18004337387014627,
+        "6": 0.5563428129166927
+      },
+      "f1": 0.8414367315325781,
+      "false_positive": 4343,
+      "ground_truth": 25574,
+      "iou_threshold": 0.5,
+      "macro_ap50": 0.58545327459572,
+      "precision": 0.8334164397222968,
+      "recall": 0.8496128880894659,
+      "schema_version": "tracker_detection_metrics_v1",
+      "true_positive": 21728
+    },
+    "scored_frame_count": 14231,
+    "scored_ground_truth_count": 25574,
+    "scored_prediction_count": 26071
+  },
+  "per_fold": {
+    "fold_0": {
+      "artifact": "fold_0/predicted_tracks.json",
+      "checkpoint_sha256": "49b8f109fd8d3941ed59954786b007fa6594d50b84e63ff11e6346575a9e8b92",
+      "fold_index": 0,
+      "held_out_excluded_from_optimizer": true,
+      "held_out_video_ids": [
+        "VID02",
+        "VID17"
+      ],
+      "metrics": {
+        "ap50_by_instrument": {
+          "0": 0.8169065463496007,
+          "1": 0.6465386845043757,
+          "2": 0.9546601745040563,
+          "3": 0.45396147554012994,
+          "4": 0.7314377392720757,
+          "5": 0.2588489585170532,
+          "6": 0.8834931654819471
+        },
+        "f1": 0.8401773981603154,
+        "false_positive": 1070,
+        "ground_truth": 5991,
+        "iou_threshold": 0.5,
+        "macro_ap50": 0.6779781063098912,
+        "precision": 0.8270008084074374,
+        "recall": 0.8537806710065098,
+        "schema_version": "tracker_detection_metrics_v1",
+        "true_positive": 5115
+      },
+      "scored_frame_count": 3611,
+      "scored_ground_truth_count": 5991,
+      "scored_prediction_count": 6185,
+      "training_manifest_sha256": "ebcb60982605cde32348f52da766ab3d662e37b4e07071eb370731dacfddff1d",
+      "training_video_ids": [
+        "VID04",
+        "VID103",
+        "VID11",
+        "VID13",
+        "VID23",
+        "VID37",
+        "VID96"
+      ]
+    },
+    "fold_1": {
+      "artifact": "fold_1/predicted_tracks.json",
+      "checkpoint_sha256": "9909f9f9bd0e2b756bff93442fb4605f53fadec0f1023a7004a59e9fa90f78b7",
+      "fold_index": 1,
+      "held_out_excluded_from_optimizer": true,
+      "held_out_video_ids": [
+        "VID04",
+        "VID23"
+      ],
+      "metrics": {
+        "ap50_by_instrument": {
+          "0": 0.7796282323007867,
+          "1": 0.3444968251642245,
+          "2": 0.9442503777789872,
+          "3": 0.02007078134897684,
+          "4": 0.6289726533628973,
+          "5": 0.16221198156682026,
+          "6": 0.2786074109765769
+        },
+        "f1": 0.7620050547598989,
+        "false_positive": 1294,
+        "ground_truth": 4584,
+        "iou_threshold": 0.5,
+        "macro_ap50": 0.45117689464275285,
+        "precision": 0.7365635179153095,
+        "recall": 0.7892670157068062,
+        "schema_version": "tracker_detection_metrics_v1",
+        "true_positive": 3618
+      },
+      "scored_frame_count": 2645,
+      "scored_ground_truth_count": 4584,
+      "scored_prediction_count": 4912,
+      "training_manifest_sha256": "9ef0380a1a13e5b57c8dbd804947c2332760db7e14f3ad6bb1943bc5a6a17194",
+      "training_video_ids": [
+        "VID02",
+        "VID103",
+        "VID11",
+        "VID13",
+        "VID17",
+        "VID37",
+        "VID96"
+      ]
+    },
+    "fold_2": {
+      "artifact": "fold_2/predicted_tracks.json",
+      "checkpoint_sha256": "51ad425ec5c148e2d48dbf64158fb81d230d9a08e07afbb3a799228eaaee4d3c",
+      "fold_index": 2,
+      "held_out_excluded_from_optimizer": true,
+      "held_out_video_ids": [
+        "VID103",
+        "VID37"
+      ],
+      "metrics": {
+        "ap50_by_instrument": {
+          "0": 0.8058099436110486,
+          "1": 0.8364715782179896,
+          "2": 0.9585124584562787,
+          "3": 0.6888626009636108,
+          "4": 0.49607500634130763,
+          "5": 0.025,
+          "6": 0.7941138654693003
+        },
+        "f1": 0.8649540010414859,
+        "false_positive": 770,
+        "ground_truth": 5769,
+        "iou_threshold": 0.5,
+        "macro_ap50": 0.6578350647227909,
+        "precision": 0.8661567877629063,
+        "recall": 0.8637545501820073,
+        "schema_version": "tracker_detection_metrics_v1",
+        "true_positive": 4983
+      },
+      "scored_frame_count": 2868,
+      "scored_ground_truth_count": 5769,
+      "scored_prediction_count": 5753,
+      "training_manifest_sha256": "ec4a4408ac331d9b1642b206414b08ecf54c96b6f8da4d4127b4044d4c180a1c",
+      "training_video_ids": [
+        "VID02",
+        "VID04",
+        "VID11",
+        "VID13",
+        "VID17",
+        "VID23",
+        "VID96"
+      ]
+    },
+    "fold_3": {
+      "artifact": "fold_3/predicted_tracks.json",
+      "checkpoint_sha256": "462026003e2b2849c2f6edb47c65decc58dc76792d11200f60b9297044614b23",
+      "fold_index": 3,
+      "held_out_excluded_from_optimizer": true,
+      "held_out_video_ids": [
+        "VID11",
+        "VID96"
+      ],
+      "metrics": {
+        "ap50_by_instrument": {
+          "0": 0.8732003277963734,
+          "1": 0.887769930152075,
+          "2": 0.9494399675294396,
+          "3": 0.5020430179835913,
+          "4": 0.6292754975124378,
+          "5": 0.11441402529246363,
+          "6": 0.5496606374428348
+        },
+        "f1": 0.8809295967190703,
+        "false_positive": 872,
+        "ground_truth": 7314,
+        "iou_threshold": 0.5,
+        "macro_ap50": 0.6436862005298879,
+        "precision": 0.8808091853471842,
+        "recall": 0.8810500410172273,
+        "schema_version": "tracker_detection_metrics_v1",
+        "true_positive": 6444
+      },
+      "scored_frame_count": 4183,
+      "scored_ground_truth_count": 7314,
+      "scored_prediction_count": 7316,
+      "training_manifest_sha256": "ec940bb0069d769a0a7ff1bc86332597db84d1e990393e6014415e91654d31a0",
+      "training_video_ids": [
+        "VID02",
+        "VID04",
+        "VID103",
+        "VID13",
+        "VID17",
+        "VID23",
+        "VID37"
+      ]
+    },
+    "fold_4": {
+      "artifact": "fold_4/predicted_tracks.json",
+      "checkpoint_sha256": "63ba06d4bda9aa0a6658e05866b5ca63a5639268da59a75075ac02f8624056ab",
+      "fold_index": 4,
+      "held_out_excluded_from_optimizer": true,
+      "held_out_video_ids": [
+        "VID13"
+      ],
+      "metrics": {
+        "ap50_by_instrument": {
+          "0": 0.7557810584942858,
+          "1": 0.8553113553113553,
+          "2": 0.9225067979882962,
+          "3": 0.14705882352941177,
+          "4": 0.6938071895424837,
+          "5": null,
+          "6": 0.6213283881350452
+        },
+        "f1": 0.8207275582308295,
+        "false_positive": 337,
+        "ground_truth": 1916,
+        "iou_threshold": 0.5,
+        "macro_ap50": 0.6659656021668129,
+        "precision": 0.8230971128608924,
+        "recall": 0.8183716075156576,
+        "schema_version": "tracker_detection_metrics_v1",
+        "true_positive": 1568
+      },
+      "scored_frame_count": 924,
+      "scored_ground_truth_count": 1916,
+      "scored_prediction_count": 1905,
+      "training_manifest_sha256": "ef26429c732df25967cea3b26a20c0937b4eadbafa98491ed8f19dc3de9d6783",
+      "training_video_ids": [
+        "VID02",
+        "VID04",
+        "VID103",
+        "VID11",
+        "VID17",
+        "VID23",
+        "VID37",
+        "VID96"
+      ]
+    }
+  },
+  "per_video": {
+    "VID02": {
+      "artifact": "fold_0/predicted_tracks.json",
+      "metric_status": "SCORED",
+      "metrics": {
+        "ap50_by_instrument": {
+          "0": 0.8160343247362715,
+          "1": 0.5118858904708249,
+          "2": 0.9473867821677534,
+          "3": 0.3814677673960295,
+          "4": 0.6115912294939649,
+          "5": 0.24722731073095056,
+          "6": 0.8104637033854354
+        },
+        "f1": 0.8205494113449875,
+        "false_positive": 831,
+        "ground_truth": 4128,
+        "iou_threshold": 0.5,
+        "macro_ap50": 0.6180081440544615,
+        "precision": 0.8058864751226349,
+        "recall": 0.8357558139534884,
+        "schema_version": "tracker_detection_metrics_v1",
+        "true_positive": 3450
+      },
+      "predicted_frame_coverage": 1.0,
+      "runtime_frame_count": 2545,
+      "runtime_prediction_count": 4281,
+      "scored_frame_count": 2545,
+      "scored_ground_truth_count": 4128,
+      "scored_prediction_count": 4281
+    },
+    "VID04": {
+      "artifact": "fold_1/predicted_tracks.json",
+      "metric_status": "SCORED",
+      "metrics": {
+        "ap50_by_instrument": {
+          "0": 0.8089817324520981,
+          "1": 0.5189723018527367,
+          "2": 0.9261839091545501,
+          "3": 0.05319244402566519,
+          "4": 0.6475675675675676,
+          "5": null,
+          "6": 0.30026548375172235
+        },
+        "f1": 0.8064992614475628,
+        "false_positive": 422,
+        "ground_truth": 2002,
+        "iou_threshold": 0.5,
+        "macro_ap50": 0.5425272398007234,
+        "precision": 0.7951456310679612,
+        "recall": 0.8181818181818182,
+        "schema_version": "tracker_detection_metrics_v1",
+        "true_positive": 1638
+      },
+      "predicted_frame_coverage": 1.0,
+      "runtime_frame_count": 1189,
+      "runtime_prediction_count": 2060,
+      "scored_frame_count": 1189,
+      "scored_ground_truth_count": 2002,
+      "scored_prediction_count": 2060
+    },
+    "VID103": {
+      "artifact": "fold_2/predicted_tracks.json",
+      "metric_status": "SCORED",
+      "metrics": {
+        "ap50_by_instrument": {
+          "0": 0.7957642142166905,
+          "1": 0.851747247291387,
+          "2": 0.9663186341718276,
+          "3": 0.7690500838962188,
+          "4": 0.7669493177387914,
+          "5": null,
+          "6": 0.852452614834861
+        },
+        "f1": 0.8719180275376242,
+        "false_positive": 442,
+        "ground_truth": 3081,
+        "iou_threshold": 0.5,
+        "macro_ap50": 0.8337136853582959,
+        "precision": 0.860347551342812,
+        "recall": 0.8838039597533268,
+        "schema_version": "tracker_detection_metrics_v1",
+        "true_positive": 2723
+      },
+      "predicted_frame_coverage": 1.0,
+      "runtime_frame_count": 1667,
+      "runtime_prediction_count": 3165,
+      "scored_frame_count": 1667,
+      "scored_ground_truth_count": 3081,
+      "scored_prediction_count": 3165
+    },
+    "VID11": {
+      "artifact": "fold_3/predicted_tracks.json",
+      "metric_status": "SCORED",
+      "metrics": {
+        "ap50_by_instrument": {
+          "0": 0.9088610842404841,
+          "1": 0.934456631466202,
+          "2": 0.9694675899003445,
+          "3": 0.5734211085131561,
+          "4": 0.5931533006001093,
+          "5": 0.1233411589430399,
+          "6": 0.40423726482283034
+        },
+        "f1": 0.8996937923355294,
+        "false_positive": 555,
+        "ground_truth": 5374,
+        "iou_threshold": 0.5,
+        "macro_ap50": 0.6438483054980237,
+        "precision": 0.8972792892837312,
+        "recall": 0.9021213248976554,
+        "schema_version": "tracker_detection_metrics_v1",
+        "true_positive": 4848
+      },
+      "predicted_frame_coverage": 1.0,
+      "runtime_frame_count": 2962,
+      "runtime_prediction_count": 5403,
+      "scored_frame_count": 2962,
+      "scored_ground_truth_count": 5374,
+      "scored_prediction_count": 5403
+    },
+    "VID13": {
+      "artifact": "fold_4/predicted_tracks.json",
+      "metric_status": "SCORED",
+      "metrics": {
+        "ap50_by_instrument": {
+          "0": 0.7557810584942858,
+          "1": 0.8553113553113553,
+          "2": 0.9225067979882962,
+          "3": 0.14705882352941177,
+          "4": 0.6938071895424837,
+          "5": null,
+          "6": 0.6213283881350452
+        },
+        "f1": 0.8207275582308295,
+        "false_positive": 337,
+        "ground_truth": 1916,
+        "iou_threshold": 0.5,
+        "macro_ap50": 0.6659656021668129,
+        "precision": 0.8230971128608924,
+        "recall": 0.8183716075156576,
+        "schema_version": "tracker_detection_metrics_v1",
+        "true_positive": 1568
+      },
+      "predicted_frame_coverage": 1.0,
+      "runtime_frame_count": 924,
+      "runtime_prediction_count": 1905,
+      "scored_frame_count": 924,
+      "scored_ground_truth_count": 1916,
+      "scored_prediction_count": 1905
+    },
+    "VID17": {
+      "artifact": "fold_0/predicted_tracks.json",
+      "metric_status": "SCORED",
+      "metrics": {
+        "ap50_by_instrument": {
+          "0": 0.8161010907738799,
+          "1": 0.913793103448276,
+          "2": 0.9725402610911144,
+          "3": 0.8936588103254768,
+          "4": 0.9467948717948718,
+          "5": 0.3856244064577397,
+          "6": 0.9379483051397922
+        },
+        "f1": 0.8839925670294665,
+        "false_positive": 239,
+        "ground_truth": 1863,
+        "iou_threshold": 0.5,
+        "macro_ap50": 0.8380658355758787,
+        "precision": 0.8744747899159664,
+        "recall": 0.893719806763285,
+        "schema_version": "tracker_detection_metrics_v1",
+        "true_positive": 1665
+      },
+      "predicted_frame_coverage": 1.0,
+      "runtime_frame_count": 1066,
+      "runtime_prediction_count": 1904,
+      "scored_frame_count": 1066,
+      "scored_ground_truth_count": 1863,
+      "scored_prediction_count": 1904
+    },
+    "VID23": {
+      "artifact": "fold_1/predicted_tracks.json",
+      "metric_status": "SCORED",
+      "metrics": {
+        "ap50_by_instrument": {
+          "0": 0.7631191635765888,
+          "1": 0.2816399314488052,
+          "2": 0.9605376379499927,
+          "3": 0.0,
+          "4": 0.5,
+          "5": 0.16345267635590216,
+          "6": 0.2705530052751042
+        },
+        "f1": 0.728744939271255,
+        "false_positive": 872,
+        "ground_truth": 2582,
+        "iou_threshold": 0.5,
+        "macro_ap50": 0.4199003449437705,
+        "precision": 0.6942496493688639,
+        "recall": 0.7668474051123161,
+        "schema_version": "tracker_detection_metrics_v1",
+        "true_positive": 1980
+      },
+      "predicted_frame_coverage": 1.0,
+      "runtime_frame_count": 1570,
+      "runtime_prediction_count": 2910,
+      "scored_frame_count": 1456,
+      "scored_ground_truth_count": 2582,
+      "scored_prediction_count": 2852
+    },
+    "VID31": {
+      "artifact": "vid31/predicted_tracks.json",
+      "metric_status": "NOT_SCORED",
+      "metrics": null,
+      "predicted_frame_coverage": 1.0,
+      "reason": "NO_INSTANCE_LEVEL_BOUNDING_BOX_GROUND_TRUTH",
+      "runtime_frame_count": 3903,
+      "runtime_prediction_count": 8220
+    },
+    "VID37": {
+      "artifact": "fold_2/predicted_tracks.json",
+      "metric_status": "SCORED",
+      "metrics": {
+        "ap50_by_instrument": {
+          "0": 0.8169971209953855,
+          "1": 0.7818264342774148,
+          "2": 0.9453059752450759,
+          "3": 0.5814317261685683,
+          "4": 0.28929409792085853,
+          "5": 0.041666666666666664,
+          "6": 0.6615484127505886
+        },
+        "f1": 0.8567096285064443,
+        "false_positive": 328,
+        "ground_truth": 2688,
+        "iou_threshold": 0.5,
+        "macro_ap50": 0.5882957762892226,
+        "precision": 0.8732612055641422,
+        "recall": 0.8407738095238095,
+        "schema_version": "tracker_detection_metrics_v1",
+        "true_positive": 2260
+      },
+      "predicted_frame_coverage": 1.0,
+      "runtime_frame_count": 1201,
+      "runtime_prediction_count": 2588,
+      "scored_frame_count": 1201,
+      "scored_ground_truth_count": 2688,
+      "scored_prediction_count": 2588
+    },
+    "VID96": {
+      "artifact": "fold_3/predicted_tracks.json",
+      "metric_status": "SCORED",
+      "metrics": {
+        "ap50_by_instrument": {
+          "0": 0.7543733237835124,
+          "1": 0.8901532825848856,
+          "2": 0.8845993541356854,
+          "3": 0.23072562358276644,
+          "4": 0.7555555555555555,
+          "5": 0.0,
+          "6": 0.6780597742633836
+        },
+        "f1": 0.8284453672463015,
+        "false_positive": 317,
+        "ground_truth": 1940,
+        "iou_threshold": 0.5,
+        "macro_ap50": 0.5990667019865413,
+        "precision": 0.8342916884474647,
+        "recall": 0.822680412371134,
+        "schema_version": "tracker_detection_metrics_v1",
+        "true_positive": 1596
+      },
+      "predicted_frame_coverage": 1.0,
+      "runtime_frame_count": 1221,
+      "runtime_prediction_count": 1913,
+      "scored_frame_count": 1221,
+      "scored_ground_truth_count": 1940,
+      "scored_prediction_count": 1913
+    }
+  },
+  "provenance": {
+    "artifact_sha256": {
+      "fold_0/predicted_tracks.json": "833e095c66a404692acf54c676b8224214a9de7c84b905eeec20379812b4f696",
+      "fold_1/predicted_tracks.json": "82f965095223aa7f5d95e198edb5983a40f36acfce3124c32ba3cda46cfd9102",
+      "fold_2/predicted_tracks.json": "d90001f0896e2f581c72cb86ab1d0368cf91317778bd83d7951ff1ad160410da",
+      "fold_3/predicted_tracks.json": "f466e62632e60aac893880e52133d15af1213895b7f7ccdc03921f019516bda3",
+      "fold_4/predicted_tracks.json": "e1b8627f321c9d03e0329b64c244a0e4ff090186dad1fcbcb848665017d737ce",
+      "vid31/predicted_tracks.json": "a483a41048ff6349a41f47bbf7d6b71a4ba55e31889431a293ac8d7567f73425"
+    },
+    "dataset_repair_manifest_sha256": "c3ebb7e0db734be5f8c8418ac1e85bd54a21281664f623c2dacdfba5842d8d04",
+    "oof_index_sha256": "fdcf0446770e0f1ba4229d2a3d46e4b58e109e354e7113653ff2cc09fb03ba3f",
+    "tracker_config_sha256": "93f1aafe156e588b5278688e096cda9d6c373186b0efd93e567891c6fbf92131"
+  },
+  "schema_version": "tracker_oof_heldout_evaluation_v1",
+  "source_split": "Training",
+  "status": "PASS",
+  "video_macro_mean": {
+    "definition": "UNWEIGHTED_MEAN_OF_PER_VIDEO_METRICS",
+    "f1": 0.8352533947722223,
+    "macro_ap50": 0.6388212928526368,
+    "precision": 0.8286703769971633,
+    "recall": 0.8424728842302768
+  }
+}

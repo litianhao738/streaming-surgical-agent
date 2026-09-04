@@ -1,3 +1,16 @@
+> **2026-09-03 supersession notice:** The complete online Pipeline, branch
+> semantics, Repair, Coordinator, outcomes, state, fields, and pseudocode are
+> governed only by
+> [`Streaming_Surgical_Final_Pipeline_Architecture_and_Pseudocode.md`](Streaming_Surgical_Final_Pipeline_Architecture_and_Pseudocode.md).
+> The formal Tracker x Gate experiment, labels, clock, statistics, and canonical
+> Phase 0/A/B/C/D gates are governed only by
+> [`CANONICAL_PIPELINE_TRACKER_GATE_SPEC_2026-09-03.md`](CANONICAL_PIPELINE_TRACKER_GATE_SPEC_2026-09-03.md).
+> This older document remains research rationale and historical design context.
+> Its conflicting pipeline, scope registry, ablation, phase, and Definition of
+> Done text is non-normative. All body text describing a “current” checkpoint,
+> backend, or configuration is historical; live status is maintained only in
+> [`docs/README.md`](../README.md).
+
 Streaming SurgicalAgent V3.1-API
 学术修订版：完整项目与代码架构说明
 Benefit-Routed Sparse Specialist Verification for Reliable Causal Surgical Streaming
@@ -104,6 +117,9 @@ Scientific Question: Given the same multimodal backbone and causal context, when
 现有数据审计还意味着：连续帧数不能等同于独立样本数；IVT supervision 覆盖并不完整，因此 Gate 不能把 IVT confidence 当唯一主信号。API backbone 缓解了小样本训练 perception 的问题，但没有消除“独立 surgery 数量有限”的统计风险。
 
 # 4. V3.1-API 在线主 Pipeline
+
+> **Historical diagram only.** Do not implement this section as the current
+> Pipeline; use the 2026-09-03 complete Pipeline source linked at the top.
 
 ```text
 Streaming Surgical Video
@@ -241,6 +257,9 @@ Track 与 Workflow 的作用不是替代 API 视觉能力，而是提供 API 单
 
 
 # 7. Knowledge-Guided Verification Benefit Gate
+
+> **Historical Gate/scope design.** Current actions, scopes, mandatory routing,
+> G0/G1 meanings, and budget behavior come from the two 2026-09-03 sources.
 Gate 是本项目最需要严谨定义的学习模块。它不学习“当前答案错没错”，而学习“在当前 evidence profile 下，调用哪个 Specialist 预计能带来多少 masked task improvement”。V1 的规则不删除，而是变成 continuous soft evidence。第一主线的 scope 集合固定为 `S = {spatial_track, interaction, workflow}`，不得在 test 时动态增加角色。
 
 ```text
@@ -368,6 +387,9 @@ API baseline 也每个时间步调用一次，因此论文的效率指标必须�
 在没有真实 end-to-end latency 数据前，论文只能称 online causal streaming / streaming inference，不能称 real-time。
 
 # 11. 论文实验体系：三层归因结构
+
+> **Superseded experiment design.** The current main ablation changes only
+> Tracker and Gate and uses `T0G0/T1G0/T0G1/T1G1`.
 实验必须按“总体 framework 是否有效 → 增益是否来自选择性 verification policy → context/memory 组件为何有效”的顺序组织。Layer 1 给出主结论，Layer 2 完成 Gate 归因，Layer 3 解释组件贡献；三层不能混为一张只报告最终 F1 的表。
 
 ## 11.1 Layer 1：Backbone-level Framework Gain（主结果）
@@ -580,6 +602,9 @@ API 版本仍必须从基础框架逐步增加模块，不允许一次生成 Ful
 
 
 # 19. V3.1-API Definition of Done
+
+> **Historical checklist.** Live progression and acceptance gates are canonical
+> Phase 0/A/B/C/D in the Tracker x Gate protocol.
 1. Engineering Foundation 的 parser、causal window、partial-label masks、Gold-free inference、video reset、offline evaluation 全部有测试并通过。
 2. API Client/Cache/Usage 层独立于任务逻辑；相同 request 可稳定 cache replay；model/prompt/version/token/latency 可追溯。
 3. Single-pass Baseline 与 Full V3.1-API Agent 使用同一个 exact API model identifier、相同 test videos、causal visual window、ontology、输出 schema 和 EvaluationEngine，并均可完整运行。

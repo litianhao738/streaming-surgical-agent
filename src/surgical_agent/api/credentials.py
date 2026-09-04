@@ -8,6 +8,7 @@ from pathlib import Path
 
 _OPENROUTER_KEY = re.compile(r"sk-or-v1-[A-Za-z0-9_-]{20,}\Z")
 _OPENAI_KEY = re.compile(r"sk-[A-Za-z0-9_-]{20,}\Z")
+_XAI_KEY = re.compile(r"xai-[A-Za-z0-9_-]{20,}(?:={1,2})?\Z")
 
 
 class SecretValue:
@@ -38,6 +39,8 @@ def load_api_key_file(path: str | Path) -> SecretValue:
             raise ValueError("API key file contains multiple OpenRouter credentials")
         return SecretValue(nonempty_lines[0])
     if len(nonempty_lines) == 1 and _OPENAI_KEY.fullmatch(nonempty_lines[0]):
+        return SecretValue(nonempty_lines[0])
+    if len(nonempty_lines) == 1 and _XAI_KEY.fullmatch(nonempty_lines[0]):
         return SecretValue(nonempty_lines[0])
     if len(lines) != 1 or "=" not in lines[0]:
         raise ValueError("API key file must contain one NAME=value line")

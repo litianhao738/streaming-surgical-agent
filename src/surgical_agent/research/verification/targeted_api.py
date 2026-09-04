@@ -33,9 +33,11 @@ from surgical_agent.perception.joint_api_vlm import (
 from surgical_agent.perception.ontology_prompt import (
     add_academic_medical_context,
     load_prompt_ontology_text,
+    load_scoped_prompt_ontology_text,
 )
 from surgical_agent.research.reliability.state import TASK_PATHS, canonical_tasks
 from surgical_agent.research.signals.contracts import EvidenceProfile, EvidenceValue
+from surgical_agent.research.signals.frame_evidence import load_ivt_components
 from surgical_agent.research.verification.contracts import (
     CandidateSet,
     FieldVerificationOutcome,
@@ -49,15 +51,22 @@ class _ApiClient(Protocol):
 
 
 TARGETED_VERIFICATION_PROMPT_V2 = "targeted_verification_prompt_v2"
+TARGETED_VERIFICATION_PROMPT_V5 = "targeted_verification_prompt_v5"
+TARGETED_VERIFICATION_PROMPT_V6 = "targeted_verification_prompt_v6"
+TARGETED_VERIFICATION_PROMPT_V7 = "targeted_verification_prompt_v7"
 
 
 def load_targeted_verification_prompt_text(
-    prompt_version: str = TARGETED_VERIFICATION_PROMPT_V2,
+    prompt_version: str = TARGETED_VERIFICATION_PROMPT_V6,
     *,
     academic_context: bool = False,
+    ontology_text: str | None = None,
 ) -> str:
     resources = {
         TARGETED_VERIFICATION_PROMPT_V2: "targeted_verification_prompt_v2.txt",
+        TARGETED_VERIFICATION_PROMPT_V5: "targeted_verification_prompt_v5.txt",
+        TARGETED_VERIFICATION_PROMPT_V6: "targeted_verification_prompt_v6.txt",
+        TARGETED_VERIFICATION_PROMPT_V7: "targeted_verification_prompt_v7.txt",
     }
     try:
         resource_name = resources[prompt_version]
@@ -72,7 +81,9 @@ def load_targeted_verification_prompt_text(
     )
     if academic_context:
         prompt = add_academic_medical_context(prompt)
-    ontology = load_prompt_ontology_text()
+    ontology = load_prompt_ontology_text() if ontology_text is None else ontology_text
+    if not isinstance(ontology, str) or not ontology.strip():
+        raise ApiContractError("targeted verification ontology must be non-empty")
     return f"{prompt.rstrip()}\n\n{ontology}\n"
 
 
@@ -118,6 +129,36 @@ def _evidence_mapping(
     }
 
 
+def _fixed_dependency_constraints(
+    prediction: InitialPrediction,
+    requested_fields: tuple[str, ...],
+) -> list[dict[str, object]]:
+    """Expose only IDs required by frozen, unrequested IVT components."""
+
+    if "ivt" in requested_fields or not prediction.triplet_ids:
+        return []
+    components = load_ivt_components()
+    required: dict[str, set[int]] = {
+        "instrument": set(),
+        "verb": set(),
+        "target": set(),
+    }
+    for triplet_id in prediction.triplet_ids:
+        instrument_id, verb_id, target_id = components[triplet_id]
+        required["instrument"].add(instrument_id)
+        required["verb"].add(verb_id)
+        required["target"].add(target_id)
+    return [
+        {
+            "path": TASK_PATHS[task],
+            "required_ids": sorted(required[task]),
+            "reason": "FROZEN_UNREQUESTED_IVT_CLOSURE",
+        }
+        for task in ("instrument", "verb", "target")
+        if task in requested_fields and required[task]
+    ]
+
+
 class TargetedVerificationRequestBuilder:
     """Build one strict request containing only the flagged field hypotheses."""
 
@@ -126,7 +167,12 @@ class TargetedVerificationRequestBuilder:
             raise TypeError("config must be ApiConfig")
         self.config = config
         self.backend_name = "joint_api_vlm_targeted_verifier"
-        self.prompt_version = TARGETED_VERIFICATION_PROMPT_V2
+        self.prompt_version = (
+            config.prompt_version
+            if config.prompt_version
+            in {TARGETED_VERIFICATION_PROMPT_V6, TARGETED_VERIFICATION_PROMPT_V7}
+            else TARGETED_VERIFICATION_PROMPT_V6
+        )
 
     def build(
         self,
@@ -136,6 +182,7 @@ class TargetedVerificationRequestBuilder:
         evidence: EvidenceProfile,
         *,
         requested_fields: tuple[str, ...],
+        scope: str | None = None,
     ) -> ApiRequest:
         if not isinstance(context, PerceptionContext):
             raise TypeError("context must be a PerceptionContext")
@@ -148,9 +195,9 @@ class TargetedVerificationRequestBuilder:
         requested = canonical_tasks(tuple(requested_fields))
         if not requested:
             raise ApiContractError("targeted verification requires requested fields")
-        if candidates.initial_prediction is not prediction:
+        if not candidates.admits(prediction):
             raise ApiContractError(
-                "candidate pool must belong to the current prediction"
+                "current prediction must remain inside the frozen candidate pool"
             )
         if (
             evidence.video_id != context.sample.video_id
@@ -164,58 +211,98 @@ class TargetedVerificationRequestBuilder:
         memory_snapshot = thaw_json(context.memory_snapshot)
         if not isinstance(memory_snapshot, Mapping):
             raise ApiContractError("memory snapshot must be a mapping")
-        candidate_fields: dict[str, list[dict[str, object]]] = {}
+        request_candidate_ids: dict[str, tuple[int, ...]] = {}
+        candidate_fields: dict[str, list[int]] = {}
         for task in requested:
             records = candidates.candidate_records[task]
             if not records or len(records) > 8:
                 raise ApiContractError(
                     "targeted candidate records must contain one to eight items"
                 )
-            candidate_fields[TASK_PATHS[task]] = [
-                {"id": record.class_id, "confidence": record.confidence}
-                for record in records
-            ]
+            allowed_ids = candidates.allowed_ids[task]
+            if scope == "interaction" and task == "ivt":
+                components = load_ivt_components()
+                allowed_ids = tuple(
+                    ivt_id
+                    for ivt_id in allowed_ids
+                    if all(
+                        component_id in candidates.allowed_ids[component_task]
+                        for component_task, component_id in zip(
+                            ("instrument", "verb", "target"),
+                            components[ivt_id],
+                        )
+                    )
+                )
+                if not allowed_ids:
+                    raise ApiContractError(
+                        "interaction has no closure-safe IVT candidates"
+                    )
+            request_candidate_ids[task] = allowed_ids
+            candidate_fields[TASK_PATHS[task]] = list(allowed_ids)
+        current_fields = {
+            TASK_PATHS[task]: list(_selected_ids(prediction, task))
+            for task in requested
+        }
+        conservative = self.prompt_version == TARGETED_VERIFICATION_PROMPT_V7
         input_payload = {
+            "verification_protocol": (
+                "conservative_h0_comparison_v1"
+                if conservative
+                else "blind_candidate_selection_v1"
+            ),
             "video_id": context.sample.video_id,
             "target_frame_id": context.sample.target_frame_id,
             "causal_frame_ids": list(context.sample.causal_frame_ids),
             "selected_image_frame_ids": list(context.selected_image_frame_ids),
             "temporal_evidence": thaw_json(context.temporal_evidence),
             "flagged_fields": [TASK_PATHS[task] for task in requested],
-            "current_fields": [
-                {
-                    "path": TASK_PATHS[task],
-                    "selected_ids": list(_selected_ids(prediction, task)),
-                }
-                for task in requested
-            ],
             "candidate_fields": candidate_fields,
+            "required_fields": _fixed_dependency_constraints(prediction, requested),
             "evidence_profile": _evidence_mapping(evidence, requested),
             "workflow_summary": workflow_summary,
             "track_summary": track_summary,
             "memory_snapshot": memory_snapshot,
             "ontology_version": "cholectrack20_v1",
         }
+        if conservative:
+            input_payload["current_fields"] = current_fields
+            input_payload["admission_policy"] = {
+                "default": "KEEP_H0",
+                "repair_requires": "CLEAR_VISUAL_CONTRADICTION",
+                "uncertainty_action": "Pending",
+            }
         prompt_profile = self.config.provider_options.get(
             "verification_prompt_profile", "full_context"
         )
-        if prompt_profile not in {"full_context", "delta_visual_only"}:
+        if prompt_profile not in {"full_context", "fixed_visual_only"}:
             raise ApiContractError("verification_prompt_profile is unsupported")
         request_images = context.images
         image_details = context.image_details or tuple("auto" for _ in context.images)
-        if prompt_profile == "delta_visual_only":
+        if prompt_profile == "fixed_visual_only":
             input_payload = {
+                "verification_protocol": (
+                    "conservative_h0_comparison_v1"
+                    if conservative
+                    else "blind_candidate_selection_v1"
+                ),
                 "video_id": context.sample.video_id,
                 "target_frame_id": context.sample.target_frame_id,
                 "causal_frame_ids": list(context.sample.causal_frame_ids),
+                "selected_image_frame_ids": list(context.selected_image_frame_ids),
+                "temporal_evidence": thaw_json(context.temporal_evidence),
                 "flagged_fields": [TASK_PATHS[task] for task in requested],
-                "current_fields": input_payload["current_fields"],
                 "candidate_fields": candidate_fields,
+                "required_fields": input_payload["required_fields"],
                 "evidence_profile": _evidence_mapping(evidence, requested),
                 "ontology_version": "cholectrack20_v1",
             }
-            request_images = (context.images[-1],)
-            image_details = (image_details[-1],)
+            if conservative:
+                input_payload["current_fields"] = current_fields
+                input_payload["admission_policy"] = {
+                    "default": "KEEP_H0",
+                    "repair_requires": "CLEAR_VISUAL_CONTRADICTION",
+                    "uncertainty_action": "Pending",
+                }
         return ApiRequest(
             provider=self.config.provider,
             model_identifier=self.config.requested_model_identifier,
@@ -226,7 +313,11 @@ class TargetedVerificationRequestBuilder:
                 "system_text": load_targeted_verification_prompt_text(
                     self.prompt_version,
                     academic_context=self.config.provider
-                    in {"openai", "openrouter", "openai_compatible"}
+                    in {"openai", "openrouter", "openai_compatible"},
+                    ontology_text=load_scoped_prompt_ontology_text(
+                        requested,
+                        request_candidate_ids,
+                    ),
                 ),
                 "image_details": list(image_details),
                 "input_text": json.dumps(
@@ -332,6 +423,7 @@ class TargetedApiVerifier:
     """Invoke exactly one targeted verification call for the requested fields."""
 
     enabled_scopes = (
+        "instrument_presence",
         "targeted",
         "joint",
         "spatial_track",
@@ -384,6 +476,7 @@ class TargetedApiVerifier:
             candidates,
             evidence,
             requested_fields=requested_fields,
+            scope=scope,
         )
         response = self.client.call(request)
         return parse_targeted_verification_response(

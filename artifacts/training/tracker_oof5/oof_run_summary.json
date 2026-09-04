@@ -1,0 +1,104 @@
+{
+  "folds": [
+    {
+      "artifact": "/root/autodl-tmp/AutoDL_SurgicalAgent/StreamingSurgicalAgent_AutoDL_OOF_20260903_FINAL/artifacts/training/tracker_oof5/oof/fold_0/predicted_tracks.json",
+      "fold_index": 0,
+      "held_out_video_ids": [
+        "VID02",
+        "VID17"
+      ],
+      "training_video_ids": [
+        "VID04",
+        "VID103",
+        "VID11",
+        "VID13",
+        "VID23",
+        "VID37",
+        "VID96"
+      ]
+    },
+    {
+      "artifact": "/root/autodl-tmp/AutoDL_SurgicalAgent/StreamingSurgicalAgent_AutoDL_OOF_20260903_FINAL/artifacts/training/tracker_oof5/oof/fold_1/predicted_tracks.json",
+      "fold_index": 1,
+      "held_out_video_ids": [
+        "VID04",
+        "VID23"
+      ],
+      "training_video_ids": [
+        "VID02",
+        "VID103",
+        "VID11",
+        "VID13",
+        "VID17",
+        "VID37",
+        "VID96"
+      ]
+    },
+    {
+      "artifact": "/root/autodl-tmp/AutoDL_SurgicalAgent/StreamingSurgicalAgent_AutoDL_OOF_20260903_FINAL/artifacts/training/tracker_oof5/oof/fold_2/predicted_tracks.json",
+      "fold_index": 2,
+      "held_out_video_ids": [
+        "VID103",
+        "VID37"
+      ],
+      "training_video_ids": [
+        "VID02",
+        "VID04",
+        "VID11",
+        "VID13",
+        "VID17",
+        "VID23",
+        "VID96"
+      ]
+    },
+    {
+      "artifact": "/root/autodl-tmp/AutoDL_SurgicalAgent/StreamingSurgicalAgent_AutoDL_OOF_20260903_FINAL/artifacts/training/tracker_oof5/oof/fold_3/predicted_tracks.json",
+      "fold_index": 3,
+      "held_out_video_ids": [
+        "VID11",
+        "VID96"
+      ],
+      "training_video_ids": [
+        "VID02",
+        "VID04",
+        "VID103",
+        "VID13",
+        "VID17",
+        "VID23",
+        "VID37"
+      ]
+    },
+    {
+      "artifact": "/root/autodl-tmp/AutoDL_SurgicalAgent/StreamingSurgicalAgent_AutoDL_OOF_20260903_FINAL/artifacts/training/tracker_oof5/oof/fold_4/predicted_tracks.json",
+      "fold_index": 4,
+      "held_out_video_ids": [
+        "VID13"
+      ],
+      "training_video_ids": [
+        "VID02",
+        "VID04",
+        "VID103",
+        "VID11",
+        "VID17",
+        "VID23",
+        "VID37",
+        "VID96"
+      ]
+    }
+  ],
+  "mode": "oof",
+  "oof_index": "/root/autodl-tmp/AutoDL_SurgicalAgent/StreamingSurgicalAgent_AutoDL_OOF_20260903_FINAL/artifacts/training/tracker_oof5/oof/index.json",
+  "oof_video_ids": [
+    "VID02",
+    "VID04",
+    "VID103",
+    "VID11",
+    "VID13",
+    "VID17",
+    "VID23",
+    "VID31",
+    "VID37",
+    "VID96"
+  ],
+  "vid31_artifact": "/root/autodl-tmp/AutoDL_SurgicalAgent/StreamingSurgicalAgent_AutoDL_OOF_20260903_FINAL/artifacts/training/tracker_oof5/oof/vid31/predicted_tracks.json"
+}

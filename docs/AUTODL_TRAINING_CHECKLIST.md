@@ -1,7 +1,8 @@
 # AutoDL Training Checklist
 
-Upload the current repository first; train or fit the items below one at a time
-afterward. Do not run the blocked training scripts as if they were finished.
+Upload the current repository first; train, collect or fit the items below one
+at a time. A script being executable does not mean its scientific prerequisite
+has passed.
 
 ## Ready now — no local training
 
@@ -37,11 +38,33 @@ the rule Gate are deterministic and also require no gradient training.
 4. **Surgical priors — deterministic fit.** Build train-only IVT/workflow
    priors after their exact semantics are frozen. The current
    `scripts/build_surgical_priors.py` is blocked.
-5. **Gate dataset D0 — data generation.** Produce out-of-fold, GT-aligned
-   state/action benefit examples from Training only. Validation and Test must
-   not enter D0. The current `scripts/build_gate_oof_dataset.py` is blocked.
-6. **Bootstrap Gate G0 — training.** Train the first small benefit predictor on
-   D0. G0 is a rollout policy, not a deployable final Gate.
+5. **Gate dataset D0 — API data-generation code ready.** Run
+   `scripts/collect_formal_gate_counterfactuals.py` on Training with the
+   five-fold Tracker OOF index. It calls JointPerception once and every legal
+   Verify/Repair scope, joins GT only afterward, and is cache/resume safe. The
+   three independent same-snapshot scopes run concurrently, so the provider
+   account must permit up to three in-flight verification requests per frame;
+   causal frames within one video remain sequential.
+   `--allow-api-failures` is restricted to coverage/debug pilots: it records
+   terminal provider rejections and continues, but must not be used to silently
+   construct the formal Gate training dataset.
+   The active Repair-development path is now the conservative same-model V7
+   contract: `--api-config` supplies Joint H0 and `--verification-api-config`
+   supplies the same GPT model with
+   `targeted_openrouter_gpt56sol_constrained_fixed6.yaml`. Interaction verification
+   selects IVT only and derives I/V/T deterministically; Verified cannot coexist
+   with uncertainty; and hard-valid H0 cannot be replaced automatically. The
+   two-frame VID13 endpoint probe on 2026-09-04 had 6/6 successful fresh Verifier
+   calls and no accepted Repair. It prevented harm, but it also blocked a correct
+   phase 0→1 proposal on VID13:1 because H0 was structurally valid. Therefore V7
+   is a safety baseline, not evidence of positive Repair capability. GPT+Grok,
+   Gemini, and Claude remain historical capability probes rather than active
+   defaults. Do not create D0 until a separately frozen admission rule shows
+   positive rescue with controlled harm on a predeclared Training-only probe.
+6. **Bootstrap Gate G0 — code ready after D0 passes.** Build paired examples
+   with `scripts/build_gate_oof_dataset.py`, then run `scripts/train_gate.py`.
+   It emits one video-cross-fitted bootstrap artifact per fold; these artifacts
+   are non-deployable and may be used only for the D1 Training rollout.
 7. **Policy-matched rollout D1 — data generation.** Run G0 on Training folds and
    collect every encountered state plus realized bounded-verification benefit.
 8. **Final Gate G1 — training.** Train on D1 and export a strict

@@ -15,6 +15,7 @@ from surgical_agent.research.verification.contracts import (
 from surgical_agent.systems.pipeline import GateDecision
 
 _SCOPE_TASKS = {
+    "instrument_presence": frozenset({"instrument"}),
     "joint": frozenset({"instrument", "verb", "target", "ivt", "phase"}),
     "targeted": frozenset({"instrument", "verb", "target", "ivt", "phase"}),
     "spatial_track": frozenset({"instrument"}),

@@ -4,32 +4,33 @@ CholecTrack20-only research code for strict-causal surgical video inference,
 predicted tracking, selective structured verification, and reliability-aware
 event memory.
 
-> **Current status:** data qualification and the P2 engineering smoke pass. The
-> OpenRouter `openai/gpt-5.6-sol` joint API path, dataset rollout, structured
-> five-head prediction, offline evaluation, Always Verify, rule Gate,
-> candidate-bounded joint verification, deterministic coordination, and
-> finalized-only workflow/event memory and executable Track–Workflow context
-> profiles are implemented. The learned Gate runtime accepts only an explicit
-> train-derived `final_g1` artifact. The predicted tracker now has real
-> `smoke|full|oof` training/export modes and four independent context ablations;
-> trained checkpoints and Gate artifacts are still runtime outputs, so the full
-> paper system is not yet claimed as complete.
+> **Status summary; the authoritative live checkpoint is
+> [docs/README.md](docs/README.md):** the core final Pipeline is executable with
+> fixed six-frame input, predicted Tracker evidence, explicit hard Guard and
+> Rule/learned Gate slot, bounded targeted Verify/Repair, deterministic
+> postcheck, OutcomeFinalizer, atomic Memory/Pending state, exact provider-attempt
+> budgets and resumable D0 collection. Tracker OOF training/evaluation is
+> complete. Real API Repair capability evidence, D1, final G1 and Validation
+> operating-point selection have not run; no current Gate artifact is final.
 
 ## Current documentation
 
-- [V3.1-API academic architecture revision](docs/architecture/Streaming_SurgicalAgent_V3_1_API_学术修订版完整项目与代码架构说明.md): research-design source of truth.
-- [V3.1-API Codex implementation specification](docs/architecture/Streaming_SurgicalAgent_V3_1_API_Codex_Implementation_Spec.md): code implementation contract.
+- [Complete target Pipeline architecture and pseudocode](docs/architecture/Streaming_Surgical_Final_Pipeline_Architecture_and_Pseudocode.md): the sole source of truth for the full online graph, every Guard/Gate/Repair path, fields, outcomes, causal Memory, and pseudocode; implementation is incomplete.
+- [Canonical Tracker × Gate ablation and academic protocol](docs/architecture/CANONICAL_PIPELINE_TRACKER_GATE_SPEC_2026-09-03.md): the sole source of truth for the `A_base/B_tracker/C_gate/D_full` experiment, labels, frame clock, statistics, and research gates.
+- [V3.1-API academic architecture revision](docs/architecture/Streaming_SurgicalAgent_V3_1_API_学术修订版完整项目与代码架构说明.md): historical research rationale and claim framing where it does not conflict with the two sources above.
+- [V3.1-API Codex implementation specification](docs/architecture/Streaming_SurgicalAgent_V3_1_API_Codex_Implementation_Spec.md): legacy detailed engineering guidance where it does not conflict with the two sources above.
 
-The academic document controls research questions, claims, pipeline semantics,
-and module responsibilities. The Codex specification controls repository
-changes, interfaces, phase gates, tests, commands, and acceptance criteria.
-The user's latest explicit instruction takes precedence over both documents.
+Precedence is: the user's latest explicit instruction; the complete Pipeline
+document for runtime semantics; the canonical Tracker × Gate protocol for
+experiment semantics and progression; then the academic and legacy engineering
+documents only where non-conflicting. The dated session handoff records verified
+facts but is never normative. See [the docs index](docs/README.md) for the live
+checkpoint and next action.
 
-Implementation is phase-gated from P0 through P12. A phase may advance only
-after its actual tests pass. Unknown annotation semantics, FPS, ontology, or
-experimental conditions are recorded as `BLOCKED`; they are never inferred.
-All stages must use one canonical streaming pipeline under `src/surgical_agent/`;
-experiment systems assemble components rather than copying the rollout loop.
+Unknown annotation semantics, FPS, ontology, or experimental conditions are
+recorded as `BLOCKED`; they are never inferred. All stages must use one canonical
+streaming pipeline under `src/surgical_agent/`; experiment systems assemble
+components rather than copying the rollout loop.
 
 ## Repository layout
 
@@ -80,14 +81,22 @@ enters the metric denominator. Testing GT remains offline-evaluation-only and
 must never enter training, model selection, prompts, causal state, or API
 requests.
 
-## Phase order
+## Research progression
 
-`P0 Audit/Docs/Scaffold -> P1 Engineering Hard Gates -> P2 Local Smoke ->
-P3 API Client/Cache -> P4 API Single-pass -> P5 Track/Workflow Context ->
-P6 Train-only Priors -> P7 EventMemory/Candidates ->
-P8 Verification Probe -> P9 D0 -> P10-A G0 -> P10-B Policy-matched Rollout ->
-P10-C D1 -> P10-D G1 -> P10-E Validation Operating Point ->
-P11 Frozen G1 Runtime -> P12 Ablation/Cost/Statistics`
+The normative dependency order is:
+
+```text
+Phase 0 research/data-contract freeze
+-> Phase A shared implementation and tests
+-> Phase B Training-only Repair capability probe and N_max freeze
+-> Phase C cross-fitted Gate data, training, Validation choice, and freeze
+-> Phase D sealed four-cell Test experiment
+```
+
+The older `P0-P12` labels elsewhere in the repository are legacy engineering
+milestones, not the live research gate. Their historical order was
+`P0 Audit/Docs/Scaffold -> P1 Engineering Hard Gates -> P2 Local Smoke -> P3 API
+Client/Cache -> ... -> P12 Ablation/Cost/Statistics`.
 
 ## P2 local smoke
 
@@ -123,19 +132,38 @@ the optimizer/checkpoint/prediction/export path locally with:
 ```
 
 Formal `full` and fold-safe `oof` commands are in the AutoDL quickstart. The
-generated checkpoint and `predicted_tracks.json` stay under ignored
-`artifacts/training/tracker/` and are not source-controlled.
+completed full and five-fold OOF tracker checkpoints, resumable training states,
+prediction artifacts, manifests, and metrics are versioned under
+`artifacts/training/tracker/` and `artifacts/training/tracker_oof5/`. Tensor
+files use Git LFS, so install Git LFS and run `git lfs pull` after cloning.
+Other generated training and runtime artifacts remain ignored.
 
-### Adaptive six-frame causal input
+Downloaded OOF predictions must pass the local leakage/provenance/coverage
+audit before they are used to construct Gate training examples:
 
-Dataset API inference consumes a maximum six-frame causal buffer ending at the
-target frame. The tracker and deterministic evidence selector inspect all six
-frames, while the API upload budget remains three images: the current target is
-always included and up to two historical frames are selected by visual change,
-predicted-track displacement, track-set change, and recency. Each rollout writes
-`causal_window_audit.jsonl` with the full window, selected image IDs, omitted
-image IDs, and bounded temporal evidence. No future frame or annotation label is
-used by the selector.
+```powershell
+.\.venv-p2\Scripts\python.exe scripts\evaluate_tracker_oof.py `
+  --dataset-root D:\cholec_dataset `
+  --tracker-oof-index artifacts\training\tracker_oof5\oof\index.json `
+  --tracker-config configs\tracker\fasterrcnn_mobilenet_v3_5090_oof5.yaml
+```
+
+This report evaluates instrument AP50/F1 on the nine instance-supervised
+Training videos. VID31 is checked for exact prediction coverage but excluded
+from bounding-box metrics because its repaired route has no valid instance box
+supervision.
+
+### Formal input contract
+
+The final Pipeline profiles use a fixed causal window of up to six ordered
+images and never let Tracker select images. JointPerception and targeted Verify
+receive the same selected frame IDs in all four cells. Verify omits Tracker,
+workflow and Memory fields, preserving the Tracker ablation boundary. Verify is
+also blind to H0 selections and upstream rank scores, labels the target frame
+rather than the union of its history, and receives all seven Phase IDs. Frozen
+unrequested-IVT components are passed only as deterministic closure constraints. Older
+three-image/adaptive dataset profiles remain legacy engineering or supplementary
+profiles and are not valid for the primary factorial.
 
 For a one-call full-window engineering probe, combine
 `--target-frame-id <FRAME_ID>` with `--max-frames 1`; the selected target must

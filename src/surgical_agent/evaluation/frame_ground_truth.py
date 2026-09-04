@@ -15,6 +15,7 @@ from surgical_agent.data.parser import parse_annotation_file
 from surgical_agent.data.schemas import (
     CanonicalFrameAnnotation,
     DatasetSplit,
+    EvaluationTarget,
     FrameSupervisionTarget,
     FrameTaskMask,
 )
@@ -52,14 +53,53 @@ def aggregate_frame_target(
 ) -> FrameSupervisionTarget:
     """Union instance labels only when the whole frame is supervised for a task."""
 
+    return _aggregate_instances(
+        video_id=frame.video_id,
+        frame_id=frame.frame_id,
+        instances=tuple(frame.instances),
+        allowed_tasks=allowed_tasks,
+        source=source,
+    )
+
+
+def aggregate_evaluation_target(
+    target: EvaluationTarget,
+    *,
+    allowed_tasks: frozenset[str] = _ALL_TASKS,
+    source: str,
+) -> FrameSupervisionTarget:
+    """Conservatively aggregate an instance-level Training target for Gate labels."""
+
+    if not isinstance(target, EvaluationTarget):
+        raise TypeError("target must be an EvaluationTarget")
+    if not target.instance_supervision_available:
+        raise OfflineEvaluationError("instance supervision is unavailable")
+    return _aggregate_instances(
+        video_id=target.video_id,
+        frame_id=target.frame_id,
+        instances=tuple(target.instances),
+        allowed_tasks=allowed_tasks,
+        source=source,
+    )
+
+
+def _aggregate_instances(
+    *,
+    video_id: str,
+    frame_id: int,
+    instances: tuple[Any, ...],
+    allowed_tasks: frozenset[str],
+    source: str,
+) -> FrameSupervisionTarget:
+    """Shared all-instances mask rule for canonical and isolated targets."""
+
     if not allowed_tasks <= _ALL_TASKS:
         raise OfflineEvaluationError("allowed_tasks contains an unknown task")
-    instances = tuple(frame.instances)
     if not instances:
         mask = FrameTaskMask(False, False, False, False, False)
         return FrameSupervisionTarget(
-            video_id=frame.video_id,
-            frame_id=frame.frame_id,
+            video_id=video_id,
+            frame_id=frame_id,
             instrument_ids=(),
             verb_ids=(),
             target_ids=(),
@@ -86,12 +126,12 @@ def aggregate_frame_target(
         phases = {instance.phase_id for instance in instances}
         if len(phases) != 1:
             raise OfflineEvaluationError(
-                f"conflicting phase labels for {frame.video_id} frame {frame.frame_id}"
+                f"conflicting phase labels for {video_id} frame {frame_id}"
             )
         phase_id = next(iter(phases))
     return FrameSupervisionTarget(
-        video_id=frame.video_id,
-        frame_id=frame.frame_id,
+        video_id=video_id,
+        frame_id=frame_id,
         instrument_ids=ids("instrument", "instrument_id"),
         verb_ids=ids("verb", "verb_id"),
         target_ids=ids("target", "target_id"),

@@ -1,0 +1,24 @@
+schema_version: final_pipeline_experiment_v1
+context:
+  max_frames: 6
+  max_images: 6
+  selection_strategy: fixed_all
+  history_image_detail: low
+  target_image_detail: auto
+safety:
+  mandatory_guard_enabled: true
+  require_component_coverage: false
+verification:
+  scopes:
+    - instrument_presence
+    - interaction
+    - workflow
+  max_attempts: 1
+budget:
+  safety_reserve: 200
+  optional_capacity: 200
+  shared_capacity: 50
+memory:
+  max_verified: 64
+  max_accepted: 64
+  max_resolution_attempts: 1

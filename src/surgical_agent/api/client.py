@@ -237,27 +237,29 @@ class CachedMultimodalApiClient:
             return replay
 
         start = perf_counter()
-        try:
+        provider_attempts = 0
+
+        def send_once() -> ProviderResponse:
+            nonlocal provider_attempts
             if self.provider_call_budget is not None:
                 self.provider_call_budget.consume()
+            provider_attempts += 1
+            return self.transport.send(request)
+
+        try:
+            if self.sleep is None:
+                retried = self.retry_policy.execute(send_once)
+            else:
+                retried = self.retry_policy.execute(send_once, sleep=self.sleep)
         except ApiProviderCallBudgetError as exc:
             self._log_failure(
                 metadata,
                 error_code=exc.code,
-                retry_count=0,
-                provider_call_count=0,
+                retry_count=max(0, provider_attempts - 1),
+                provider_call_count=provider_attempts,
                 latency_ms=(perf_counter() - start) * 1000.0,
             )
             raise
-        try:
-            if self.sleep is None:
-                retried = self.retry_policy.execute(
-                    lambda: self.transport.send(request)
-                )
-            else:
-                retried = self.retry_policy.execute(
-                    lambda: self.transport.send(request), sleep=self.sleep
-                )
         except ApiCallFailure as exc:
             self._log_failure(
                 metadata,

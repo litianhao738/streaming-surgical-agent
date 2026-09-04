@@ -66,6 +66,16 @@ def test_api_key_file_accepts_one_raw_openai_key(tmp_path: Path) -> None:
     assert secret.reveal() == raw_key
 
 
+def test_api_key_file_accepts_one_raw_xai_key(tmp_path: Path) -> None:
+    raw_key = "xai-" + "x" * 78 + "=="
+    path = tmp_path / "key.txt"
+    path.write_text(raw_key + "\n", encoding="utf-8")
+
+    secret = load_api_key_file(path)
+
+    assert secret.reveal() == raw_key
+
+
 def test_api_key_file_rejects_multiple_openrouter_keys(tmp_path: Path) -> None:
     first = "sk-or-v1-" + "x" * 64
     second = "sk-or-v1-" + "y" * 64

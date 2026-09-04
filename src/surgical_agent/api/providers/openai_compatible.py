@@ -84,7 +84,7 @@ def _json_content(value: str) -> Mapping[str, Any]:
 
 
 class OpenAICompatibleTransport:
-    """Send one-to-three-image requests through a generic compatible gateway."""
+    """Send one-to-six-image requests through a generic compatible gateway."""
 
     provider = "openai_compatible"
 
@@ -133,8 +133,8 @@ class OpenAICompatibleTransport:
             raise ApiContractError("request provider does not match transport")
         if request.endpoint_identifier != self.endpoint_identifier:
             raise ApiContractError("request endpoint does not match transport")
-        if not 1 <= len(request.images) <= 3:
-            raise ApiContractError("compatible transport requires one to three images")
+        if not 1 <= len(request.images) <= 6:
+            raise ApiContractError("compatible transport requires one to six images")
         for field_name in ("input_text", "system_text"):
             value = request.payload.get(field_name)
             if field_name == "input_text" and (
@@ -155,6 +155,9 @@ class OpenAICompatibleTransport:
         for key in ("temperature", "top_p", "seed", "enable_thinking"):
             if key in request.generation_parameters:
                 parameters[key] = thaw_json(request.generation_parameters[key])
+        reasoning = request.generation_parameters.get("reasoning")
+        if isinstance(reasoning, Mapping) and "effort" in reasoning:
+            parameters["reasoning_effort"] = thaw_json(reasoning["effort"])
         if "max_output_tokens" in request.generation_parameters:
             parameters["max_tokens"] = thaw_json(
                 request.generation_parameters["max_output_tokens"]
@@ -260,7 +263,9 @@ class OpenAICompatibleTransport:
             if not isinstance(usage_value, Mapping):
                 raise TypeError("usage is invalid")
             input_tokens = _optional_count(usage_value, "prompt_tokens")
-            output_tokens = _optional_count(usage_value, "completion_tokens")
+            visible_completion_tokens = _optional_count(
+                usage_value, "completion_tokens"
+            )
             total_tokens = _optional_count(usage_value, "total_tokens")
             details_value = usage_value.get("completion_tokens_details")
             reasoning_tokens = None
@@ -268,6 +273,20 @@ class OpenAICompatibleTransport:
                 if not isinstance(details_value, Mapping):
                     raise TypeError("completion token details are invalid")
                 reasoning_tokens = _optional_count(details_value, "reasoning_tokens")
+            output_tokens = visible_completion_tokens
+            # xAI Chat Completions reports visible completion and reasoning as
+            # disjoint counts, while OpenAI-style responses commonly include
+            # reasoning inside completion_tokens. Normalize both conventions to
+            # this project's inclusive output_tokens contract.
+            if (
+                input_tokens is not None
+                and visible_completion_tokens is not None
+                and total_tokens is not None
+                and reasoning_tokens is not None
+                and total_tokens
+                == input_tokens + visible_completion_tokens + reasoning_tokens
+            ):
+                output_tokens = visible_completion_tokens + reasoning_tokens
             details = CompletionTokenDetails(reasoning_tokens=reasoning_tokens)
             visible_tokens = (
                 None

@@ -1,0 +1,18 @@
+tracker:
+  schema_version: predicted_tracker_training_v1
+  architecture: fasterrcnn_mobilenet_v3_large_fpn
+  initial_weights: COCO_V1
+  num_classes: 8
+  seed: 3407
+  epochs: 10
+  batch_size: 8
+  learning_rate: 0.005
+  weight_decay: 0.0005
+  num_workers: 8
+  min_size: 480
+  max_size: 854
+  score_threshold: 0.35
+  nms_threshold: 0.5
+  association_iou_threshold: 0.3
+  max_age: 2
+  oof_folds: 5

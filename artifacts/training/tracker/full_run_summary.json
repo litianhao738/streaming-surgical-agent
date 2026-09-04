@@ -1,0 +1,18 @@
+{
+  "checkpoint": "/root/autodl-tmp/AutoDL_SurgicalAgent/project/PythonProject7/artifacts/training/tracker/full/checkpoint.pt",
+  "mode": "full",
+  "predicted_track_artifact": "/root/autodl-tmp/AutoDL_SurgicalAgent/project/PythonProject7/artifacts/training/tracker/predicted_tracks.json",
+  "prediction_video_ids": [
+    "VID01",
+    "VID06",
+    "VID07",
+    "VID110",
+    "VID111",
+    "VID12",
+    "VID25",
+    "VID30",
+    "VID31",
+    "VID39",
+    "VID92"
+  ]
+}

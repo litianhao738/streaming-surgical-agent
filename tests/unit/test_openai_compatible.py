@@ -54,6 +54,7 @@ def _request(**changes: Any) -> ApiRequest:
             "max_output_tokens": 128,
             "temperature": 0.0,
             "enable_thinking": False,
+            "reasoning": {"effort": "low"},
         },
     }
     values.update(changes)
@@ -103,12 +104,103 @@ def test_compatible_transport_sends_multimodal_json_without_router_fields() -> N
     assert sent["response_format"]["json_schema"]["strict"] is True
     assert sent["response_format"]["json_schema"]["schema"]["type"] == "object"
     assert sent["enable_thinking"] is False
+    assert sent["reasoning_effort"] == "low"
     assert "provider" not in sent
     assert len(sent["messages"][1]["content"]) == 2
     assert response.returned_model_identifier == "qwen-returned-model"
     assert response.total_latency_ms == 9.0
     assert response.prompt_tokens == 20
     assert response.visible_output_tokens == 10
+
+
+def test_compatible_transport_accepts_fixed_six_image_requests() -> None:
+    request = _request(
+        images=tuple(
+            ApiImageInput(f"frame:{index}", "image/png", b"png")
+            for index in range(6)
+        )
+    )
+    captured: dict[str, object] = {}
+
+    def sender(url: str, headers: object, body: bytes, timeout: float) -> HttpResponse:
+        del url, headers, timeout
+        captured["body"] = body
+        response = {
+            "id": "compatible-six",
+            "model": "grok-4.6",
+            "choices": [
+                {
+                    "finish_reason": "stop",
+                    "message": {
+                        "content": json.dumps(
+                            {
+                                "schema_version": "p3_multimodal_smoke_v1",
+                                "message": "ok",
+                                "image_observed": True,
+                                "structured": True,
+                            }
+                        )
+                    },
+                }
+            ],
+            "usage": {
+                "prompt_tokens": 20,
+                "completion_tokens": 10,
+                "total_tokens": 30,
+            },
+        }
+        return HttpResponse(200, {}, json.dumps(response).encode())
+
+    response = OpenAICompatibleTransport(
+        api_key=SecretValue("unit-test-secret"),
+        endpoint_identifier=ENDPOINT,
+        sender=sender,
+    ).send(request)
+
+    sent = json.loads(captured["body"])
+    assert len(sent["messages"][1]["content"]) == 7
+    assert response.image_count == 6
+
+
+def test_compatible_transport_normalizes_disjoint_xai_reasoning_usage() -> None:
+    structured = {
+        "schema_version": "p3_multimodal_smoke_v1",
+        "message": "ok",
+        "image_observed": True,
+        "structured": True,
+    }
+
+    def sender(url: str, headers: object, body: bytes, timeout: float) -> HttpResponse:
+        del url, headers, body, timeout
+        response = {
+            "id": "xai-usage",
+            "model": "grok-4.6",
+            "choices": [
+                {
+                    "finish_reason": "stop",
+                    "message": {"content": json.dumps(structured)},
+                }
+            ],
+            "usage": {
+                "prompt_tokens": 26,
+                "completion_tokens": 168,
+                "total_tokens": 498,
+                "completion_tokens_details": {"reasoning_tokens": 304},
+            },
+        }
+        return HttpResponse(200, {}, json.dumps(response).encode())
+
+    response = OpenAICompatibleTransport(
+        api_key=SecretValue("unit-test-secret"),
+        endpoint_identifier=ENDPOINT,
+        sender=sender,
+    ).send(_request())
+
+    assert response.input_tokens == 26
+    assert response.output_tokens == 472
+    assert response.visible_output_tokens == 168
+    assert response.total_tokens == 498
+    assert response.completion_tokens_details.reasoning_tokens == 304
 
 
 def test_compatible_endpoint_and_registry_fail_closed() -> None:

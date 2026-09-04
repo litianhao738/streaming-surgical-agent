@@ -3,6 +3,7 @@
 from surgical_agent.evaluation.frame_ground_truth import (
     EvaluationData,
     GroundTruthSource,
+    aggregate_evaluation_target,
     aggregate_frame_target,
     load_evaluation_data,
 )
@@ -26,6 +27,7 @@ __all__ = [
     "EvaluationData",
     "GroundTruthSource",
     "OfflineEvaluationError",
+    "aggregate_evaluation_target",
     "aggregate_frame_target",
     "align_scored_pairs",
     "evaluate_and_write",

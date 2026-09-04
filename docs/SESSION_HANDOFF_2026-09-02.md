@@ -2,16 +2,36 @@
 
 Date: 2026-09-02 (Asia/Shanghai)
 
-This file is the starting point for the next Codex session. It intentionally
-separates verified implementation facts from proposed research designs. Do not
-infer that a proposed ablation or diagram is already implemented.
+## 2026-09-03 approved design addendum
+
+The user subsequently designated
+`docs/architecture/Streaming_Surgical_Final_Pipeline_Architecture_and_Pseudocode.md`
+as the complete Pipeline source of truth. It defines the explicit Gate branches,
+fixed mandatory guard and budget, one bounded Repair episode with up to frozen
+`N_max` rounds, the one post-Repair Coordinator, outcome/fallback behavior, and
+causal state visible from `t+1`.
+
+`docs/architecture/CANONICAL_PIPELINE_TRACKER_GATE_SPEC_2026-09-03.md` is the
+separate normative protocol for the two-factor Tracker × Gate experiment,
+labels, clock, statistics, and Phase 0/A/B/C/D progression. Neither target
+document is evidence that current code already satisfies it.
+
+The approved dependency order is: finish canonical Phase 0, implement and test
+the shared Phase A contracts, prove candidate-bounded Repair value in Phase B,
+and only then construct data and train the final Gate. Do not start final Gate
+training from current demo artifacts.
+
+This file is a dated factual snapshot. Use `docs/README.md` for live status and
+the next action. Do not infer that a target diagram or ablation is already
+implemented.
 
 ## Start the next session with this request
 
 > Read `D:\PythonProject7\docs\SESSION_HANDOFF_2026-09-02.md`, then inspect the
-> referenced code. Treat the document as a factual handoff, not as permission
-> to implement a new ablation design. First report discrepancies and propose
-> one corrected module-ablation specification for approval.
+> referenced code and the two 2026-09-03 target documents. Treat this handoff as
+> factual history. First check the live canonical Phase 0 blockers and map code
+> gaps against the complete Pipeline; do not start Repair data collection or
+> final Gate training before their preceding gates pass.
 
 ## Repository and verification baseline
 
@@ -29,10 +49,13 @@ infer that a proposed ablation or diagram is already implemented.
 
 ## What is actually trained or fitted
 
-1. **Tracker: formally trained.** Keep:
+1. **Tracker detector checkpoint and predictions exist.** Keep:
    - `artifacts/training/tracker/full/checkpoint.pt`;
    - `artifacts/training/tracker/predicted_tracks.json`;
    - Tracker Validation metrics and manifests.
+   The checkpoint is reusable, but current predictions are not yet a formal
+   factorial artifact because clock-v2 and fold-safe provenance compatibility
+   still require verification or regeneration.
 2. **Phase transition graph: deterministically built**, not a neural model:
    `artifacts/training/phase_transition_graph.json`.
 3. **Local five-head Joint Perception: code exists but no formal full
@@ -141,9 +164,15 @@ Its global statistical RAG is described as being built from benchmark gold
 labels. This project must not copy that evaluation behavior: any phase/IVT
 prior used for formal experiments must be built from Training only.
 
-## Research decisions still requiring a fresh specification
+## Historical open design questions (resolved on 2026-09-03)
 
-Do not implement these from prior chat prose alone:
+At the time of this handoff, the questions below still required a fresh
+specification. They are now resolved by
+`docs/architecture/Streaming_Surgical_Final_Pipeline_Architecture_and_Pseudocode.md`
+for Pipeline behavior and
+`docs/architecture/CANONICAL_PIPELINE_TRACKER_GATE_SPEC_2026-09-03.md` for the
+formal experiment; do not reconstruct their answers from older chat prose or
+from this historical list:
 
 1. the exact faithful/casualized definition of `A_base`;
 2. whether a pre-Gate deterministic checker is a shared input transform or part
@@ -154,12 +183,12 @@ Do not implement these from prior chat prose alone:
 6. exact post-merge hard invariants owned by the Coordinator;
 7. the final module-ablation table and attribution rules.
 
-## Recommended immediate next action
+## Historical next action (superseded on 2026-09-03)
 
-Write and approve one short experiment contract before changing runtime code.
-It should define every row by executable switches, hold the backbone, samples,
-initial cache, ontology, evaluator, and accounting fixed, and state exactly one
-mechanism changed per comparison. Only then replace the removed pilot runner.
+The handoff originally recommended writing and approving an experiment contract
+before changing runtime code. The design is now frozen in the two 2026-09-03
+documents. The live next action is maintained only in `docs/README.md`; this
+dated handoff must not restate or override it.
 
 ## Cleanup performed with this handoff
 

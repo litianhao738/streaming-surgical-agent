@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+from threading import RLock
+
 from surgical_agent.api.errors import ApiProviderCallBudgetError
 
 
 class ProviderCallBudget:
-    """Count cache misses that are authorized to reach a provider transport."""
+    """Count exact transport attempts, including retries after cache misses."""
 
     def __init__(self, limit: int) -> None:
         if type(limit) is not int:
@@ -15,17 +17,21 @@ class ProviderCallBudget:
             raise ValueError("provider call budget limit must be a positive integer")
         self._limit = limit
         self._used = 0
+        self._lock = RLock()
 
     @property
     def used(self) -> int:
-        return self._used
+        with self._lock:
+            return self._used
 
     @property
     def remaining(self) -> int:
-        return self._limit - self._used
+        with self._lock:
+            return self._limit - self._used
 
     def consume(self) -> None:
-        """Authorize one cache miss, or fail before any provider call."""
-        if self._used >= self._limit:
-            raise ApiProviderCallBudgetError("provider call budget exhausted")
-        self._used += 1
+        """Authorize one transport attempt, or fail before that attempt."""
+        with self._lock:
+            if self._used >= self._limit:
+                raise ApiProviderCallBudgetError("provider call budget exhausted")
+            self._used += 1

@@ -5,6 +5,7 @@ from __future__ import annotations
 import copy
 import json
 import math
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -357,6 +358,17 @@ def test_usage_summary_counts_only_current_provider_usage(tmp_path: Path) -> Non
         "visible_output_tokens": 7,
         "provider_cost": 0.25,
     }
+
+
+def test_usage_ledger_does_not_lose_concurrent_rows(tmp_path: Path) -> None:
+    ledger = UsageLedger(tmp_path / "usage.jsonl")
+    record = UsageRecord.from_mapping(_valid_usage_mapping())
+
+    with ThreadPoolExecutor(max_workers=12) as executor:
+        tuple(executor.map(lambda _index: ledger._append(record), range(24)))
+
+    assert len(ledger.records()) == 24
+    assert ledger.summarize()["logical_calls"] == 24
 
 
 def test_usage_success_without_response_timestamp_emits_current_utc(

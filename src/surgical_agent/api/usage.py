@@ -8,6 +8,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
+from threading import RLock
 from types import MappingProxyType
 from typing import Any
 
@@ -296,6 +297,10 @@ class UsageLedger:
 
     def __init__(self, path: str | Path) -> None:
         self.path = Path(path).expanduser().resolve()
+        # A counterfactual frame may issue independent scope calls concurrently.
+        # Serialize the read-modify-replace transaction so no accounting row is
+        # lost even though the on-disk file remains atomically replaceable.
+        self._lock = RLock()
 
     def _typed_records(self) -> tuple[UsageRecord, ...]:
         if not self.path.is_file():
@@ -313,15 +318,18 @@ class UsageLedger:
         return tuple(records)
 
     def records(self) -> tuple[dict[str, Any], ...]:
-        return tuple(record.to_mapping() for record in self._typed_records())
+        with self._lock:
+            return tuple(record.to_mapping() for record in self._typed_records())
 
     def _append(self, record: UsageRecord) -> None:
-        records = [*self.records(), record.to_mapping()]
-        content = "".join(
-            json.dumps(item, sort_keys=True, ensure_ascii=True, allow_nan=False) + "\n"
-            for item in records
-        )
-        atomic_write_text(self.path, content)
+        with self._lock:
+            records = [*self.records(), record.to_mapping()]
+            content = "".join(
+                json.dumps(item, sort_keys=True, ensure_ascii=True, allow_nan=False)
+                + "\n"
+                for item in records
+            )
+            atomic_write_text(self.path, content)
 
     def log_success(
         self,
@@ -439,7 +447,8 @@ class UsageLedger:
         )
 
     def summarize(self) -> dict[str, Any]:
-        records = self._typed_records()
+        with self._lock:
+            records = self._typed_records()
         return {
             "schema_version": "api_usage_summary_v3",
             "logical_calls": sum(item.logical_call_count for item in records),

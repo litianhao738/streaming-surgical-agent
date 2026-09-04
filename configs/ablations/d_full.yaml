@@ -1,0 +1,6 @@
+schema_version: tracker_gate_ablation_cell_v1
+cell: D_full
+shared_config: configs/experiments/final_pipeline_shared.yaml
+tracker_enabled: true
+gate_mode: LEARNED
+gate_artifact: artifacts/training/gate/formal/final_g1_validation_frozen.json

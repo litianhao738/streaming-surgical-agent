@@ -41,6 +41,11 @@ from surgical_agent.tracking.detector import (
     load_tracker_checkpoint,
     save_tracker_checkpoint,
 )
+from surgical_agent.tracking.oof_index import write_tracker_oof_index
+from surgical_agent.tracking.training_checkpoint import (
+    load_tracker_training_state,
+    save_tracker_training_state,
+)
 from surgical_agent.tracking.training_data import (
     InstrumentDetectionDataset,
     build_detection_training_records,
@@ -71,6 +76,11 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--max-train-batches", type=int)
     result.add_argument("--max-prediction-frames", type=int)
     result.add_argument("--no-pretrained", action="store_true")
+    result.add_argument(
+        "--resume",
+        action="store_true",
+        help="resume each Tracker job from its last completed epoch",
+    )
     result.add_argument(
         "--no-progress",
         action="store_true",
@@ -107,6 +117,7 @@ def _train(
     max_train_batches: int | None,
     max_records: int | None,
     use_pretrained: bool,
+    resume: bool,
     mode: str,
     progress_enabled: bool = False,
     progress_file: IO[str] | None = None,
@@ -130,7 +141,11 @@ def _train(
         collate_fn=detection_collate,
         generator=generator,
     )
-    model = build_instrument_detector(config, use_pretrained=use_pretrained).to(device)
+    resume_path = output_dir / "training_state.pt"
+    model = build_instrument_detector(
+        config,
+        use_pretrained=False if resume and resume_path.is_file() else use_pretrained,
+    ).to(device)
     parameters = [parameter for parameter in model.parameters() if parameter.requires_grad]
     optimizer = torch.optim.SGD(
         parameters,
@@ -138,20 +153,40 @@ def _train(
         momentum=0.9,
         weight_decay=config.weight_decay,
     )
+    identity = {
+        "tracker_config_sha256": sha256_file(config_path),
+        "training_video_ids": list(training_video_ids),
+        "excluded_video_ids": list(excluded_video_ids),
+        "mode": mode,
+        "initial_weights": config.initial_weights,
+        "max_train_batches": max_train_batches,
+    }
+    start_epoch = 0
     losses: list[float] = []
+    if resume and resume_path.is_file():
+        start_epoch, losses = load_tracker_training_state(
+            resume_path,
+            model=model,
+            optimizer=optimizer,
+            loader_generator=generator,
+            expected_identity=identity,
+            map_location=device,
+        )
+        if start_epoch > epochs:
+            raise ValueError("Tracker resume epoch exceeds the requested epoch count")
     started = time.perf_counter()
     model.train()
     batches_per_epoch = len(loader)
     if max_train_batches is not None:
         batches_per_epoch = min(batches_per_epoch, max_train_batches)
     with progress_bar(
-        total=epochs * batches_per_epoch,
+        total=(epochs - start_epoch) * batches_per_epoch,
         description=f"Tracker {mode} train",
         unit="batch",
         enabled=progress_enabled,
         file=progress_file,
     ) as progress:
-        for epoch in range(epochs):
+        for epoch in range(start_epoch, epochs):
             for batch_index, (images, targets) in enumerate(loader):
                 if max_train_batches is not None and batch_index >= max_train_batches:
                     break
@@ -175,6 +210,15 @@ def _train(
                     refresh=False,
                 )
                 progress.update()
+            save_tracker_training_state(
+                resume_path,
+                model=model,
+                optimizer=optimizer,
+                loader_generator=generator,
+                epoch_completed=epoch + 1,
+                losses=losses,
+                identity=identity,
+            )
     if not losses:
         raise RuntimeError("tracker training completed no optimizer steps")
     try:
@@ -199,6 +243,8 @@ def _train(
         "epochs_completed": epochs,
         "optimizer_steps": len(losses),
         "mode": mode,
+        "resumed_from_epoch": start_epoch,
+        "training_state_path": str(resume_path),
     }
     checkpoint_path = save_tracker_checkpoint(
         output_dir / "checkpoint.pt", model=model, metadata=metadata
@@ -395,7 +441,8 @@ def _run_full_or_smoke(
         epochs=epochs,
         max_train_batches=max_batches,
         max_records=2 if smoke else None,
-        use_pretrained=not args.no_pretrained,
+        use_pretrained=config.initial_weights == "COCO_V1",
+        resume=args.resume,
         mode=args.mode,
         progress_enabled=not args.no_progress,
     )
@@ -466,6 +513,7 @@ def _run_oof(
     output_root: Path,
 ) -> dict[str, object]:
     fold_outputs: list[dict[str, object]] = []
+    video_to_artifact: dict[str, Path] = {}
     folds = deterministic_video_folds(qualified, config.oof_folds)
     for fold_index, held_out in enumerate(folds):
         training_ids = tuple(video_id for video_id in qualified if video_id not in held_out)
@@ -481,7 +529,8 @@ def _run_oof(
             epochs=args.epochs or config.epochs,
             max_train_batches=args.max_train_batches,
             max_records=None,
-            use_pretrained=not args.no_pretrained,
+            use_pretrained=config.initial_weights == "COCO_V1",
+            resume=args.resume,
             mode="oof",
             progress_enabled=not args.no_progress,
         )
@@ -511,6 +560,10 @@ def _run_oof(
                 "artifact": str(artifact),
             }
         )
+        for video_id in held_out:
+            if video_id in video_to_artifact:
+                raise RuntimeError("OOF Tracker video was predicted by multiple folds")
+            video_to_artifact[video_id] = artifact
     full_checkpoint = output_root / "full/checkpoint.pt"
     if not full_checkpoint.is_file():
         raise RuntimeError("OOF VID31 export requires the completed full checkpoint")
@@ -542,16 +595,30 @@ def _run_oof(
         repair_manifest_path=adapter.dataset_root / "repair_manifest.json",
         videos=vid31_videos,
     )
+    if "VID31" in video_to_artifact:
+        raise RuntimeError("VID31 must not overlap the instance-supervised OOF folds")
+    video_to_artifact["VID31"] = vid31_artifact
+    index_path = write_tracker_oof_index(
+        output_root / "oof/index.json",
+        video_to_artifact=video_to_artifact,
+        fold_count=config.oof_folds,
+    )
     return {
         "mode": "oof",
         "folds": fold_outputs,
         "vid31_artifact": str(vid31_artifact),
+        "oof_index": str(index_path),
+        "oof_video_ids": sorted(video_to_artifact),
     }
 
 
 def run(args: argparse.Namespace) -> dict[str, object]:
     config_path = args.config.expanduser().resolve()
     config = load_tracker_training_config(config_path)
+    if args.no_pretrained and config.initial_weights != "NONE":
+        raise ValueError(
+            "--no-pretrained cannot override the academic config; set initial_weights=NONE"
+        )
     if args.epochs is not None:
         if args.epochs <= 0:
             raise ValueError("--epochs must be positive")

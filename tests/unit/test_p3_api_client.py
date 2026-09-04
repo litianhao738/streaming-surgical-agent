@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 from pathlib import Path
 
@@ -208,6 +209,24 @@ def test_provider_budget_rejects_non_positive_integer_limits(limit: object) -> N
         ProviderCallBudget(limit)  # type: ignore[arg-type]
 
 
+def test_provider_budget_is_exact_under_concurrent_consumers() -> None:
+    budget = ProviderCallBudget(7)
+
+    def consume() -> bool:
+        try:
+            budget.consume()
+        except ApiProviderCallBudgetError:
+            return False
+        return True
+
+    with ThreadPoolExecutor(max_workers=20) as executor:
+        granted = tuple(executor.map(lambda _index: consume(), range(40)))
+
+    assert sum(granted) == 7
+    assert budget.used == 7
+    assert budget.remaining == 0
+
+
 @pytest.mark.parametrize(
     "field",
     ["input_tokens", "output_tokens", "total_tokens", "provider_cost"],
@@ -334,6 +353,33 @@ def test_retry_count_and_provider_attempts_are_auditable(tmp_path: Path) -> None
     assert response.retry_count == 2
     assert transport.provider_call_count == 3
     assert usage.summarize()["provider_calls"] == 3
+
+
+def test_provider_budget_caps_retry_transport_attempts_exactly(tmp_path: Path) -> None:
+    transport = MockProviderTransport(retryable_failures_before_success=2)
+    budget = ProviderCallBudget(1)
+    usage = UsageLedger(tmp_path / "usage.jsonl")
+    client = CachedMultimodalApiClient(
+        transport=transport,
+        cache=FileApiCache(tmp_path / "cache"),
+        usage=usage,
+        validator=validate_p3_smoke_payload,
+        retry_policy=RetryPolicy(
+            max_attempts=3,
+            base_delay_seconds=0,
+            max_delay_seconds=0,
+        ),
+        sleep=lambda _: None,
+        provider_call_budget=budget,
+    )
+
+    with pytest.raises(ApiProviderCallBudgetError):
+        client.call(_request())
+
+    assert transport.provider_call_count == 1
+    assert budget.used == 1
+    assert usage.records()[-1]["provider_call_count"] == 1
+    assert usage.summarize()["provider_calls"] == 1
 
 
 def test_retry_exhaustion_logs_all_attempts_and_does_not_cache(

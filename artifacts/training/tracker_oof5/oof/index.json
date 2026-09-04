@@ -1,0 +1,25 @@
+{
+  "artifacts": {
+    "fold_0/predicted_tracks.json": "833e095c66a404692acf54c676b8224214a9de7c84b905eeec20379812b4f696",
+    "fold_1/predicted_tracks.json": "82f965095223aa7f5d95e198edb5983a40f36acfce3124c32ba3cda46cfd9102",
+    "fold_2/predicted_tracks.json": "d90001f0896e2f581c72cb86ab1d0368cf91317778bd83d7951ff1ad160410da",
+    "fold_3/predicted_tracks.json": "f466e62632e60aac893880e52133d15af1213895b7f7ccdc03921f019516bda3",
+    "fold_4/predicted_tracks.json": "e1b8627f321c9d03e0329b64c244a0e4ff090186dad1fcbcb848665017d737ce",
+    "vid31/predicted_tracks.json": "a483a41048ff6349a41f47bbf7d6b71a4ba55e31889431a293ac8d7567f73425"
+  },
+  "fold_count": 5,
+  "schema_version": "tracker_oof_index_v1",
+  "source_split": "Training",
+  "video_to_artifact": {
+    "VID02": "fold_0/predicted_tracks.json",
+    "VID04": "fold_1/predicted_tracks.json",
+    "VID103": "fold_2/predicted_tracks.json",
+    "VID11": "fold_3/predicted_tracks.json",
+    "VID13": "fold_4/predicted_tracks.json",
+    "VID17": "fold_0/predicted_tracks.json",
+    "VID23": "fold_1/predicted_tracks.json",
+    "VID31": "vid31/predicted_tracks.json",
+    "VID37": "fold_2/predicted_tracks.json",
+    "VID96": "fold_3/predicted_tracks.json"
+  }
+}

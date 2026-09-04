@@ -149,6 +149,23 @@ class PrecomputedPredictedTrackProvider:
         self._videos = normalized
         self._video_id: str | None = None
 
+    @property
+    def available_video_ids(self) -> tuple[str, ...]:
+        """Return the immutable, sorted video scope carried by this artifact."""
+
+        return tuple(sorted(self._videos))
+
+    def video(self, video_id: str) -> PredictedTrackVideo:
+        """Expose one validated video for offline audit and evaluation only."""
+
+        normalized = _nonempty_text(video_id, name="video_id")
+        try:
+            return self._videos[normalized]
+        except KeyError as exc:
+            raise PredictedTrackArtifactError(
+                "track artifact has no requested video"
+            ) from exc
+
     @classmethod
     def from_json(cls, path: str | Path) -> PrecomputedPredictedTrackProvider:
         artifact_path = Path(path).expanduser().resolve()

@@ -10,8 +10,9 @@ from types import SimpleNamespace
 import pytest
 
 from surgical_agent.data.masks import canonical_label_mask
-from surgical_agent.data.schemas import DatasetSplit
+from surgical_agent.data.schemas import DatasetSplit, EvaluationTarget
 from surgical_agent.evaluation.frame_ground_truth import (
+    aggregate_evaluation_target,
     aggregate_frame_target,
     load_evaluation_data,
 )
@@ -46,6 +47,22 @@ def test_aggregate_frame_target_masks_partial_task_without_making_negative() -> 
         frame,
         allowed_tasks=frozenset({"instrument", "verb", "target", "ivt", "phase"}),
         source="Validation/VID110/vid110.json",
+    )
+
+    assert target.instrument_ids == (0, 1)
+    assert target.mask.instrument is True
+    assert target.verb_ids == ()
+    assert target.mask.verb is False
+
+
+def test_aggregate_evaluation_target_uses_instance_labels_conservatively() -> None:
+    target = aggregate_evaluation_target(
+        EvaluationTarget(
+            video_id="VID02",
+            frame_id=7,
+            instances=(_instance(0, 2), _instance(1, -1)),
+        ),
+        source="Training/VID02/vid02.json",
     )
 
     assert target.instrument_ids == (0, 1)

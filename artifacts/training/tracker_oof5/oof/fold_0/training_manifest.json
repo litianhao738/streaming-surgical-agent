@@ -1,0 +1,53 @@
+{
+  "architecture": "fasterrcnn_mobilenet_v3_large_fpn",
+  "checkpoint_sha256": "49b8f109fd8d3941ed59954786b007fa6594d50b84e63ff11e6346575a9e8b92",
+  "config": {
+    "architecture": "fasterrcnn_mobilenet_v3_large_fpn",
+    "association_iou_threshold": 0.3,
+    "batch_size": 8,
+    "epochs": 10,
+    "initial_weights": "COCO_V1",
+    "learning_rate": 0.005,
+    "max_age": 2,
+    "max_size": 854,
+    "min_size": 480,
+    "nms_threshold": 0.5,
+    "num_classes": 8,
+    "num_workers": 8,
+    "oof_folds": 5,
+    "score_threshold": 0.35,
+    "seed": 3407,
+    "weight_decay": 0.0005
+  },
+  "created_at_utc": "2026-09-03T12:12:32.290998+00:00",
+  "dataset_repair_manifest_sha256": "c3ebb7e0db734be5f8c8418ac1e85bd54a21281664f623c2dacdfba5842d8d04",
+  "duration_seconds": 951.194451007992,
+  "epochs_completed": 10,
+  "excluded_video_ids": [
+    "VID02",
+    "VID17"
+  ],
+  "initial_weights": "COCO_V1",
+  "last_training_loss": 0.5352991223335266,
+  "mean_training_loss": 0.6353424467793051,
+  "mode": "oof",
+  "num_classes": 8,
+  "optimizer_steps": 13250,
+  "resumed_from_epoch": 0,
+  "schema_version": "predicted_tracker_training_manifest_v1",
+  "seed": 3407,
+  "torch_version": "2.8.0+cu128",
+  "torchvision_version": "0.23.0+cu128",
+  "tracker_config_sha256": "93f1aafe156e588b5278688e096cda9d6c373186b0efd93e567891c6fbf92131",
+  "training_samples": 10596,
+  "training_state_path": "/root/autodl-tmp/AutoDL_SurgicalAgent/StreamingSurgicalAgent_AutoDL_OOF_20260903_FINAL/artifacts/training/tracker_oof5/oof/fold_0/training_state.pt",
+  "training_video_ids": [
+    "VID04",
+    "VID103",
+    "VID11",
+    "VID13",
+    "VID23",
+    "VID37",
+    "VID96"
+  ]
+}

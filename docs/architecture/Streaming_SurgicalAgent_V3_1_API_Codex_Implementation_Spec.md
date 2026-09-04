@@ -1,5 +1,14 @@
 # Streaming SurgicalAgent V3.1-API — Codex 代码构建任务书
 
+> **2026-09-03 supersession notice:** This is a dated, legacy engineering
+> reference. The complete Pipeline source of truth is
+> [`Streaming_Surgical_Final_Pipeline_Architecture_and_Pseudocode.md`](Streaming_Surgical_Final_Pipeline_Architecture_and_Pseudocode.md),
+> and the formal Tracker x Gate protocol and normative Phase 0/A/B/C/D order
+> are in
+> [`CANONICAL_PIPELINE_TRACKER_GATE_SPEC_2026-09-03.md`](CANONICAL_PIPELINE_TRACKER_GATE_SPEC_2026-09-03.md).
+> Conflicting pipeline, scope, Repair, Memory, ablation, and phase instructions
+> below are historical and must not be implemented.
+
 **版本定位：V3.1-API / Academic Implementation Contract**  
 **主数据集：CholecTrack20**  
 **主论文方向：Benefit-Routed Sparse Specialist Verification for Reliable Causal Surgical Streaming**
@@ -8,7 +17,8 @@
 >
 > **任何阶段未真实通过测试，不得进入下一阶段；任何字段、annotation semantics、ontology、FPS、tracker 训练来源或 API 能力不明确时，必须标记 `BLOCKED`，禁止自行假设。**
 
-> **当前执行检查点（2026-08-24 至 2026-08-28）**：P0 `PASS`；P1 `PASS_WITH_EXPLICIT_PARTIAL_SUPERVISION`；P2 Local Smoke `PASS`，运行约束由 `<resolved dataset root>/repair_manifest.json` 冻结。真实 masked optimizer step、checkpoint round-trip、VID02/VID31/VID30 canonical pipeline、Gold-free PredictionRecord、atomic artifact 和 20-video target-granularity audit 均已运行通过。VID30 仍是候选重建验证源；VID31 只启用 CholecT50 frame-level Instrument/Verb/Target/Triplet presence 与 Cholec80 phase，不启用 instance、bounding box、operator 或 track supervision。历史完整环境为 `79 passed`；2026-08-25 当前环境在未配置可选原始 Cholec80 provenance 目录时为 `78 passed, 1 skipped`，两次结果按各自运行环境保留。P3 provider-neutral client/hash/cache/retry/usage、mock adapter、OpenRouter transport 与合成图像 structured-response smoke 已通过，但响应未提供 immutable exact-backend identity，故 P3 仍为 `PARTIAL`；后续明确批准继续构建不等于把该 identity 缺口改判为 `PASS`。原 P4 粒度闸门现仅对第一版 frame recognition 关闭：`joint_perception_frame_v1` 固定 I/V/T/IVT 为 frame-level multi-label、Phase 为 frame-level single-label；未来 instance-level schema 与 matching rule 仍需单独批准。P9 canonical per-sample task error 继续保持阶段性 `BLOCKED`。
+> **历史执行检查点（2026-08-24 至 2026-08-28；live status 见
+> `docs/README.md`）**：P0 `PASS`；P1 `PASS_WITH_EXPLICIT_PARTIAL_SUPERVISION`；P2 Local Smoke `PASS`，运行约束由 `<resolved dataset root>/repair_manifest.json` 冻结。真实 masked optimizer step、checkpoint round-trip、VID02/VID31/VID30 canonical pipeline、Gold-free PredictionRecord、atomic artifact 和 20-video target-granularity audit 均已运行通过。VID30 仍是候选重建验证源；VID31 只启用 CholecT50 frame-level Instrument/Verb/Target/Triplet presence 与 Cholec80 phase，不启用 instance、bounding box、operator 或 track supervision。历史完整环境为 `79 passed`；2026-08-25 当前环境在未配置可选原始 Cholec80 provenance 目录时为 `78 passed, 1 skipped`，两次结果按各自运行环境保留。P3 provider-neutral client/hash/cache/retry/usage、mock adapter、OpenRouter transport 与合成图像 structured-response smoke 已通过，但响应未提供 immutable exact-backend identity，故 P3 仍为 `PARTIAL`；后续明确批准继续构建不等于把该 identity 缺口改判为 `PASS`。原 P4 粒度闸门现仅对第一版 frame recognition 关闭：`joint_perception_frame_v1` 固定 I/V/T/IVT 为 frame-level multi-label、Phase 为 frame-level single-label；未来 instance-level schema 与 matching rule 仍需单独批准。P9 canonical per-sample task error 继续保持阶段性 `BLOCKED`。
 
 ---
 
@@ -119,16 +129,18 @@ Exact provider/model_identifier: BLOCKED until P3 API provenance smoke
 
 开始编码前必须完整阅读 workspace 中可用的项目文档与代码。
 
-若存在以下文件，优先级如下：
+若存在冲突，优先级如下：
 
-1. **最新用户明确指令**
-2. `Streaming_SurgicalAgent_V3_1_API_学术修订版完整项目与代码架构说明.md/.docx`
-   - V3.1-API 研究方法、API 公平性、Gate、Verifier、Memory、实验协议的 source of truth。
-3. `Streaming_SurgicalAgent_Codex_Ready_Implementation_Spec_v1.1.md/.docx`
-   - Data / Schema / Split / Gold-free inference / strict causal / partial-label / evaluator separation / provenance 的 source of truth。
-4. 旧 V3.1 Pipeline / Codex 文档
-   - 仅用于理解演进历史；若与 V3.1-API 冲突，以 V3.1-API 为准。
-5. SurgReflect paper/repository
+1. **最新用户明确指令**。
+2. `Streaming_Surgical_Final_Pipeline_Architecture_and_Pseudocode.md`
+   - 完整 Pipeline、分支、Repair、Coordinator、状态、字段和伪代码的唯一真源。
+3. `CANONICAL_PIPELINE_TRACKER_GATE_SPEC_2026-09-03.md`
+   - Tracker × Gate 实验、标签、时钟、统计与 Phase 0/A/B/C/D 的唯一真源。
+4. `Streaming_SurgicalAgent_V3_1_API_学术修订版完整项目与代码架构说明.md`
+   - 仅保留不冲突的研究动机、问题定义和主张边界。
+5. 本文件
+   - 仅保留不冲突的历史工程细节、测试和命令参考。
+6. SurgReflect paper/repository
    - 只作为 API-LVLM、reflection、structured output、orchestration 的参考。
    - **禁止复制其 benchmark-specific gold-derived statistics 到本项目 runtime。**
 
@@ -202,7 +214,9 @@ P0-P12 implementation map
 - `docs/architecture/Streaming_SurgicalAgent_V3_1_API_学术修订版完整项目与代码架构说明.md`
 - `docs/architecture/Streaming_SurgicalAgent_V3_1_API_Codex_Implementation_Spec.md`
 
-不再维护内容重叠的 `ARCHITECTURE.md / PIPELINE.md / IMPLEMENTATION_PLAN.md`；研究设计与实现合同分别由上述两份 source-of-truth 文档承担，避免多份文档漂移。
+不再新增内容重叠的独立 `ARCHITECTURE.md`、`PIPELINE.md` 或
+`IMPLEMENTATION_PLAN.md`。当前只维护顶部指定的完整 Pipeline 真源与其
+Tracker × Gate 实验协议；其他文档必须引用它们，不能另立语义。
 
 要求：
 
@@ -1543,7 +1557,7 @@ predeclared route tie-break
 
 ---
 
-# 14. 阶段化实施 P0-P12
+# 14. 历史阶段化实施 P0-P12（非当前研究 Gate）
 
 以下文件级矩阵是当前仓库的执行地图。路径不存在时才新建；已有同职责模块时直接扩展。每一行只在前一阶段 PASS 后开始。
 
@@ -2629,22 +2643,11 @@ python scripts/run_dataset_api_pipeline.py --mode engineering --video-id VID30 -
 
 ---
 
-# 23. Codex 开始时的第一条回复要求
+# 23. Current startup rule
 
-在修改任何算法文件前，先回复：
-
-```text
-1. 我已阅读哪些文档
-2. 当前 repository 简要目录
-3. 当前可复用模块
-4. 与 V3.1-API 目标的主要差距
-5. 计划执行的 P0-A / P0-B / P0-C
-6. 需要标记 BLOCKED 的信息
-7. 接下来实际运行的第一组命令
-```
-
-然后开始 P0。
-
-若没有遇到 FAIL/BLOCKED，不需要等待用户逐阶段确认，可以继续下一阶段；但必须逐阶段真实测试并写报告。
-
-若遇到影响正确性的 FAIL/BLOCKED，立即停止并报告。
+This legacy file no longer sets the active phase or next action. A new session
+must read `docs/README.md`, then the complete Pipeline and Tracker × Gate
+protocol, inspect the referenced code, and report code/spec gaps against the
+live canonical checkpoint. Progress follows canonical Phase 0 → A; it does not
+restart the historical P0-A/P0-B/P0-C sequence. Any correctness-relevant
+`FAIL/BLOCKED` remains explicit and must not be guessed away.

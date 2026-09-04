@@ -322,7 +322,7 @@ def _response_error(code: str) -> ApiTransportError:
 
 
 class OpenRouterTransport:
-    """OpenRouter transport for one to three ordered multimodal images."""
+    """OpenRouter transport for one to six ordered multimodal images."""
 
     provider = "openrouter"
 
@@ -371,8 +371,8 @@ class OpenRouterTransport:
             raise ApiContractError(
                 "Request endpoint does not match OpenRouter transport"
             )
-        if not 1 <= len(request.images) <= 3:
-            raise ApiContractError("OpenRouter requires one to three images")
+        if not 1 <= len(request.images) <= 6:
+            raise ApiContractError("OpenRouter requires one to six images")
         input_text = request.payload.get("input_text")
         if not isinstance(input_text, str) or not input_text.strip():
             raise ApiContractError("OpenRouter requires non-empty payload input_text")

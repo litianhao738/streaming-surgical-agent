@@ -93,19 +93,40 @@ epoch and loss stay on the same terminal line. Add `--no-progress` only for
 non-interactive background logging.
 
 Keep the full checkpoint. Before building the second module's D0/D1 Gate data,
-generate three video-level out-of-fold Training artifacts:
+generate five video-level out-of-fold Training artifacts. The OOF output root
+must contain the full checkpoint because VID31 is predicted by that checkpoint
+without entering any Tracker optimizer:
 
 ```bash
+mkdir -p artifacts/training/tracker_oof5
+cp -a artifacts/training/tracker/full artifacts/training/tracker_oof5/
+
 python scripts/train_tracker.py \
   --mode oof \
   --dataset-root "$CHOLECTRACK20_ROOT" \
+  --config configs/tracker/fasterrcnn_mobilenet_v3_5090_oof5.yaml \
+  --output-root artifacts/training/tracker_oof5 \
   --device cuda
 ```
 
 The runtime artifact used by Validation/Test is
 `artifacts/training/tracker/predicted_tracks.json`. OOF files remain separate
-under `artifacts/training/tracker/oof/`; never replace them with in-sample
-Training predictions when constructing Gate data.
+under `artifacts/training/tracker_oof5/oof/`; never replace them with in-sample
+Training predictions when constructing Gate data. After transferring the OOF
+bundle back beside the local dataset, run the CPU-only held-out audit and
+detection evaluation before collecting Gate counterfactuals:
+
+```powershell
+.\.venv-p2\Scripts\python.exe scripts\evaluate_tracker_oof.py `
+  --dataset-root D:\cholec_dataset `
+  --tracker-oof-index artifacts\training\tracker_oof5\oof\index.json `
+  --tracker-config configs\tracker\fasterrcnn_mobilenet_v3_5090_oof5.yaml
+```
+
+The command fails closed on fold leakage, config/repair/checkpoint hash drift,
+or incomplete frame coverage. It scores the nine videos with valid instance
+boxes and records VID31 coverage without treating its frame-level labels as
+instance-level bounding-box ground truth.
 
 ## Optional Real P3 Smoke
 
