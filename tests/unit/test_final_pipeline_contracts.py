@@ -54,6 +54,7 @@ from surgical_agent.research.verification.contracts import CandidateSet
 from surgical_agent.research.verification.hypotheses import FactorizedCandidateGenerator
 from surgical_agent.research.verification.repair import (
     BoundedVerifyRepairLoop,
+    RepairEvidence,
     RepairProposal,
     SpecialistResult,
 )
@@ -183,9 +184,7 @@ def test_budget_can_recover_exact_committed_buckets() -> None:
         shared_capacity=1,
     )
 
-    budget.restore_charged_buckets(
-        "VID02", ("OPTIONAL", "SAFETY_RESERVE", "OPTIONAL")
-    )
+    budget.restore_charged_buckets("VID02", ("OPTIONAL", "SAFETY_RESERVE", "OPTIONAL"))
 
     snapshot = budget.snapshot()
     assert snapshot.safety_reserve_remaining == 1
@@ -215,12 +214,28 @@ class _RepairInstrument:
         )
 
 
+class _EvidenceRepair:
+    def __init__(
+        self,
+        repaired: InitialPrediction,
+        evidence: RepairEvidence,
+    ) -> None:
+        self.repaired = repaired
+        self.evidence = evidence
+
+    def verify(self, **_: object) -> SpecialistResult:
+        return SpecialistResult(
+            "REPAIR",
+            hypothesis=self.repaired,
+            reason="EVIDENCE_BACKED_CANDIDATE",
+            repair_evidence=self.evidence,
+        )
+
+
 def test_bounded_loop_uses_different_failure_semantics_by_route_source() -> None:
     h0 = _valid_h0()
     candidates = _pool(h0)
-    optional_budget = VerificationBudgetManager(
-        safety_reserve=0, optional_capacity=2
-    )
+    optional_budget = VerificationBudgetManager(safety_reserve=0, optional_capacity=2)
     optional_budget.reset("VID02")
     optional = BoundedVerifyRepairLoop(
         specialist=_AlwaysMissing(),
@@ -237,9 +252,7 @@ def test_bounded_loop_uses_different_failure_semantics_by_route_source() -> None
     assert optional.status == "FALLBACK_KEEP"
     assert len(optional.attempts) == 2
 
-    mandatory_budget = VerificationBudgetManager(
-        safety_reserve=1, optional_capacity=0
-    )
+    mandatory_budget = VerificationBudgetManager(safety_reserve=1, optional_capacity=0)
     mandatory_budget.reset("VID02")
     mandatory = BoundedVerifyRepairLoop(
         specialist=_AlwaysMissing(),
@@ -275,20 +288,20 @@ def test_verification_attempt_budget_fields_are_serialized_from_contract() -> No
     sample = InferenceSample(
         video_id="VID02",
         target_frame_id=5,
-        causal_frame_ids=(0, 1, 2, 3, 4, 5),
-        media_refs=tuple(f"synthetic:{index}" for index in range(6)),
+        causal_frame_ids=(3, 4, 5),
+        media_refs=tuple(f"synthetic:{index}" for index in range(3, 6)),
         source_split=DatasetSplit.TRAINING,
         alignment_version="unit_test_v1",
     )
     context = CausalPerceptionContextBuilder(
-        max_frames=6,
-        max_images=6,
+        max_frames=3,
+        max_images=3,
         selection_strategy="fixed_all",
         history_image_detail="low",
         target_image_detail="auto",
     ).build(
         sample,
-        torch.zeros((6, 3, 8, 8)),
+        torch.zeros((3, 3, 8, 8)),
         workflow_snapshot={},
         memory_snapshot={},
         prior_finalized_prediction=None,
@@ -311,6 +324,7 @@ def test_verification_attempt_budget_fields_are_serialized_from_contract() -> No
     audit = FinalStreamingPipeline._audit_payload(
         tracker_snapshot={"runtime_status": "DISABLED"},
         context=context,
+        candidates=_pool(h0),
         support=support,
         route=route,
         proposal=proposal,
@@ -366,6 +380,264 @@ def test_optional_repair_cannot_replace_a_hard_valid_h0() -> None:
     assert proposal.hypothesis is h0
     assert proposal.reason == "HARD_VALID_H0_PROTECTED"
     assert proposal.attempts[0].specialist_status == "UNPROVEN_REPAIR"
+
+
+def test_matching_evidence_certificate_can_replace_a_hard_valid_h0() -> None:
+    h0 = _valid_h0()
+    proposed = replace(h0, phase_id=1)
+    budget = VerificationBudgetManager(safety_reserve=0, optional_capacity=1)
+    budget.reset("VID02")
+
+    proposal = BoundedVerifyRepairLoop(
+        specialist=_EvidenceRepair(
+            proposed,
+            RepairEvidence(
+                "WORKFLOW_TRANSITION_DOMINANCE",
+                ("workflow:frame:6", "phase_graph:train"),
+            ),
+        ),
+        validator=SafetyValidator(),
+        budget=budget,
+        max_attempts=1,
+    ).run(
+        h0=h0,
+        candidates=_pool(h0),
+        scope="workflow",
+        priority="OPTIONAL",
+        fallback_h0_allowed=True,
+    )
+
+    assert proposal.status == "VERIFIED_REPAIR"
+    assert proposal.hypothesis == proposed
+    assert proposal.attempts[0].repair_evidence_kind == "WORKFLOW_TRANSITION_DOMINANCE"
+
+    outcome = OutcomeFinalizer().finalize(h0=h0, proposal=proposal)
+
+    assert outcome.state == "Accepted"
+    assert outcome.verified_tasks == ("phase",)
+    assert outcome.task_states == {
+        "instrument": "Accepted",
+        "verb": "Accepted",
+        "target": "Accepted",
+        "ivt": "Accepted",
+        "phase": "Verified",
+    }
+
+
+def test_instrument_certificate_does_not_verify_closure_derived_ivt() -> None:
+    h0 = replace(
+        _valid_h0(),
+        instrument_ids=(0, 3),
+        verb_ids=(0, 2, 5),
+        target_ids=(0, 1, 10),
+        triplet_ids=(0, 72),
+    )
+    proposed = replace(h0, instrument_ids=(0,), triplet_ids=(0,))
+    candidates = CandidateSet(
+        initial_prediction=h0,
+        allowed_ids={
+            "instrument": (0, 3),
+            "verb": (0, 2, 5),
+            "target": (0, 1, 10),
+            "ivt": (0, 72),
+            "phase": (0, 1),
+        },
+        source_frame_id=7,
+    )
+    budget = VerificationBudgetManager(safety_reserve=0, optional_capacity=1)
+    budget.reset("VID02")
+    proposal = BoundedVerifyRepairLoop(
+        specialist=_EvidenceRepair(
+            proposed,
+            RepairEvidence(
+                "TRACKER_TEMPORAL_CONSENSUS",
+                ("tracker:frame:6", "tracker:frame:7"),
+            ),
+        ),
+        validator=SafetyValidator(),
+        budget=budget,
+        max_attempts=1,
+    ).run(
+        h0=h0,
+        candidates=candidates,
+        scope="instrument_presence",
+        priority="OPTIONAL",
+        fallback_h0_allowed=True,
+    )
+
+    outcome = OutcomeFinalizer().finalize(h0=h0, proposal=proposal)
+
+    assert proposal.status == "VERIFIED_REPAIR"
+    assert outcome.state == "Accepted"
+    assert outcome.verified_tasks == ("instrument",)
+    assert outcome.derived_tasks == ("ivt",)
+    assert outcome.task_states == {
+        "instrument": "Verified",
+        "verb": "Accepted",
+        "target": "Accepted",
+        "ivt": "Derived",
+        "phase": "Accepted",
+    }
+
+
+def test_scoped_keep_is_checked_without_whole_frame_verification() -> None:
+    h0 = _valid_h0()
+    budget = VerificationBudgetManager(safety_reserve=0, optional_capacity=1)
+    budget.reset("VID02")
+    proposal = BoundedVerifyRepairLoop(
+        specialist=_AlwaysKeep(),
+        validator=SafetyValidator(),
+        budget=budget,
+        max_attempts=1,
+    ).run(
+        h0=h0,
+        candidates=_pool(h0),
+        scope="instrument_presence",
+        priority="OPTIONAL",
+        fallback_h0_allowed=True,
+    )
+
+    outcome = OutcomeFinalizer().finalize(h0=h0, proposal=proposal)
+
+    assert proposal.status == "VERIFIED_KEEP"
+    assert outcome.state == "Accepted"
+    assert outcome.checked_tasks == ("instrument",)
+    assert outcome.verified_tasks == ()
+
+
+def test_taskwise_memory_keeps_only_certified_heads_in_reliable_collection(
+    tmp_path,
+) -> None:
+    h0 = _valid_h0()
+    outcome = FinalOutcome(
+        "Accepted",
+        h0,
+        "VERIFIED_REPAIR",
+        task_states={
+            "instrument": "Verified",
+            "verb": "Accepted",
+            "target": "Accepted",
+            "ivt": "Derived",
+            "phase": "Accepted",
+        },
+    )
+    store = AtomicFinalizationStore(state_path=tmp_path / "state.json")
+    store.reset("VID02")
+    store.commit(
+        observation=ObservationIdentity("VID02", "segment-0", 7, 7.0),
+        outcome=outcome,
+    )
+
+    snapshot = store.snapshot()
+
+    assert len(snapshot.verified) == 1
+    assert snapshot.accepted == ()
+    assert snapshot.verified[0].state == "Accepted"
+    assert snapshot.verified[0].verified_tasks == ("instrument",)
+    assert snapshot.verified[0].derived_tasks == ("ivt",)
+    persisted = snapshot.as_mapping()["verified_events"][0]
+    assert persisted["verified_tasks"] == ("instrument",)
+    assert persisted["task_states"]["ivt"] == "Derived"
+
+
+def test_temporal_gate_uses_only_verified_heads_from_previous_memory() -> None:
+    previous = _valid_h0()
+    current = replace(previous, verb_ids=(3,))
+    perception = _FixedPerception(current).result
+    candidates = _pool(current)
+    builder = DecisionSupportBuilder(temporal_jump_threshold=0.8)
+
+    taskwise = builder.build(
+        perception=perception,
+        candidates=candidates,
+        violations=(),
+        tracker_snapshot={"runtime_status": "DISABLED"},
+        previous=previous,
+        previous_verified_tasks=("instrument",),
+    )
+    legacy = builder.build(
+        perception=perception,
+        candidates=candidates,
+        violations=(),
+        tracker_snapshot={"runtime_status": "DISABLED"},
+        previous=previous,
+    )
+
+    assert taskwise.gate_features["temporal_jump"] == 0.0
+    assert not any(risk.code == "TEMPORAL_JUMP" for risk in taskwise.soft_risks)
+    assert legacy.gate_features["temporal_jump"] == 1.0
+    assert any(risk.code == "TEMPORAL_JUMP" for risk in legacy.soft_risks)
+
+
+def test_wrong_scope_evidence_cannot_replace_a_hard_valid_h0() -> None:
+    h0 = _valid_h0()
+    proposed = replace(h0, phase_id=1)
+    budget = VerificationBudgetManager(safety_reserve=0, optional_capacity=1)
+    budget.reset("VID02")
+
+    proposal = BoundedVerifyRepairLoop(
+        specialist=_EvidenceRepair(
+            proposed,
+            RepairEvidence(
+                "TRACKER_TEMPORAL_CONSENSUS",
+                ("tracker:frame:6", "tracker:frame:7"),
+            ),
+        ),
+        validator=SafetyValidator(),
+        budget=budget,
+        max_attempts=1,
+    ).run(
+        h0=h0,
+        candidates=_pool(h0),
+        scope="workflow",
+        priority="OPTIONAL",
+        fallback_h0_allowed=True,
+    )
+
+    assert proposal.status == "FALLBACK_KEEP"
+    assert proposal.reason == "HARD_VALID_H0_PROTECTED"
+    assert proposal.attempts[0].specialist_status == "UNPROVEN_REPAIR"
+
+
+def test_instrument_scope_admits_only_deterministic_ivt_pruning() -> None:
+    h0 = replace(
+        _valid_h0(),
+        instrument_ids=(0, 3),
+        verb_ids=(0, 2, 5),
+        target_ids=(0, 1, 10),
+        triplet_ids=(0, 72),
+    )
+    proposed = replace(h0, instrument_ids=(0,), triplet_ids=(0,))
+    candidates = CandidateSet(
+        initial_prediction=h0,
+        allowed_ids={
+            "instrument": (0, 3),
+            "verb": (0, 2, 5),
+            "target": (0, 1, 10),
+            "ivt": (0, 72),
+            "phase": (0, 1),
+        },
+        source_frame_id=7,
+    )
+    budget = VerificationBudgetManager(safety_reserve=0, optional_capacity=1)
+    budget.reset("VID02")
+
+    proposal = BoundedVerifyRepairLoop(
+        specialist=_RepairInstrument(proposed),
+        validator=SafetyValidator(),
+        budget=budget,
+        max_attempts=1,
+    ).run(
+        h0=h0,
+        candidates=candidates,
+        scope="instrument_presence",
+        priority="OPTIONAL",
+        fallback_h0_allowed=True,
+    )
+
+    assert proposal.reason == "HARD_VALID_H0_PROTECTED"
+    assert proposal.attempts[0].specialist_status == "UNPROVEN_REPAIR"
+    assert proposal.attempts[0].postcheck_hard_valid is True
 
 
 def test_protected_keep_is_observed_as_zero_counterfactual_benefit() -> None:
@@ -478,6 +750,46 @@ def test_atomic_store_uses_one_resume_file_per_video(tmp_path) -> None:
     assert store.snapshot().pending[0].observation == first
 
 
+def test_v1_whole_frame_verified_state_migrates_without_false_trust(tmp_path) -> None:
+    state_path = tmp_path / "legacy.json"
+    store = AtomicFinalizationStore(state_path=state_path)
+    store.reset("VID02")
+    observation = ObservationIdentity("VID02", "segment-0", 7, 7.0)
+    store.commit(
+        observation=observation,
+        outcome=FinalOutcome("Verified", _valid_h0(), "LEGACY_VERIFIED_KEEP"),
+    )
+    payload = json.loads(state_path.read_text(encoding="utf-8"))
+    payload["schema_version"] = "streaming_finalization_v1"
+    for record in payload["records"].values():
+        for key in (
+            "task_states",
+            "verified_tasks",
+            "checked_tasks",
+            "derived_tasks",
+        ):
+            record["outcome"].pop(key, None)
+    for entry in payload["verified"]:
+        for key in (
+            "task_states",
+            "verified_tasks",
+            "checked_tasks",
+            "derived_tasks",
+        ):
+            entry.pop(key, None)
+    state_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    recovered = AtomicFinalizationStore(state_path=state_path)
+    recovered.reset("VID02", recover=True)
+
+    outcome = recovered.record_for(observation.key).outcome
+    assert isinstance(outcome, FinalOutcome)
+    assert outcome.state == "Accepted"
+    assert outcome.checked_tasks == ("instrument", "verb", "target", "ivt", "phase")
+    assert recovered.snapshot().verified == ()
+    assert len(recovered.snapshot().accepted) == 1
+
+
 def test_final_artifact_materializes_committed_audit(tmp_path) -> None:
     store = AtomicFinalizationStore()
     observation = ObservationIdentity("VID01", "segment-0", 1, 1.0)
@@ -507,10 +819,27 @@ def test_final_artifact_materializes_committed_audit(tmp_path) -> None:
     assert '"state":"Pending"' in content
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     assert manifest["initial_model_requested"] == "openai/gpt-5.6-sol"
-    assert (
-        manifest["verification_model_requested"]
-        == "google/gemini-3.1-pro-preview"
+    assert manifest["verification_model_requested"] == "google/gemini-3.1-pro-preview"
+
+
+def test_final_artifact_allows_same_model_for_conservative_verification(
+    tmp_path,
+) -> None:
+    writer = FinalPipelineArtifactWriter(
+        tmp_path / "same_model_run",
+        run_id="same_model_test",
+        cell="A_base",
+        initial_model_requested="openai/gpt-5.6-sol",
+        verification_model_requested="openai/gpt-5.6-sol",
     )
+
+    writer.begin()
+
+    status = json.loads(
+        (tmp_path / "same_model_run" / "run_status.json").read_text(encoding="utf-8")
+    )
+    assert status["initial_model_requested"] == "openai/gpt-5.6-sol"
+    assert status["verification_model_requested"] == "openai/gpt-5.6-sol"
 
 
 def test_final_artifact_replaces_pending_with_its_atomic_resolution(tmp_path) -> None:
@@ -609,6 +938,18 @@ class _AlwaysKeep:
         return SpecialistResult("KEEP", reason="UNIT_KEEP")
 
 
+class _RecordingSupportBuilder:
+    def __init__(self) -> None:
+        self.previous: list[InitialPrediction | None] = []
+        self.delegate = DecisionSupportBuilder()
+
+    def build(self, **kwargs: object) -> SafetySupport:
+        prior = kwargs.get("previous")
+        assert prior is None or isinstance(prior, InitialPrediction)
+        self.previous.append(prior)
+        return self.delegate.build(**kwargs)  # type: ignore[arg-type]
+
+
 class _ConcurrentKeep:
     def __init__(self, barrier: Barrier) -> None:
         self.barrier = barrier
@@ -636,8 +977,8 @@ def test_executable_pipeline_uses_fixed_images_and_commits_accepted(tmp_path) ->
     store = AtomicFinalizationStore(state_path=tmp_path / "state.json")
     components = FinalPipelineComponents(
         context_builder=CausalPerceptionContextBuilder(
-            max_frames=6,
-            max_images=6,
+            max_frames=3,
+            max_images=3,
             selection_strategy="fixed_all",
             history_image_detail="low",
             target_image_detail="auto",
@@ -658,26 +999,73 @@ def test_executable_pipeline_uses_fixed_images_and_commits_accepted(tmp_path) ->
     sample = InferenceSample(
         video_id="VID02",
         target_frame_id=5,
-        causal_frame_ids=(0, 1, 2, 3, 4, 5),
-        media_refs=tuple(f"synthetic:{index}" for index in range(6)),
+        causal_frame_ids=(3, 4, 5),
+        media_refs=tuple(f"synthetic:{index}" for index in range(3, 6)),
         source_split=DatasetSplit.TRAINING,
         alignment_version="unit_test_v1",
     )
-    result = pipeline.run(sample, torch.zeros((6, 3, 8, 8)))
+    result = pipeline.run(sample, torch.zeros((3, 3, 8, 8)))
 
     assert getattr(result.outcome, "state", None) == "Accepted", result.outcome
     assert result.context is not None
-    assert result.context.selected_image_frame_ids == (0, 1, 2, 3, 4, 5)
+    assert result.context.selected_image_frame_ids == (3, 4, 5)
     assert result.route is not None and result.route.kind == "USE_H0"
     assert len(store.snapshot().accepted) == 1
+
+
+def test_pipeline_does_not_compare_against_a_prediction_before_a_clock_gap(
+    tmp_path,
+) -> None:
+    h0 = _valid_h0()
+    support_builder = _RecordingSupportBuilder()
+    components = FinalPipelineComponents(
+        context_builder=CausalPerceptionContextBuilder(
+            max_frames=3,
+            max_images=3,
+            selection_strategy="fixed_all",
+        ),
+        perception=_FixedPerception(h0),
+        candidate_generator=FactorizedCandidateGenerator(max_candidates_per_task=2),
+        signal_extractor=FrameEvidenceSignalExtractor(),
+        safety_validator=SafetyValidator(),
+        support_builder=support_builder,  # type: ignore[arg-type]
+        mandatory_guard=MandatorySafetyGuard(),
+        benefit_gate=RuleBenefitGate(risk_threshold=0.5),
+        budget=VerificationBudgetManager(safety_reserve=1, optional_capacity=1),
+        specialist_factory=lambda *_: _AlwaysKeep(),
+        outcome_finalizer=OutcomeFinalizer(),
+        finalization_store=AtomicFinalizationStore(state_path=tmp_path / "state.json"),
+    )
+    pipeline = FinalStreamingPipeline(components)
+    before_gap = InferenceSample(
+        video_id="VID02",
+        target_frame_id=51,
+        causal_frame_ids=(1, 26, 51),
+        media_refs=("synthetic:1", "synthetic:26", "synthetic:51"),
+        source_split=DatasetSplit.TRAINING,
+        alignment_version="unit_test_v1",
+    )
+    after_gap = InferenceSample(
+        video_id="VID02",
+        target_frame_id=101,
+        causal_frame_ids=(101,),
+        media_refs=("synthetic:101",),
+        source_split=DatasetSplit.TRAINING,
+        alignment_version="unit_test_v1",
+    )
+
+    pipeline.run(before_gap, torch.zeros((3, 3, 8, 8)))
+    pipeline.run(after_gap, torch.zeros((1, 3, 8, 8)))
+
+    assert support_builder.previous == [None, None]
 
 
 def test_formal_counterfactual_observes_each_scope_without_committing_gt() -> None:
     h0 = _valid_h0()
     components = FinalPipelineComponents(
         context_builder=CausalPerceptionContextBuilder(
-            max_frames=6,
-            max_images=6,
+            max_frames=3,
+            max_images=3,
             selection_strategy="fixed_all",
             history_image_detail="low",
             target_image_detail="auto",
@@ -698,8 +1086,8 @@ def test_formal_counterfactual_observes_each_scope_without_committing_gt() -> No
     sample = InferenceSample(
         video_id="VID02",
         target_frame_id=5,
-        causal_frame_ids=(0, 1, 2, 3, 4, 5),
-        media_refs=tuple(f"synthetic:{index}" for index in range(6)),
+        causal_frame_ids=(3, 4, 5),
+        media_refs=tuple(f"synthetic:{index}" for index in range(3, 6)),
         source_split=DatasetSplit.TRAINING,
         alignment_version="unit_test_v1",
     )
@@ -721,7 +1109,7 @@ def test_formal_counterfactual_observes_each_scope_without_committing_gt() -> No
         max_provider_attempts=3,
     )
 
-    collected = collector.collect(sample, torch.zeros((6, 3, 8, 8)))
+    collected = collector.collect(sample, torch.zeros((3, 3, 8, 8)))
     result = label_counterfactual(collected, target)
 
     assert result.record is not None
@@ -739,8 +1127,8 @@ def test_formal_counterfactual_runs_independent_scopes_concurrently() -> None:
     barrier = Barrier(3)
     components = FinalPipelineComponents(
         context_builder=CausalPerceptionContextBuilder(
-            max_frames=6,
-            max_images=6,
+            max_frames=3,
+            max_images=3,
             selection_strategy="fixed_all",
         ),
         perception=_FixedPerception(h0),
@@ -759,8 +1147,8 @@ def test_formal_counterfactual_runs_independent_scopes_concurrently() -> None:
     sample = InferenceSample(
         video_id="VID02",
         target_frame_id=5,
-        causal_frame_ids=(0, 1, 2, 3, 4, 5),
-        media_refs=tuple(f"synthetic:{index}" for index in range(6)),
+        causal_frame_ids=(3, 4, 5),
+        media_refs=tuple(f"synthetic:{index}" for index in range(3, 6)),
         source_split=DatasetSplit.TRAINING,
         alignment_version="unit_test_v1",
     )
@@ -770,7 +1158,7 @@ def test_formal_counterfactual_runs_independent_scopes_concurrently() -> None:
         max_provider_attempts=3,
     )
 
-    collected = collector.collect(sample, torch.zeros((6, 3, 8, 8)))
+    collected = collector.collect(sample, torch.zeros((3, 3, 8, 8)))
 
     assert tuple(scope for scope, _proposal in collected.proposals) == (
         "instrument_presence",
@@ -778,8 +1166,7 @@ def test_formal_counterfactual_runs_independent_scopes_concurrently() -> None:
         "workflow",
     )
     assert all(
-        proposal.status == "VERIFIED_KEEP"
-        for _scope, proposal in collected.proposals
+        proposal.status == "VERIFIED_KEEP" for _scope, proposal in collected.proposals
     )
 
 
@@ -832,9 +1219,25 @@ def test_temporal_events_and_report_preserve_reliability_wording() -> None:
     report = ReliabilityAwareTemplateReporter().render(events)
 
     assert len(events) == 2
-    assert events[0].reliability == "DEFINITE"
+    assert events[0].reliability == "OBSERVED"
     assert events[1].reliability == "UNCERTAIN"
     assert [item["reliability"] for item in report["events"]] == [
-        "DEFINITE",
+        "OBSERVED",
         "UNCERTAIN",
     ]
+
+
+def test_temporal_event_is_definite_only_when_phase_and_ivt_are_all_verified() -> None:
+    h0 = _valid_h0()
+    record = FinalizationRecord(
+        ObservationIdentity("VID01", "segment-0", 1, 1.0),
+        FinalOutcome("Verified", h0, "FULL_FIVE_HEAD_CERTIFICATE"),
+    )
+
+    event = TemporalEventAggregator().aggregate((record,))[0]
+
+    assert event.reliability == "DEFINITE"
+    assert event.task_state_counts == {
+        "phase": {"Verified": 1},
+        "ivt": {"Verified": 1},
+    }

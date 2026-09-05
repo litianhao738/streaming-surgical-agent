@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -97,3 +98,15 @@ def test_torchvision_factory_replaces_detector_head_without_download() -> None:
     model = build_instrument_detector(_config(), use_pretrained=False)
 
     assert model.roi_heads.box_predictor.cls_score.out_features == 8
+
+
+def test_coco_resume_structure_preserves_frozen_norm_and_optimizer_parameters() -> None:
+    from torchvision.ops.misc import FrozenBatchNorm2d
+
+    model = build_instrument_detector(
+        replace(_config(), initial_weights="COCO_V1"), use_pretrained=False,
+    )
+
+    assert sum(isinstance(module, FrozenBatchNorm2d) for module in model.modules()) == 46
+    assert not any(isinstance(module, torch.nn.BatchNorm2d) for module in model.modules())
+    assert sum(parameter.requires_grad for parameter in model.parameters()) == 70

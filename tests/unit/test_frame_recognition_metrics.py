@@ -312,6 +312,113 @@ def test_report_preserves_all_score_semantics_and_is_json_serializable() -> None
     )
 
 
+def test_hard_labels_report_masked_set_metrics_and_never_compute_ap(monkeypatch) -> None:
+    def unexpected_ap(*args, **kwargs):
+        raise AssertionError("hard labels must not be used as ranking scores")
+
+    monkeypatch.setattr(
+        "surgical_agent.evaluation.frame_metrics.average_precision_score", unexpected_ap
+    )
+    pairs = (
+        (
+            _prediction(
+                "VID01", 1,
+                instrument_ids=(0, 1), verb_ids=(1,), triplet_ids=(17, 94),
+                phase_id=2, score_semantics="hard_label_v1",
+            ),
+            _target(
+                "VID01", 1,
+                instrument_ids=(0, 2), verb_ids=(1,), triplet_ids=(7, 94),
+                phase_id=1, mask=FrameTaskMask(True, True, False, True, True),
+            ),
+        ),
+        (
+            _prediction(
+                "VID01", 2, instrument_ids=(0,), triplet_ids=(17,),
+                phase_id=1, score_semantics="hard_label_v1",
+            ),
+            _target(
+                "VID01", 2, instrument_ids=(0,), phase_id=1,
+                mask=FrameTaskMask(True, False, False, False, True),
+            ),
+        ),
+    )
+
+    report = compute_frame_metric_report(pairs)
+
+    assert report.schema_version == "frame_recognition_metrics_v2"
+    instrument = report.label_metrics["instrument"]
+    assert (instrument.valid_frames, instrument.exact_matches) == (2, 1)
+    assert (instrument.true_positives, instrument.false_positives, instrument.false_negatives) == (2, 1, 1)
+    assert instrument.micro_precision == pytest.approx(2 / 3)
+    assert instrument.micro_recall == pytest.approx(2 / 3)
+    assert instrument.micro_f1 == pytest.approx(2 / 3)
+    assert instrument.exact_set_accuracy == 0.5
+    ivt = report.label_metrics["ivt"]
+    assert ivt.valid_frames == 1  # Missing IVT never removes a valid phase target.
+    assert (ivt.true_positives, ivt.false_positives, ivt.false_negatives) == (1, 1, 1)
+    assert ivt.micro_f1 == 0.5  # Correct null IVT 94 remains a valid label hit.
+    assert ivt.exact_set_accuracy == 0.0
+    assert report.label_metrics["phase"].valid_frames == 2
+    assert report.label_metrics["phase"].micro_f1 == 0.5
+    assert report.label_metrics["phase"].exact_set_accuracy == 0.5
+    assert report.phase.video_wise_accuracy == 0.5
+    assert report.label_metrics["target"].valid_frames == 0
+    assert report.label_metrics["target"].micro_f1 is None
+    assert report.label_metrics["target"].exact_set_accuracy is None
+    assert report.tasks["ivt"].video_wise_map is None
+    assert all(value is None for value in report.tasks["ivt"].class_ap.values())
+    assert report.tasks["ivt"].class_video_support[94] == 1
+    assert report.tasks["ivt"].status == "unsupported"
+    assert report.tasks["ivt"].reason == "hard_label_v1_does_not_provide_ranking_scores"
+    assert report.tasks["ivt"].score_semantics == ("hard_label_v1",)
+    assert json.loads(json.dumps(asdict(report)))["tasks"]["ivt"]["video_wise_map"] is None
+
+
+def test_mixed_hard_and_ranked_rows_do_not_silently_score_only_ranked_subset():
+    report = compute_frame_metric_report(
+        (
+            (
+                _prediction("VID01", 1, instrument_ids=(0,), score_semantics="hard_label_v1"),
+                _target("VID01", 1, instrument_ids=(0,)),
+            ),
+            (
+                _prediction("VID01", 2, instrument_ids=(), score_semantics="uncalibrated_rank_v1"),
+                _target("VID01", 2, instrument_ids=(0,)),
+            ),
+        )
+    )
+
+    assert report.tasks["instrument"].video_wise_map is None
+    assert report.tasks["instrument"].status == "unsupported"
+    assert report.tasks["instrument"].score_semantics == (
+        "hard_label_v1", "uncalibrated_rank_v1"
+    )
+    assert report.label_metrics["instrument"].valid_frames == 2
+    assert report.label_metrics["instrument"].micro_f1 == pytest.approx(2 / 3)
+
+
+def test_masked_hard_label_row_does_not_invalidate_other_ranked_task_rows():
+    report = compute_frame_metric_report(
+        (
+            (
+                _prediction("VID01", 1, score_semantics="hard_label_v1"),
+                _target("VID01", 1, phase_id=None, mask=FrameTaskMask(False, False, False, False, False)),
+            ),
+            (
+                _prediction(
+                    "VID01", 2, instrument_ids=(0,),
+                    probabilities=_scores(instrument=_class_scores("instrument", **{"0": 0.7})),
+                ),
+                _target("VID01", 2, instrument_ids=(0,)),
+            ),
+        )
+    )
+
+    assert report.tasks["instrument"].video_wise_map == 1.0
+    assert report.label_metrics["instrument"].valid_frames == 1
+
+
 def test_accumulator_and_evaluator_require_exact_prediction_target_identity() -> None:
     prediction = _prediction("VID01", 0)
 

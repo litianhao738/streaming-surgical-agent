@@ -8,7 +8,7 @@
 # 1. Overall Architecture
 
 ```text
-Causal 6-Frame Stream ≤ t
+Causal 3-Frame Stream ≤ t
         │
         ▼
 Tracker Evidence
@@ -71,7 +71,7 @@ The pipeline processes a surgical video causally at time `t`.
 Each prediction uses only the current frame and historical frames:
 
 ```text
-[t-5, t-4, t-3, t-2, t-1, t]
+[t-2, t-1, t]
 ```
 
 No future frame is allowed.
@@ -180,7 +180,8 @@ def build_causal_context(observation, segment_buffer):
 
     frames = segment_buffer.get_latest_contiguous_frames(
         current_frame=observation.frame,
-        max_frames=6,
+        max_frames=3,
+        expected_frame_id_step=25,
     )
 
     assert all(frame.time <= observation.time for frame in frames)
@@ -195,7 +196,7 @@ def build_causal_context(observation, segment_buffer):
 Recommended API detail:
 
 ```text
-Historical 5 frames → detail=low
+Historical 2 frames → detail=low
 Current frame t      → detail=auto
 ```
 
@@ -804,7 +805,10 @@ def bounded_verify_repair_loop(
 
 This is a required stage.
 
-Repair must not directly produce `Verified`.
+Repair must not directly produce whole-frame `Verified`. A validated evidence
+certificate may upgrade only the tasks covered by its verification scope. Any
+field changed as a deterministic closure consequence is `Derived`, not
+`Verified`.
 
 ## Pseudocode
 
@@ -855,6 +859,8 @@ It is the only module allowed to assign the final semantic state.
 ```python
 def outcome_finalizer(H0, proposal):
 
+    task_states = accepted_states_for_all_five_heads()
+
     if proposal.status == "GATE_ACCEPTED":
 
         return FinalOutcome(
@@ -874,18 +880,29 @@ def outcome_finalizer(H0, proposal):
 
     if proposal.status == "VERIFIED_KEEP":
 
+        mark_attempted_scope(task_states, proposal, state="Checked")
+        mark_certified_scope(task_states, proposal, state="Verified")
         return FinalOutcome(
-            state="Verified",
+            state="Accepted",
             hypothesis=proposal.hypothesis,
             provenance="VERIFIED_KEEP",
+            task_states=task_states,
         )
 
     if proposal.status == "VERIFIED_REPAIR":
 
+        mark_attempted_scope(task_states, proposal, state="Checked")
+        mark_certified_scope(task_states, proposal, state="Verified")
+        mark_uncertified_changes(task_states, H0, proposal, state="Derived")
         return FinalOutcome(
-            state="Verified",
+            state=(
+                "Verified"
+                if all_five_tasks_are_verified(task_states)
+                else "Accepted"
+            ),
             hypothesis=proposal.hypothesis,
             provenance="VERIFIED_REPAIR",
+            task_states=task_states,
         )
 
     if proposal.status == "PENDING_UNRESOLVED":
@@ -907,7 +924,7 @@ def outcome_finalizer(H0, proposal):
 
 # 16. Reliability-Aware Memory
 
-Use three separate logical stores:
+Use three separate logical stores, but treat reliability as task-wise:
 
 ```text
 Reliable Long-Term Memory
@@ -920,7 +937,11 @@ Pending Buffer
 → Pending
 ```
 
-Do not mix Pending into trusted memory.
+Do not mix Pending into trusted memory. A record belongs in reliable long-term
+memory when at least one task is `Verified`; that does not make its other heads
+reliable. Every stored record therefore carries all five `task_states` plus its
+`verified_tasks`, `checked_tasks`, and `derived_tasks` masks, and every
+downstream consumer must honor those masks.
 
 A simple bounded structure is enough:
 
@@ -963,16 +984,18 @@ def finalization_transaction(
             provenance=final.provenance,
         )
 
-        if final.state == "Verified":
+        if final.verified_tasks:
 
             tx.write_trusted_semantic_delta(
-                state="Verified",
+                state=final.state,
                 hypothesis=final.hypothesis,
+                task_states=final.task_states,
             )
 
             tx.update_memory(
                 destination="RELIABLE_LONG_TERM",
                 hypothesis=final.hypothesis,
+                task_states=final.task_states,
             )
 
         elif final.state == "Accepted":
@@ -980,11 +1003,13 @@ def finalization_transaction(
             tx.write_trusted_semantic_delta(
                 state="Accepted",
                 hypothesis=final.hypothesis,
+                task_states=final.task_states,
             )
 
             tx.update_memory(
                 destination="SHORT_TERM",
                 hypothesis=final.hypothesis,
+                task_states=final.task_states,
             )
 
         elif final.state == "Pending":
@@ -1196,6 +1221,11 @@ stable major-IVT change
 
 Use the finalized event-level records.
 
+Reliability is not inherited from the frame-level state alone. An event may use
+definite wording only when both `phase` and `ivt` are `Verified` on every frame
+that supports the event. Partial verification remains observed evidence;
+`Pending` remains uncertain.
+
 ```text
 Verified → definite wording
 Accepted → high-confidence observation wording
@@ -1211,7 +1241,9 @@ def generate_report(event):
 
     return report_template(
         verified=render_definite(
-            event.verified
+            event
+            if all_event_tasks_verified(event, tasks={"phase", "ivt"})
+            else None
         ),
 
         accepted=render_observed(
@@ -1348,7 +1380,7 @@ harder ablation
 more engineering complexity without guaranteed gain
 ```
 
-Use fixed causal 6-frame input instead.
+Use fixed causal 3-frame input instead.
 
 ---
 
@@ -1614,7 +1646,7 @@ Malformed API output is an execution failure, not semantic Rejected.
 The implementation may contain recovery, logging, cache, budget, and transaction details, but the research method itself should remain:
 
 ```text
-Fixed Causal 6-Frame Input
+Fixed Causal 3-Frame Input
         ↓
 Tracker Reliability Evidence
         ↓

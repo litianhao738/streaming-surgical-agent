@@ -19,12 +19,21 @@ class TemporalEvent:
     major_ivt_ids: tuple[int, ...]
     frame_count: int
     state_counts: dict[str, int]
+    task_state_counts: dict[str, dict[str, int]]
 
     @property
     def reliability(self) -> str:
-        if self.state_counts.get("Pending", 0):
+        semantic_counts = tuple(
+            self.task_state_counts.get(task, {}) for task in ("phase", "ivt")
+        )
+        if self.state_counts.get("Pending", 0) or any(
+            counts.get("Pending", 0) for counts in semantic_counts
+        ):
             return "UNCERTAIN"
-        if self.state_counts.get("Verified", 0):
+        if semantic_counts and all(
+            counts.get("Verified", 0) == self.frame_count
+            for counts in semantic_counts
+        ):
             return "DEFINITE"
         return "OBSERVED"
 
@@ -85,6 +94,17 @@ class TemporalEventAggregator:
                     if isinstance(item.outcome, FinalOutcome)
                 )
             ),
+            task_state_counts={
+                task: dict(
+                    Counter(
+                        item.outcome.task_states[task]
+                        for item in records
+                        if isinstance(item.outcome, FinalOutcome)
+                        and item.outcome.task_states is not None
+                    )
+                )
+                for task in ("phase", "ivt")
+            },
         )
 
 
@@ -110,12 +130,13 @@ class ReliabilityAwareTemplateReporter:
                     "major_ivt_ids": list(event.major_ivt_ids),
                     "frame_count": event.frame_count,
                     "state_counts": event.state_counts,
+                    "task_state_counts": event.task_state_counts,
                     "reliability": event.reliability,
                     "text": wording,
                 }
             )
         return {
-            "schema_version": "reliability_aware_event_report_v1",
+            "schema_version": "reliability_aware_event_report_v2",
             "generator": "deterministic_template",
             "events": rows,
         }

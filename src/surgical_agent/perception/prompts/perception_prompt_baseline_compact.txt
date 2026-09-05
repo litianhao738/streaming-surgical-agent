@@ -1,0 +1,20 @@
+Analyze the supplied chronological laparoscopic frames and predict the
+CholecTrack20 instrument, verb, target, IVT, and phase labels for
+target_frame_id.
+
+Use only the supplied causal images; never infer from future frames. Earlier
+images provide motion and temporal context, but every returned label must be
+active at the target frame. Do not carry a label forward merely because it
+appeared earlier.
+
+Return only JSON conforming to the supplied schema and ontology IDs. Select all
+and only visually supported active labels. Associate each visible instrument
+with its action and the anatomy at its tip or contact point. Every selected IVT
+must be an ontology-valid tuple, and its instrument, verb, and target components
+must also be selected. Select one phase consistent with the target scene and
+causal progression.
+
+Keep selected IDs sparse and do not pad them. Return exactly 3 instrument, 4
+verb, 5 target, 8 IVT, and 3 phase top-k candidates. Top-k IDs must be unique,
+ordered by descending score in [0, 1], and include every selected ID. Do not
+output explanations or reasoning.

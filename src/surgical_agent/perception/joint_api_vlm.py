@@ -19,6 +19,12 @@ from surgical_agent.perception.context_builder import (
     require_gold_free,
 )
 from surgical_agent.perception.contracts import JointPerceptionResult
+from surgical_agent.perception.main_h0 import (
+    is_main_h0_config,
+    load_main_h0_prompt,
+    main_h0_input,
+    validate_main_h0_config,
+)
 from surgical_agent.perception.ontology_prompt import (
     add_academic_medical_context,
     load_prompt_ontology_text,
@@ -31,6 +37,7 @@ from surgical_agent.perception.schema import (
     JOINT_PERCEPTION_SCHEMA_VERSIONS,
     RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
 )
+from surgical_agent.research.reliability.taskwise import TASK_RELIABILITY_STATES
 from surgical_agent.tracking.contracts import PredictedTrack
 
 _BACKEND_NAMES = {
@@ -40,7 +47,14 @@ _BACKEND_NAMES = {
     "mock": "joint_mock",
 }
 _OPENROUTER_JOINT_MODEL_IDENTIFIERS = frozenset(
-    {"openai/gpt-5.6-sol", "openai/gpt-5.6-luna"}
+    {
+        "openai/gpt-5.6-sol",
+        "openai/gpt-5.6-luna",
+        "openai/gpt-6-astra",
+        "x-ai/grok-4.6",
+        "google/gemini-3.8-flash",
+        "qwen/qwen3.8-max-0902",
+    }
 )
 _OPENAI_JOINT_MODEL_IDENTIFIERS = frozenset({"gpt-5.6-sol"})
 
@@ -114,6 +128,14 @@ def safe_workflow_summary(snapshot: Mapping[str, Any]) -> dict[str, object]:
         or any(not isinstance(phase, str) for phase in phases)
     ):
         raise ApiContractError("workflow recent_finalized_phases must be text")
+    phase_states = snapshot.get("recent_phase_states", ())
+    if (
+        not isinstance(phase_states, Sequence)
+        or isinstance(phase_states, (str, bytes))
+        or (phase_states and len(phase_states) != len(phases))
+        or any(state not in TASK_RELIABILITY_STATES for state in phase_states)
+    ):
+        raise ApiContractError("workflow recent_phase_states are invalid")
     phase_stability = snapshot.get("phase_stability")
     if phase_stability is not None and (
         not isinstance(phase_stability, (int, float))
@@ -135,7 +157,7 @@ def safe_workflow_summary(snapshot: Mapping[str, Any]) -> dict[str, object]:
         ):
             raise ApiContractError("workflow transitions must contain phase pairs")
         normalized_transitions.append([transition[0], transition[1]])
-    return {
+    normalized = {
         "source_max_frame_id": source_max_frame_id,
         "recent_finalized_phases": list(phases),
         "phase_stability": (
@@ -143,6 +165,9 @@ def safe_workflow_summary(snapshot: Mapping[str, Any]) -> dict[str, object]:
         ),
         "observed_transitions": normalized_transitions,
     }
+    if phase_states:
+        normalized["recent_phase_states"] = list(phase_states)
+    return normalized
 
 
 def safe_track_summary(snapshot: Mapping[str, Any]) -> dict[str, object]:
@@ -249,11 +274,28 @@ class JointPerceptionRequestBuilder:
         if not isinstance(config, ApiConfig):
             raise TypeError("config must be ApiConfig")
         config.validate()
+        if is_main_h0_config(config):
+            validate_main_h0_config(config)
         try:
             self.backend_name = _BACKEND_NAMES[config.provider]
         except KeyError as exc:
             raise ApiContractError("joint API backend provider is unsupported") from exc
         self.config = config
+
+        if (
+            config.provider == "openrouter"
+            and config.requested_model_identifier == "openai/gpt-6-astra"
+        ):
+            self.backend_name = "joint_openrouter_gpt6astra"
+        if config.provider == "openrouter" and config.requested_model_identifier in {
+            "x-ai/grok-4.6",
+            "google/gemini-3.8-flash",
+            "qwen/qwen3.8-max-0902",
+        }:
+            self.backend_name = (
+                "joint_openrouter_"
+                + config.requested_model_identifier.replace("/", "_")
+            )
 
     def build(self, context: PerceptionContext) -> ApiRequest:
         if not isinstance(context, PerceptionContext):
@@ -272,18 +314,21 @@ class JointPerceptionRequestBuilder:
                 and self.config.requested_model_identifier not in approved_models
             ):
                 raise ApiContractError(
-                    "joint OpenRouter requests require an approved GPT-5.6 Sol/Luna model"
+                    "joint OpenRouter requests require an approved model"
                     if self.config.provider == "openrouter"
                     else "joint OpenAI requests require gpt-5.6-sol"
                 )
-            if (
+            if not is_main_h0_config(self.config) and (
                 self.config.response_schema_version
                 not in JOINT_PERCEPTION_SCHEMA_VERSIONS
             ):
                 raise ApiContractError(
                     "joint OpenRouter requests require the joint perception schema"
                 )
-            if self.config.prompt_version != self.config.response_schema_version:
+            if (
+                not is_main_h0_config(self.config)
+                and self.config.prompt_version != self.config.response_schema_version
+            ):
                 raise ApiContractError(
                     "joint OpenRouter requests require a matching prompt version"
                 )
@@ -325,6 +370,41 @@ class JointPerceptionRequestBuilder:
         image_details = context.image_details or tuple("auto" for _ in context.images)
         if len(image_details) != len(context.images):
             raise ApiContractError("image detail count must match selected images")
+        if is_main_h0_config(self.config):
+            if selected_image_frame_ids != causal_frame_ids or tuple(
+                image.identifier for image in context.images
+            ) != context.sample.media_refs:
+                raise ApiContractError("main H0 requires every causal image in source order")
+            expected_details = ("low",) * (len(context.images) - 1) + ("high",)
+            if image_details != expected_details:
+                raise ApiContractError("main H0 requires low history and high target detail")
+            return ApiRequest(
+                provider=self.config.provider,
+                model_identifier=self.config.requested_model_identifier,
+                endpoint_identifier=self.config.endpoint_identifier,
+                prompt_version=self.config.prompt_version,
+                response_schema_version=self.config.response_schema_version,
+                payload={
+                    "system_text": load_main_h0_prompt(),
+                    "image_details": list(image_details),
+                    "openrouter_image_detail_mode": "explicit_v1",
+                    "input_text": json.dumps(
+                        main_h0_input(
+                            video_id=context.sample.video_id,
+                            target_frame_id=context.sample.target_frame_id,
+                            frame_ids=causal_frame_ids,
+                        ),
+                        sort_keys=True,
+                        separators=(",", ":"),
+                    ),
+                    **request_routing_payload(
+                        provider=self.config.provider,
+                        provider_options=self.config.provider_options,
+                    ),
+                },
+                images=context.images,
+                generation_parameters=self.config.generation_parameters,
+            )
         prompt_profile = self.config.provider_options.get(
             "initial_prompt_profile", "full_context"
         )

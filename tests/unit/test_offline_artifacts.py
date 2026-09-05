@@ -4,23 +4,32 @@ from __future__ import annotations
 
 import hashlib
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
 
 from surgical_agent.data.constants import TASK_CLASS_COUNTS
-from surgical_agent.data.schemas import DatasetSplit
+from surgical_agent.data.schemas import (
+    DatasetSplit,
+    FrameSupervisionTarget,
+    FrameTaskMask,
+)
+from surgical_agent.evaluation.frame_ground_truth import EvaluationData
 from surgical_agent.evaluation.offline_artifacts import (
     OfflineEvaluationError,
     identity_sha256,
     load_completed_run,
 )
+from surgical_agent.evaluation.offline_frame import evaluate_and_write
 from surgical_agent.inference.frame_result_writer import FrameResultWriter
 from surgical_agent.inference.schemas import PredictionRecord
 from surgical_agent.research.signals.contracts import EvidenceProfile, EvidenceValue
 
 
-def _prediction(*, frame_id: int = 1) -> PredictionRecord:
+def _prediction(
+    *, frame_id: int = 1, score_semantics: str = "uncalibrated_rank_v1"
+) -> PredictionRecord:
     return PredictionRecord(
         run_id="eval-unit",
         video_id="VID110",
@@ -38,11 +47,16 @@ def _prediction(*, frame_id: int = 1) -> PredictionRecord:
         verification_status="NOT_REQUESTED",
         alignment_version="ct20_exact_png_stem_v1",
         probabilities={
-            task: tuple(0.5 for _ in range(count))
+            task: tuple(
+                float(index == {"instrument": 0, "verb": 1, "target": 2, "ivt": 3, "phase": 1}[task])
+                if score_semantics == "hard_label_v1"
+                else 0.5
+                for index in range(count)
+            )
             for task, count in TASK_CLASS_COUNTS.items()
         },
         trace=("perception_validated",),
-        score_semantics="uncalibrated_rank_v1",
+        score_semantics=score_semantics,
     )
 
 
@@ -92,12 +106,33 @@ def _write_json(path: Path, payload: object) -> None:
     )
 
 
-def _write_completed_run(root: Path, *, frame_ids: tuple[int, ...] = (1,)) -> Path:
+def _write_completed_run(
+    root: Path,
+    *,
+    frame_ids: tuple[int, ...] = (1,),
+    score_semantics: str = "uncalibrated_rank_v1",
+) -> Path:
     run_dir = root / "eval-unit"
     writer = FrameResultWriter(run_dir, run_id="eval-unit")
     writer.begin()
     for frame_id in frame_ids:
-        writer.write(_prediction(frame_id=frame_id), _evidence(frame_id=frame_id))
+        evidence = _evidence(frame_id=frame_id)
+        if score_semantics == "hard_label_v1":
+            evidence = replace(
+                evidence,
+                task_values={
+                    task: {
+                        name: EvidenceValue(None, False, value.source, frame_id)
+                        if name in {"candidate_ambiguity", "self_reported_uncertainty"}
+                        else value
+                        for name, value in values.items()
+                    }
+                    for task, values in evidence.task_values.items()
+                },
+            )
+        writer.write(
+            _prediction(frame_id=frame_id, score_semantics=score_semantics), evidence
+        )
     writer.finalize({"paper_metric_eligible": False})
     _write_json(
         run_dir / "dataset_rollout_artifact.json",
@@ -152,6 +187,51 @@ def test_load_completed_run_reconstructs_verified_predictions(tmp_path: Path) ->
     assert identity_sha256(loaded.prediction_identities) == hashlib.sha256(
         b'[["VID110",1]]'
     ).hexdigest()
+
+
+def test_hard_label_artifacts_remain_label_only_through_offline_evaluation(tmp_path):
+    run_dir = _write_completed_run(tmp_path, score_semantics="hard_label_v1")
+    loaded = load_completed_run(run_dir)
+    assert loaded.predictions[0].score_semantics == "hard_label_v1"
+    target = FrameSupervisionTarget(
+        video_id="VID110",
+        frame_id=1,
+        instrument_ids=(0,),
+        verb_ids=(1,),
+        target_ids=(2,),
+        triplet_ids=(3,),
+        phase_id=1,
+        mask=FrameTaskMask(True, True, True, True, True),
+        source_granularity="frame_multilabel",
+        source="unit-test",
+    )
+    data = EvaluationData(
+        split=DatasetSplit.VALIDATION,
+        runtime_identities=loaded.prediction_identities,
+        targets={("VID110", 1): target},
+        sources={},
+        provenance_by_video={"VID110": "unit-test"},
+        repair_manifest_sha256=loaded.repair_manifest_sha256,
+    )
+
+    result = evaluate_and_write(
+        loaded, data, tmp_path / "evaluation", test_gt_authorized=False
+    )
+
+    report = json.loads(result.report_path.read_text())
+    manifest = json.loads(result.manifest_path.read_text())
+    metrics = report["metrics"]
+    assert metrics["schema_version"] == "frame_recognition_metrics_v2"
+    assert manifest["metric_schema_version"] == "frame_recognition_metrics_v2"
+    assert manifest["score_semantics"] == ["hard_label_v1"]
+    for task in ("instrument", "verb", "target", "ivt"):
+        assert metrics["tasks"][task]["video_wise_map"] is None
+        assert metrics["tasks"][task]["status"] == "unsupported"
+        assert metrics["tasks"][task]["reason"] == "hard_label_v1_does_not_provide_ranking_scores"
+    for task in TASK_CLASS_COUNTS:
+        assert metrics["label_metrics"][task]["micro_f1"] == 1.0
+        assert metrics["label_metrics"][task]["exact_set_accuracy"] == 1.0
+    assert metrics["phase"]["video_wise_accuracy"] == 1.0
 
 
 def test_load_completed_run_accepts_current_runtime_rollout_fields(

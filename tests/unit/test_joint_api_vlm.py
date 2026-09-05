@@ -305,8 +305,7 @@ def test_openrouter_prompt_adds_medical_context_without_replacing_ontology() -> 
     prompt = request.payload["system_text"]
 
     assert (
-        request.payload[OPENROUTER_ROUTING_PAYLOAD_KEY]
-        == STRICT_OPENAI_ROUTING_PROFILE
+        request.payload[OPENROUTER_ROUTING_PAYLOAD_KEY] == STRICT_OPENAI_ROUTING_PROFILE
     )
     assert prompt.startswith(ACADEMIC_MEDICAL_CONTEXT)
     assert "5=cut" in prompt
@@ -547,7 +546,7 @@ def test_backend_rejects_non_joint_openrouter_config_before_client_call(
     assert client.call_count == 0
 
 
-def test_openrouter_joint_builder_admits_only_sol_and_luna() -> None:
+def test_openrouter_joint_builder_preserves_legacy_models_and_rejects_unknown() -> None:
     common = {
         "mode": "real",
         "provider": "openrouter",
@@ -565,7 +564,7 @@ def test_openrouter_joint_builder_admits_only_sol_and_luna() -> None:
     assert JointPerceptionRequestBuilder(config=luna).build(
         _context()
     ).model_identifier == ("openai/gpt-5.6-luna")
-    with pytest.raises(ApiContractError, match="Sol/Luna"):
+    with pytest.raises(ApiContractError, match="approved model"):
         JointPerceptionRequestBuilder(config=unknown).build(_context())
 
 

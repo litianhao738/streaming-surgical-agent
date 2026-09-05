@@ -142,13 +142,23 @@ Do not use this flag to silently construct formal D0.
 
 ### 5.4 Tracker state
 
-- Do not retrain Tracker because this Verifier pilot failed.
+- Do not retrain the Tracker detector because this Verifier pilot failed or
+  because the VLM visual window changed.
 - Five-fold OOF index:
   `artifacts/training/tracker_oof5/oof/index.json`.
 - The index covers ten Training videos and passed artifact-hash validation.
 - Transport archive: `tracker_oof5_complete_20260903.tar.gz`.
 - VID31 has OOF prediction coverage and frame labels but no instance boxes; it
   is excluded from box metrics, not from all Gate supervision.
+- The primary visual contract is now three contiguous 1 FPS observations. The
+  causal buffer resets when the CholecTrack20 frame-ID increment exceeds 25,
+  and Tracker association generation now uses the same gap bound. The existing
+  detector checkpoints are reusable, but the dated OOF association artifacts
+  above predate this rule and are historical until regenerated.
+- Six-frame H0/Verifier caches, counterfactual records and learned-Gate examples
+  cannot be mixed with the three-frame protocol. Recollect Gate data only after
+  Repair admission is fixed and a Training-only capability pilot demonstrates
+  positive benefit under controlled harm.
 
 ## 6. Verified regression state
 

@@ -16,7 +16,9 @@ from surgical_agent.research.reliability.state import (
 )
 
 PREDICTION_SCHEMA_VERSION = "prediction_record_v1"
-ALLOWED_SCORE_SEMANTICS = frozenset({"probability_v1", "uncalibrated_rank_v1"})
+ALLOWED_SCORE_SEMANTICS = frozenset(
+    {"probability_v1", "uncalibrated_rank_v1", "hard_label_v1"}
+)
 
 
 def _validate_ids(name: str, values: tuple[int, ...], task: str) -> None:
@@ -41,7 +43,7 @@ def _validate_probabilities(probabilities: Mapping[str, tuple[float, ...]]) -> N
 def _validate_score_semantics(value: object) -> None:
     if not isinstance(value, str) or value not in ALLOWED_SCORE_SEMANTICS:
         raise ValueError(
-            "score_semantics must be one of probability_v1 or uncalibrated_rank_v1"
+            "score_semantics must be probability_v1, uncalibrated_rank_v1 or hard_label_v1"
         )
 
 

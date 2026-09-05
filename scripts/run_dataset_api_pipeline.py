@@ -22,7 +22,7 @@ from surgical_agent.api.accounting import CompleteAccountingTransport
 from surgical_agent.api.budget import ProviderCallBudget
 from surgical_agent.api.cache import FileApiCache
 from surgical_agent.api.client import CachedMultimodalApiClient
-from surgical_agent.api.contracts import ProviderTransport
+from surgical_agent.api.contracts import ProviderTransport, thaw_json
 from surgical_agent.api.credentials import (
     SecretValue,
     assert_secret_absent,
@@ -35,6 +35,7 @@ from surgical_agent.api.openrouter_routing import (
 )
 from surgical_agent.api.proxy import configure_local_proxy
 from surgical_agent.api.registry import build_transport, build_validator
+from surgical_agent.api.request_hash import canonical_request_metadata
 from surgical_agent.api.retry import RetryPolicy
 from surgical_agent.api.usage import UsageLedger
 from surgical_agent.artifacts.manifest import atomic_write_json, sha256_file
@@ -53,6 +54,12 @@ from surgical_agent.data.dataset import (
 from surgical_agent.data.schemas import DatasetSplit
 from surgical_agent.inference.frame_result_writer import FrameResultWriter
 from surgical_agent.inference.writer import ArtifactWriteError
+from surgical_agent.perception.context_builder import CausalPerceptionContextBuilder
+from surgical_agent.perception.joint_api_vlm import JointPerceptionRequestBuilder
+from surgical_agent.perception.main_h0 import (
+    is_main_h0_config,
+    validate_main_h0_config,
+)
 from surgical_agent.perception.schema import (
     GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
 )
@@ -102,6 +109,8 @@ def _apply_cli_model_override(
             "--model requires a real OpenRouter or OpenAI-compatible config"
         )
     if config.provider == "openrouter" and normalized != _REAL_MODEL:
+        if is_main_h0_config(config) and normalized == config.requested_model_identifier:
+            return config
         raise ApiContractError(
             f"the current pipeline protocol approves only {_REAL_MODEL}"
         )
@@ -179,7 +188,12 @@ def build_parser(*, fixed_profile: str | None = None) -> argparse.ArgumentParser
     parser.add_argument(
         "--config",
         type=Path,
-        default=PROJECT_ROOT / "configs/perception/joint_mock_dataset.yaml",
+        default=PROJECT_ROOT / "configs/perception/joint_openrouter_h0.yaml",
+    )
+    parser.add_argument(
+        "--preflight",
+        action="store_true",
+        help="validate the main H0 config and prepare real requests without API calls",
     )
     credentials = parser.add_mutually_exclusive_group()
     credentials.add_argument(
@@ -220,7 +234,7 @@ def build_parser(*, fixed_profile: str | None = None) -> argparse.ArgumentParser
     parser.add_argument(
         "--cache-root",
         type=Path,
-        default=PROJECT_ROOT / "artifacts/api_dataset_cache/mock_validation",
+        default=PROJECT_ROOT / "artifacts/api_dataset_cache/main_h0",
     )
     parser.add_argument("--run-id")
     parser.add_argument("--max-provider-calls", default="exact-selection")
@@ -523,6 +537,16 @@ def _require_exact_dataset_config(
         raise ApiContractError("selection mode must be engineering or paper")
     config.require_enabled()
     config.validate()
+    if is_main_h0_config(config):
+        validate_main_h0_config(config)
+        if config.provider == "mock":
+            if has_credential:
+                raise ApiContractError("mock H0 rejects credential inputs")
+        elif not has_credential or not authorize_data_upload:
+            raise ApiContractError(
+                "real H0 requires a credential and --authorize-data-upload"
+            )
+        return
     expected_joint_version = (
         _REAL_JOINT_VERSION
         if config.mode == "real"
@@ -551,9 +575,9 @@ def _require_exact_dataset_config(
         raise ApiContractError("dataset rollout requires the request cache")
     if config.data_upload_authorized is not True:
         raise ApiContractError("dataset config must authorize data upload")
-    if config.max_causal_frames != 6:
-        raise ApiContractError("dataset rollout requires a six-frame causal buffer")
-    expected_images = 6 if config.provider == "openai" else 3
+    if config.max_causal_frames != 3:
+        raise ApiContractError("dataset rollout requires a three-frame causal buffer")
+    expected_images = 3
     if config.max_api_images != expected_images:
         raise ApiContractError(
             f"dataset rollout requires a {expected_images}-image upload budget"
@@ -1003,6 +1027,16 @@ def run_dataset_api_rollout(
     """Run one preselected rollout with an optional injected transport."""
 
     configure_local_proxy(proxy_url)
+    if is_main_h0_config(config):
+        validate_main_h0_config(config)
+        if pipeline_profile != "single_pass":
+            raise ApiContractError("main H0 requires the single_pass profile")
+        if context_profile not in {"auto", "frames_only"}:
+            raise ApiContractError("main H0 requires frames_only context")
+        if event_memory_enabled is True:
+            raise ApiContractError("main H0 does not consume event memory")
+        context_profile = "frames_only"
+        event_memory_enabled = False
     if report_mode == "llm_report" and report_generator is None:
         raise ApiContractError("llm_report requires an injected event-level generator")
     if report_mode == "template_report" and report_generator is not None:
@@ -1102,7 +1136,7 @@ def run_dataset_api_rollout(
         usage=usage,
         validator=build_validator(config),
         retry_policy=RetryPolicy(
-            max_attempts=4,
+            max_attempts=1 if is_main_h0_config(config) else 4,
             base_delay_seconds=0.25,
             max_delay_seconds=0.25,
         ),
@@ -1169,7 +1203,11 @@ def run_dataset_api_rollout(
                 "prompt_version": config.prompt_version,
                 "response_schema_version": config.response_schema_version,
                 "causal_window": {
-                    "schema_version": "adaptive_causal_window_v1",
+                    "schema_version": (
+                        "fixed_causal_window_v1"
+                        if is_main_h0_config(config)
+                        else "adaptive_causal_window_v1"
+                    ),
                     "max_frames": config.max_causal_frames,
                     "max_uploaded_images": config.max_api_images,
                     "target_frame_always_uploaded": True,
@@ -1265,6 +1303,75 @@ def run_dataset_api_rollout(
     return artifact
 
 
+def _preflight_main_h0(args: argparse.Namespace, config: ApiConfig) -> Path:
+    """Prepare the same production requests, without credentials or a transport."""
+    if not is_main_h0_config(config):
+        raise ApiContractError("--preflight is available for the main H0 config")
+    validate_main_h0_config(config)
+    if args.pipeline_profile != "single_pass" or args.context_profile not in {
+        "auto", "frames_only"
+    }:
+        raise ApiContractError("main H0 preflight requires single_pass / frames_only")
+    if any((args.gate_artifact, args.verification_config, args.phase_transition_graph,
+            args.predicted_track_artifact, args.experiment_config)):
+        raise ApiContractError("main H0 preflight does not accept research components")
+    if args.event_memory not in {"auto", "disabled"}:
+        raise ApiContractError("main H0 preflight does not accept event memory")
+    run_id = args.run_id or datetime.now(UTC).strftime("h0_preflight_%Y%m%dT%H%M%SZ")
+    _require_safe_run_id(run_id)
+    dataset_root = args.dataset_root.expanduser().resolve()
+    output_dir = args.output_root.expanduser().resolve() / run_id
+    _validate_paths(
+        dataset_root=dataset_root, output_dir=output_dir,
+        cache_root=args.cache_root.expanduser().resolve(),
+        output_root=args.output_root.expanduser().resolve(),
+    )
+    adapter = CholecTrack20DatasetAdapter(dataset_root, causal_window_size=3)
+    selection = resolve_rollout_selection(
+        adapter, mode=args.mode, video_id=args.video_id, max_frames=args.max_frames,
+        split=args.split, target_frame_id=args.target_frame_id,
+    )
+    _resolve_profile_call_limit(
+        args.max_provider_calls, pipeline_profile="single_pass",
+        selection_count=selection.expected_provider_calls,
+    )
+    builder = JointPerceptionRequestBuilder(config=config)
+    contexts = CausalPerceptionContextBuilder(
+        max_frames=3, max_images=3, selection_strategy="fixed_all",
+        history_image_detail="low", target_image_detail="high",
+    )
+    loader = CausalApiMediaLoader()
+    rows = []
+    for sample in selection.samples:
+        loaded = loader.load(sample)
+        context = contexts.build(
+            loaded.runtime_sample, loaded.frames, workflow_snapshot={},
+            memory_snapshot={}, prior_finalized_prediction=None,
+        )
+        request = builder.build(context)
+        metadata = canonical_request_metadata(request)
+        name = f"{sample.video_id}_{sample.target_frame_id}"
+        # Payload has schema/text/detail settings; image bytes stay out of artifacts.
+        atomic_write_json(output_dir / "requests" / f"{name}.json", {
+            "metadata": metadata.to_mapping(), "payload": thaw_json(request.payload),
+        })
+        rows.append({
+            "video_id": sample.video_id, "target_frame_id": sample.target_frame_id,
+            "causal_frame_ids": list(sample.causal_frame_ids),
+            "image_count": len(request.images), "request_hash": metadata.request_hash,
+        })
+    artifact_path = output_dir / "preflight.json"
+    atomic_write_json(artifact_path, {
+        "schema_version": "main_h0_preflight_v1", "status": "REQUESTS_READY",
+        "model_requested": config.requested_model_identifier,
+        "prompt_version": config.prompt_version,
+        "response_schema_version": config.response_schema_version,
+        "planned_calls": len(rows), "provider_calls": 0, "rows": rows,
+    })
+    print(f"H0_PREFLIGHT_READY artifact={artifact_path} planned_calls={len(rows)}")
+    return artifact_path
+
+
 def run(args: argparse.Namespace) -> Path:
     """Complete all preflight checks before credentials, media, or real transport."""
 
@@ -1301,6 +1408,8 @@ def run(args: argparse.Namespace) -> Path:
         mode=args.mode,
         base_url=args.base_url,
     )
+    if getattr(args, "preflight", False):
+        return _preflight_main_h0(args, config)
     verification_config = (
         None
         if args.verification_config is None

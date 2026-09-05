@@ -124,6 +124,8 @@ def load_prompt_ontology_text() -> str:
 def load_scoped_prompt_ontology_text(
     requested_tasks: tuple[str, ...],
     candidate_ids: Mapping[str, tuple[int, ...]],
+    *,
+    max_ivt_candidates: int = 20,
 ) -> str:
     """Return only ontology entries needed by one targeted verification call.
 
@@ -161,11 +163,11 @@ def load_scoped_prompt_ontology_text(
         values = tuple(candidate_ids["ivt"])
         if (
             not values
-            or len(values) > 8
+            or len(values) > max_ivt_candidates
             or len(set(values)) != len(values)
             or any(type(value) is not int or not 0 <= value < 100 for value in values)
         ):
-            raise ValueError("ivt candidate IDs must be one to eight unique IDs")
+            raise ValueError("ivt candidate IDs must be one to twenty unique IDs")
         rows = _ivt_rows()
         lines.append(
             "IVT candidate id=(instrument_id,verb_id,target_id):"

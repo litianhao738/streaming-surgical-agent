@@ -54,6 +54,8 @@ TARGETED_VERIFICATION_PROMPT_V2 = "targeted_verification_prompt_v2"
 TARGETED_VERIFICATION_PROMPT_V5 = "targeted_verification_prompt_v5"
 TARGETED_VERIFICATION_PROMPT_V6 = "targeted_verification_prompt_v6"
 TARGETED_VERIFICATION_PROMPT_V7 = "targeted_verification_prompt_v7"
+TARGETED_VERIFICATION_PROMPT_V8 = "targeted_verification_prompt_v8"
+TARGETED_VERIFICATION_PROMPT_V9 = "targeted_verification_prompt_v9"
 
 
 def load_targeted_verification_prompt_text(
@@ -67,6 +69,8 @@ def load_targeted_verification_prompt_text(
         TARGETED_VERIFICATION_PROMPT_V5: "targeted_verification_prompt_v5.txt",
         TARGETED_VERIFICATION_PROMPT_V6: "targeted_verification_prompt_v6.txt",
         TARGETED_VERIFICATION_PROMPT_V7: "targeted_verification_prompt_v7.txt",
+        TARGETED_VERIFICATION_PROMPT_V8: "targeted_verification_prompt_v8.txt",
+        TARGETED_VERIFICATION_PROMPT_V9: "targeted_verification_prompt_v9.txt",
     }
     try:
         resource_name = resources[prompt_version]
@@ -170,7 +174,12 @@ class TargetedVerificationRequestBuilder:
         self.prompt_version = (
             config.prompt_version
             if config.prompt_version
-            in {TARGETED_VERIFICATION_PROMPT_V6, TARGETED_VERIFICATION_PROMPT_V7}
+            in {
+                TARGETED_VERIFICATION_PROMPT_V6,
+                TARGETED_VERIFICATION_PROMPT_V7,
+                TARGETED_VERIFICATION_PROMPT_V8,
+                TARGETED_VERIFICATION_PROMPT_V9,
+            }
             else TARGETED_VERIFICATION_PROMPT_V6
         )
 
@@ -183,6 +192,7 @@ class TargetedVerificationRequestBuilder:
         *,
         requested_fields: tuple[str, ...],
         scope: str | None = None,
+        review_focus: str | None = None,
     ) -> ApiRequest:
         if not isinstance(context, PerceptionContext):
             raise TypeError("context must be a PerceptionContext")
@@ -215,9 +225,14 @@ class TargetedVerificationRequestBuilder:
         candidate_fields: dict[str, list[int]] = {}
         for task in requested:
             records = candidates.candidate_records[task]
-            if not records or len(records) > 8:
+            limit = (
+                TASK_CLASS_COUNTS[task]
+                if self.prompt_version == TARGETED_VERIFICATION_PROMPT_V9
+                else 20
+            )
+            if not records or len(records) > limit:
                 raise ApiContractError(
-                    "targeted candidate records must contain one to eight items"
+                    "targeted candidate records must contain one to twenty items"
                 )
             allowed_ids = candidates.allowed_ids[task]
             if scope == "interaction" and task == "ivt":
@@ -244,12 +259,27 @@ class TargetedVerificationRequestBuilder:
             for task in requested
         }
         conservative = self.prompt_version == TARGETED_VERIFICATION_PROMPT_V7
-        input_payload = {
-            "verification_protocol": (
-                "conservative_h0_comparison_v1"
-                if conservative
+        evidence_first = self.prompt_version in {
+            TARGETED_VERIFICATION_PROMPT_V8,
+            TARGETED_VERIFICATION_PROMPT_V9,
+        }
+        verification_protocol = (
+            "conservative_h0_comparison_v1"
+            if conservative
+            else (
+                "blind_positive_evidence_v1"
+                if evidence_first
                 else "blind_candidate_selection_v1"
-            ),
+            )
+        )
+        required_fields = _fixed_dependency_constraints(prediction, requested)
+        if evidence_first:
+            # V8 must not reveal H0 indirectly through dependency constraints.
+            # The bound specialist performs deterministic IVT closure after the
+            # visual decision instead of forcing a possibly wrong H0 component.
+            required_fields = []
+        input_payload = {
+            "verification_protocol": verification_protocol,
             "video_id": context.sample.video_id,
             "target_frame_id": context.sample.target_frame_id,
             "causal_frame_ids": list(context.sample.causal_frame_ids),
@@ -257,13 +287,14 @@ class TargetedVerificationRequestBuilder:
             "temporal_evidence": thaw_json(context.temporal_evidence),
             "flagged_fields": [TASK_PATHS[task] for task in requested],
             "candidate_fields": candidate_fields,
-            "required_fields": _fixed_dependency_constraints(prediction, requested),
-            "evidence_profile": _evidence_mapping(evidence, requested),
+            "required_fields": required_fields,
             "workflow_summary": workflow_summary,
             "track_summary": track_summary,
             "memory_snapshot": memory_snapshot,
             "ontology_version": "cholectrack20_v1",
         }
+        if not evidence_first:
+            input_payload["evidence_profile"] = _evidence_mapping(evidence, requested)
         if conservative:
             input_payload["current_fields"] = current_fields
             input_payload["admission_policy"] = {
@@ -280,11 +311,7 @@ class TargetedVerificationRequestBuilder:
         image_details = context.image_details or tuple("auto" for _ in context.images)
         if prompt_profile == "fixed_visual_only":
             input_payload = {
-                "verification_protocol": (
-                    "conservative_h0_comparison_v1"
-                    if conservative
-                    else "blind_candidate_selection_v1"
-                ),
+                "verification_protocol": verification_protocol,
                 "video_id": context.sample.video_id,
                 "target_frame_id": context.sample.target_frame_id,
                 "causal_frame_ids": list(context.sample.causal_frame_ids),
@@ -293,9 +320,12 @@ class TargetedVerificationRequestBuilder:
                 "flagged_fields": [TASK_PATHS[task] for task in requested],
                 "candidate_fields": candidate_fields,
                 "required_fields": input_payload["required_fields"],
-                "evidence_profile": _evidence_mapping(evidence, requested),
                 "ontology_version": "cholectrack20_v1",
             }
+            if not evidence_first:
+                input_payload["evidence_profile"] = _evidence_mapping(
+                    evidence, requested
+                )
             if conservative:
                 input_payload["current_fields"] = current_fields
                 input_payload["admission_policy"] = {
@@ -303,6 +333,11 @@ class TargetedVerificationRequestBuilder:
                     "repair_requires": "CLEAR_VISUAL_CONTRADICTION",
                     "uncertainty_action": "Pending",
                 }
+        if self.prompt_version == TARGETED_VERIFICATION_PROMPT_V9:
+            if review_focus not in {"scene_association", "motion_and_counterevidence"}:
+                raise ApiContractError("V9 requires a declared visual review focus")
+            input_payload["review_focus"] = review_focus
+            input_payload["verification_protocol"] = "blind_association_review_v2"
         return ApiRequest(
             provider=self.config.provider,
             model_identifier=self.config.requested_model_identifier,
@@ -317,6 +352,9 @@ class TargetedVerificationRequestBuilder:
                     ontology_text=load_scoped_prompt_ontology_text(
                         requested,
                         request_candidate_ids,
+                        max_ivt_candidates=100
+                        if self.prompt_version == TARGETED_VERIFICATION_PROMPT_V9
+                        else 20,
                     ),
                 ),
                 "image_details": list(image_details),
@@ -459,6 +497,7 @@ class TargetedApiVerifier:
         evidence: EvidenceProfile,
         *,
         requested_fields: tuple[str, ...],
+        review_focus: str | None = None,
     ) -> VerificationResult:
         if scope not in self.enabled_scopes:
             raise ApiContractError("targeted verifier received an unsupported scope")
@@ -477,6 +516,7 @@ class TargetedApiVerifier:
             evidence,
             requested_fields=requested_fields,
             scope=scope,
+            review_focus=review_focus,
         )
         response = self.client.call(request)
         return parse_targeted_verification_response(

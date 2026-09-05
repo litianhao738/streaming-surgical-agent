@@ -278,7 +278,7 @@ Executable configs, manifests, artifacts, tables, and tests use only
 ### 6.1 What is frozen in all four cells
 
 - split, versioned dataset/target contract and its hash, target observations,
-  the clock manifest cross-bound to that contract, causal-window size (`6`),
+  the clock manifest cross-bound to that contract, causal-window size (`3`),
   segment boundaries, selected image IDs, and provider image-detail profile;
 - one runtime code artifact, canonical serializer, and semantic-hash algorithm;
   Tracker state/error-transition policy, base model, provider call-policy and

@@ -13,6 +13,12 @@ from typing import Any
 
 from surgical_agent.artifacts.manifest import sha256_file
 from surgical_agent.data.schemas import DatasetSplit
+from surgical_agent.tracking.box_policy import (
+    BBoxPolicy,
+    apply_bbox_policy,
+    new_box_audit,
+    record_box_policy_result,
+)
 from surgical_agent.tracking.config import (
     TrackerTrainingConfig,
     load_tracker_training_config,
@@ -37,6 +43,7 @@ class _ScoredVideo:
     targets: tuple[tuple[tuple[int, tuple[float, float, float, float]], ...], ...]
     prediction_count: int
     ground_truth_count: int
+    box_audit: Mapping[str, int | str]
 
     @property
     def frame_count(self) -> int:
@@ -238,7 +245,10 @@ def _score_video(
     predictions_by_frame: Mapping[
         int, tuple[tuple[int, tuple[float, float, float, float], float], ...]
     ],
+    gt_bbox_policy: BBoxPolicy | str = BBoxPolicy.LEGACY_STRICT_V1,
 ) -> _ScoredVideo:
+    policy = BBoxPolicy(gt_bbox_policy)
+    box_audit = new_box_audit(policy)
     predictions: list[
         tuple[tuple[int, tuple[float, float, float, float], float], ...]
     ] = []
@@ -258,21 +268,17 @@ def _score_video(
             frame_predictions = predictions_by_frame[frame_id]
         except KeyError as exc:
             raise ValueError(f"{video_id} has no prediction for scored frame {frame_id}") from exc
-        frame_targets = tuple(
-            (
-                instance.instrument_id,
-                (
-                    instance.bbox.x,
-                    instance.bbox.y,
-                    instance.bbox.width,
-                    instance.bbox.height,
-                ),
-            )
-            for instance in evaluation.instances
-            if instance.mask.instrument
-            and instance.bbox.has_positive_extent
-            and instance.bbox.is_inside_unit_frame
-        )
+        selected_targets = []
+        for instance in evaluation.instances:
+            if not instance.mask.instrument:
+                continue
+            decision = apply_bbox_policy(instance.bbox, policy=policy)
+            record_box_policy_result(box_audit, decision)
+            if decision.bbox is None:
+                continue
+            box = decision.bbox
+            selected_targets.append((instance.instrument_id, (box.x, box.y, box.width, box.height)))
+        frame_targets = tuple(selected_targets)
         predictions.append(frame_predictions)
         targets.append(frame_targets)
     if not targets:
@@ -284,6 +290,7 @@ def _score_video(
         targets=frozen_targets,
         prediction_count=sum(len(frame) for frame in frozen_predictions),
         ground_truth_count=sum(len(frame) for frame in frozen_targets),
+        box_audit=box_audit,
     )
 
 
@@ -311,9 +318,11 @@ def evaluate_tracker_oof(
     index_path: str | Path,
     tracker_config_path: str | Path,
     iou_threshold: float = 0.5,
+    gt_bbox_policy: BBoxPolicy | str = BBoxPolicy.LEGACY_STRICT_V1,
 ) -> dict[str, object]:
     """Evaluate exact video-held-out predictions after strict leakage checks."""
 
+    selected_gt_policy = BBoxPolicy(gt_bbox_policy)
     if iou_threshold != 0.5:
         raise ValueError("formal Tracker OOF evaluation freezes IoU at 0.5")
     index = load_tracker_oof_index(index_path)
@@ -429,6 +438,7 @@ def evaluate_tracker_oof(
             adapter,
             video_id=video_id,
             predictions_by_frame=predictions_by_frame,
+            gt_bbox_policy=selected_gt_policy,
         )
         scored_by_video[video_id] = scored
         video_metrics = _metrics(
@@ -445,6 +455,7 @@ def evaluate_tracker_oof(
             "scored_frame_count": scored.frame_count,
             "scored_prediction_count": scored.prediction_count,
             "scored_ground_truth_count": scored.ground_truth_count,
+            "gt_box_audit": dict(scored.box_audit),
             "metrics": video_metrics,
         }
 
@@ -467,6 +478,11 @@ def evaluate_tracker_oof(
         }
 
     all_scored = tuple(scored_by_video[video_id] for video_id in qualified)
+    total_box_audit = new_box_audit(selected_gt_policy)
+    for scored in all_scored:
+        for key, value in scored.box_audit.items():
+            if key != "bbox_policy":
+                total_box_audit[key] = int(total_box_audit[key]) + int(value)
     overall_metrics = _metrics(
         all_scored,
         num_instrument_classes=config.num_classes - 1,
@@ -485,6 +501,8 @@ def evaluate_tracker_oof(
         "status": "PASS",
         "source_split": "Training",
         "metric_protocol": {
+            "gt_bbox_policy": selected_gt_policy.value,
+            "gt_bbox_policy_scope": "INSTRUMENT_VALID_INSTANCE_BOXES; SAME_STORED_PREDICTIONS",
             "prediction_source": "STORED_CURRENT_FRAME_PREDICTED_TRACKS",
             "instrument_class_ids": list(range(config.num_classes - 1)),
             "score_threshold": config.score_threshold,
@@ -522,6 +540,7 @@ def evaluate_tracker_oof(
             "vid31": vid31_audit,
         },
         "overall_pooled": {
+            "gt_box_audit": total_box_audit,
             "scored_frame_count": sum(item.frame_count for item in all_scored),
             "scored_prediction_count": sum(item.prediction_count for item in all_scored),
             "scored_ground_truth_count": sum(

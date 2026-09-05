@@ -66,13 +66,26 @@ def _iou(
 class CausalHungarianAssociator:
     """Associate current detections with state committed at earlier frames."""
 
-    def __init__(self, *, iou_threshold: float, max_age: int) -> None:
+    def __init__(
+        self,
+        *,
+        iou_threshold: float,
+        max_age: int,
+        max_frame_id_gap: int | None = None,
+    ) -> None:
         if not isinstance(iou_threshold, (int, float)) or not 0 <= iou_threshold <= 1:
             raise ValueError("iou_threshold must be in [0, 1]")
         if not isinstance(max_age, int) or isinstance(max_age, bool) or max_age < 0:
             raise ValueError("max_age must be a non-negative integer")
+        if max_frame_id_gap is not None and (
+            not isinstance(max_frame_id_gap, int)
+            or isinstance(max_frame_id_gap, bool)
+            or max_frame_id_gap <= 0
+        ):
+            raise ValueError("max_frame_id_gap must be a positive integer")
         self.iou_threshold = float(iou_threshold)
         self.max_age = max_age
+        self.max_frame_id_gap = max_frame_id_gap
         self._video_id: str | None = None
         self._last_frame_id: int | None = None
         self._next_id = 1
@@ -111,6 +124,13 @@ class CausalHungarianAssociator:
             raise ValueError("frame IDs must be strictly increasing")
         if any(not isinstance(value, InstrumentDetection) for value in detections):
             raise TypeError("detections must contain InstrumentDetection values")
+
+        if (
+            self._last_frame_id is not None
+            and self.max_frame_id_gap is not None
+            and frame_id - self._last_frame_id > self.max_frame_id_gap
+        ):
+            self._tracks.clear()
 
         active = list(self._tracks.values())
         matched_tracks: set[int] = set()

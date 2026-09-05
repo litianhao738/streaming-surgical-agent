@@ -51,6 +51,21 @@ def test_associator_expires_tracks_and_resets_video_identity() -> None:
     assert reset_track.track_id != replacement.track_id
 
 
+def test_associator_does_not_link_tracks_across_a_frame_clock_gap() -> None:
+    associator = CausalHungarianAssociator(
+        iou_threshold=0.3,
+        max_age=2,
+        max_frame_id_gap=25,
+    )
+    associator.reset("VID02")
+
+    before_gap = associator.update(51, (_detection(0, 0.1),))[0]
+    after_gap = associator.update(101, (_detection(0, 0.1),))[0]
+
+    assert after_gap.track_id != before_gap.track_id
+    assert after_gap.age == 1
+
+
 def test_artifact_writer_emits_provider_compatible_provenance(tmp_path: Path) -> None:
     checkpoint = tmp_path / "checkpoint.pt"
     config = tmp_path / "tracker.yaml"

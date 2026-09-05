@@ -408,6 +408,20 @@ class OpenRouterTransport:
         max_output_tokens = request.generation_parameters.get("max_output_tokens")
         if max_output_tokens is not None:
             permitted_parameters["max_tokens"] = thaw_json(max_output_tokens)
+        image_content = [self._image_content(image) for image in request.images]
+        # Opt-in wire revision is cache-bound; legacy cached requests keep their
+        # original meaning rather than silently changing image preprocessing.
+        detail_mode = request.payload.get("openrouter_image_detail_mode")
+        if detail_mode is not None:
+            if detail_mode != "explicit_v1":
+                raise ApiContractError("Unsupported OpenRouter image detail wire revision")
+            details = request.payload.get("image_details")
+            if not isinstance(details, (list, tuple)) or len(details) != len(image_content):
+                raise ApiContractError("Image detail count must match uploaded images")
+            for content, detail in zip(image_content, details):
+                if detail not in {"low", "high", "auto"}:
+                    raise ApiContractError("Unsupported image detail")
+                content["image_url"]["detail"] = detail
         body = {
             "model": request.model_identifier,
             "messages": [
@@ -423,7 +437,7 @@ class OpenRouterTransport:
                 {
                     "role": "user",
                     "content": [{"type": "text", "text": input_text}]
-                    + [self._image_content(image) for image in request.images],
+                    + image_content,
                 },
             ],
             "response_format": {

@@ -10,12 +10,16 @@ OPENROUTER_ROUTING_PAYLOAD_KEY = "openrouter_routing_profile"
 STRICT_OPENAI_ROUTING_PROFILE = "strict_openai"
 STRICT_GOOGLE_AI_STUDIO_ROUTING_PROFILE = "strict_google_ai_studio"
 STRICT_ANTHROPIC_ROUTING_PROFILE = "strict_anthropic"
+STRICT_XAI_ROUTING_PROFILE = "strict_xai"
+STRICT_ALIBABA_ROUTING_PROFILE = "strict_alibaba"
 LATENCY_FALLBACK_ROUTING_PROFILE = "latency_fallback"
 OPENROUTER_ROUTING_PROFILES = frozenset(
     {
         STRICT_OPENAI_ROUTING_PROFILE,
         STRICT_GOOGLE_AI_STUDIO_ROUTING_PROFILE,
         STRICT_ANTHROPIC_ROUTING_PROFILE,
+        STRICT_XAI_ROUTING_PROFILE,
+        STRICT_ALIBABA_ROUTING_PROFILE,
         LATENCY_FALLBACK_ROUTING_PROFILE,
     }
 )
@@ -67,6 +71,18 @@ def provider_preferences(profile: str) -> dict[str, object]:
             "allow_fallbacks": False,
             "require_parameters": True,
         }
+    if profile == STRICT_XAI_ROUTING_PROFILE:
+        return {
+            "only": ["xai"],
+            "allow_fallbacks": False,
+            "require_parameters": True,
+        }
+    if profile == STRICT_ALIBABA_ROUTING_PROFILE:
+        return {
+            "only": ["alibaba"],
+            "allow_fallbacks": False,
+            "require_parameters": True,
+        }
     if profile == LATENCY_FALLBACK_ROUTING_PROFILE:
         return {
             "only": ["openai", "azure", "amazon-bedrock"],
@@ -87,7 +103,5 @@ def request_routing_payload(
     if provider != "openrouter":
         return {}
     return {
-        OPENROUTER_ROUTING_PAYLOAD_KEY: routing_profile_from_options(
-            provider_options
-        )
+        OPENROUTER_ROUTING_PAYLOAD_KEY: routing_profile_from_options(provider_options)
     }

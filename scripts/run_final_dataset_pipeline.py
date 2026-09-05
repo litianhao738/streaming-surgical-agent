@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 from datetime import UTC, datetime
@@ -21,19 +22,26 @@ from surgical_agent.api.credentials import assert_secret_absent, resolve_api_key
 from surgical_agent.api.registry import build_transport, build_validator
 from surgical_agent.api.retry import RetryPolicy
 from surgical_agent.api.usage import UsageLedger
+from surgical_agent.artifacts.manifest import atomic_write_json
 from surgical_agent.config.final_experiment import load_tracker_gate_cell
 from surgical_agent.config.loader import load_api_config
+from surgical_agent.config.schema import ApiConfig
 from surgical_agent.data.api_media import CausalApiMediaLoader
 from surgical_agent.data.api_rollout_selection import resolve_rollout_selection
 from surgical_agent.data.dataset import CholecTrack20DatasetAdapter
-from surgical_agent.research.signals.phase_graph import load_phase_transition_graph
+from surgical_agent.research.signals.phase_graph import (
+    build_phase_instrument_ivt_prior_from_training_adapter,
+    build_phase_ivt_compatibility_from_training_adapter,
+    build_phase_transition_graph_from_training_adapter,
+    load_phase_transition_graph,
+)
 from surgical_agent.runtime.final_artifacts import FinalPipelineArtifactWriter
 from surgical_agent.systems.final_dataset_system import FinalDatasetPipelineSystem
 from surgical_agent.systems.final_pipeline_factory import (
     build_final_api_pipeline,
     validate_verifier_pair,
 )
-from surgical_agent.tracking.predicted_provider import PrecomputedPredictedTrackProvider
+from surgical_agent.tracking.runtime_preflight import build_validated_track_router
 
 _SAFE_RUN_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}\Z")
 
@@ -53,16 +61,16 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--api-config",
         type=Path,
-        default=PROJECT_ROOT / "configs" / "perception" / "joint_mock_final_fixed6.yaml",
+        default=PROJECT_ROOT
+        / "configs"
+        / "perception"
+        / "joint_mock_final_fixed3.yaml",
     )
     parser.add_argument(
         "--verification-api-config",
         type=Path,
         default=(
-            PROJECT_ROOT
-            / "configs"
-            / "perception"
-            / "targeted_mock_final_fixed6.yaml"
+            PROJECT_ROOT / "configs" / "perception" / "targeted_mock_final_fixed3.yaml"
         ),
     )
     parser.add_argument(
@@ -70,8 +78,15 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
         default=PROJECT_ROOT / "configs" / "ablations" / "a_base.yaml",
     )
-    parser.add_argument("--tracker-artifact", type=Path)
+    tracker_source = parser.add_mutually_exclusive_group()
+    tracker_source.add_argument("--tracker-artifact", type=Path)
+    tracker_source.add_argument("--tracker-oof-index", type=Path)
     parser.add_argument("--phase-transition-graph", type=Path)
+    parser.add_argument(
+        "--strict-phase-ivt-map",
+        type=Path,
+        help="Explicit reviewed phase-to-allowed-IVT JSON; training co-occurrence is soft only",
+    )
     parser.add_argument("--api-key-file", type=Path)
     parser.add_argument("--verification-api-key-file", type=Path)
     parser.add_argument(
@@ -108,6 +123,16 @@ def _failure_category(exc: BaseException) -> str:
     return "runtime_error"
 
 
+def _build_dataset_adapter(
+    dataset_root: Path,
+    api_config: ApiConfig,
+) -> CholecTrack20DatasetAdapter:
+    return CholecTrack20DatasetAdapter(
+        dataset_root,
+        causal_window_size=api_config.max_causal_frames,
+    )
+
+
 def run(args: argparse.Namespace) -> Path:
     run_id = args.run_id or datetime.now(UTC).strftime("final_%Y%m%dT%H%M%SZ")
     if _SAFE_RUN_ID.fullmatch(run_id) is None:
@@ -123,21 +148,57 @@ def run(args: argparse.Namespace) -> Path:
     verification_api_config = load_api_config(args.verification_api_config)
     validate_verifier_pair(api_config, verification_api_config)
     cell = load_tracker_gate_cell(args.cell_config)
-    if cell.tracker_enabled != (args.tracker_artifact is not None):
+    oof_index_path = getattr(args, "tracker_oof_index", None)
+    tracker_artifact_path = getattr(args, "tracker_artifact", None)
+    if tracker_artifact_path is not None and oof_index_path is not None:
+        raise ValueError("select one Tracker artifact or OOF index")
+    if cell.tracker_enabled != (
+        tracker_artifact_path is not None or oof_index_path is not None
+    ):
         raise ValueError(
-            "tracker-artifact presence must exactly match the formal cell Tracker switch"
+            "Tracker source presence must exactly match the formal cell Tracker switch"
         )
-    track_provider = (
-        None
-        if args.tracker_artifact is None
-        else PrecomputedPredictedTrackProvider.from_json(args.tracker_artifact)
-    )
+    adapter = _build_dataset_adapter(dataset_root, api_config)
     phase_graph = (
-        None
+        build_phase_transition_graph_from_training_adapter(adapter)
         if args.phase_transition_graph is None
-        else load_phase_transition_graph(args.phase_transition_graph)
+        and verification_api_config.prompt_version
+        in {"targeted_verification_prompt_v8", "targeted_verification_prompt_v9"}
+        else (
+            None
+            if args.phase_transition_graph is None
+            else load_phase_transition_graph(args.phase_transition_graph)
+        )
     )
-    adapter = CholecTrack20DatasetAdapter(dataset_root, causal_window_size=6)
+    phase_instrument_ivt_prior = build_phase_instrument_ivt_prior_from_training_adapter(
+        adapter,
+        # Keep historical V7/V8 artifacts reproducible. V9 uses both valid
+        # Training supervision routes instead of the old frame-only subset.
+        include_instance_supervision=verification_api_config.prompt_version
+        == "targeted_verification_prompt_v9",
+    )
+    phase_ivt_support = (
+        build_phase_ivt_compatibility_from_training_adapter(adapter)
+        if verification_api_config.prompt_version == "targeted_verification_prompt_v9"
+        else None
+    )
+    strict_map_path = getattr(args, "strict_phase_ivt_map", None)
+    strict_map = None
+    if strict_map_path is not None:
+        raw_map = json.loads(strict_map_path.read_text(encoding="utf-8"))
+        if not isinstance(raw_map, dict) or set(raw_map) != {
+            str(value) for value in range(7)
+        }:
+            raise ValueError("strict phase-IVT map must define all seven phase IDs")
+        if any(
+            not isinstance(values, list)
+            or any(type(value) is not int or not 0 <= value < 100 for value in values)
+            for values in raw_map.values()
+        ):
+            raise ValueError("strict phase-IVT map contains invalid IVT IDs")
+        strict_map = {
+            int(key): tuple(sorted(set(values))) for key, values in raw_map.items()
+        }
     selection = resolve_rollout_selection(
         adapter,
         mode=args.mode,
@@ -146,6 +207,21 @@ def run(args: argparse.Namespace) -> Path:
         split=args.split,
         target_frame_id=args.target_frame_id,
     )
+    track_provider = None
+    if cell.tracker_enabled:
+        track_provider = build_validated_track_router(
+            adapter=adapter,
+            samples=selection.samples,
+            artifact_path=tracker_artifact_path,
+            oof_index_path=oof_index_path,
+        )
+        preflight_path = output_dir / "tracker_preflight.json"
+        if preflight_path.exists():
+            previous_preflight = json.loads(preflight_path.read_text(encoding="utf-8"))
+            if previous_preflight != track_provider.audit:
+                raise ValueError("Tracker inputs changed since this run's preflight")
+        else:
+            atomic_write_json(preflight_path, track_provider.audit)
     initial_secret = (
         None
         if api_config.provider == "mock"
@@ -201,6 +277,9 @@ def run(args: argparse.Namespace) -> Path:
         state_dir=output_dir / "finalization_state",
         track_provider=track_provider,
         phase_transition_graph=phase_graph,
+        phase_instrument_ivt_prior=phase_instrument_ivt_prior,
+        phase_ivt_support=phase_ivt_support,
+        strict_phase_allowed_ivt=strict_map,
     )
     writer = FinalPipelineArtifactWriter(
         output_dir,

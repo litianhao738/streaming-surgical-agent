@@ -59,7 +59,10 @@ class SafetyValidator:
         self.strict_phase_allowed_ivt = (
             None
             if strict_phase_allowed_ivt is None
-            else {phase: tuple(values) for phase, values in strict_phase_allowed_ivt.items()}
+            else {
+                phase: tuple(values)
+                for phase, values in strict_phase_allowed_ivt.items()
+            }
         )
         if type(require_component_coverage) is not bool:
             raise TypeError("require_component_coverage must be boolean")
@@ -122,10 +125,11 @@ def legal_repair_scopes(
     for scope in REPAIR_SCOPE_ORDER:
         scope_tasks = SCOPE_TASKS[scope]
         relevant = affected & scope_tasks if affected else scope_tasks
-        if affected and not affected.issubset(scope_tasks):
+        if affected and not _scope_covers_violations(violations, scope_tasks):
             continue
         if any(
-            set(candidates.allowed_ids[task]) - set(_selected(candidates.initial_prediction, task))
+            set(candidates.allowed_ids[task])
+            - set(_selected(candidates.initial_prediction, task))
             for task in relevant
         ):
             scopes.append(scope)
@@ -136,14 +140,25 @@ def choose_covering_scope(
     violations: tuple[SafetyViolation, ...],
     legal_scopes: tuple[RepairScope, ...],
 ) -> RepairScope | None:
-    affected = {task for item in violations for task in item.tasks}
     return next(
         (
             scope
             for scope in REPAIR_SCOPE_ORDER
-            if scope in legal_scopes and affected.issubset(SCOPE_TASKS[scope])
+            if scope in legal_scopes
+            and _scope_covers_violations(violations, SCOPE_TASKS[scope])
         ),
         None,
+    )
+
+
+def _scope_covers_violations(violations, scope_tasks) -> bool:
+    # A relation can be repaired by changing either endpoint. It does not
+    # require one specialist to own both the phase and interaction heads.
+    return all(
+        bool(set(item.tasks) & scope_tasks)
+        if item.code == "STRICT_PHASE_CONSTRAINT"
+        else set(item.tasks).issubset(scope_tasks)
+        for item in violations
     )
 
 
@@ -153,6 +168,7 @@ class DecisionSupportBuilder:
 
     confidence_threshold: float = 0.60
     temporal_jump_threshold: float = 0.80
+    phase_ivt_support: Mapping[int, tuple[int, ...]] | None = None
 
     def __post_init__(self) -> None:
         for name, value in (
@@ -170,14 +186,31 @@ class DecisionSupportBuilder:
         violations: tuple[SafetyViolation, ...],
         tracker_snapshot: Mapping[str, object],
         previous: InitialPrediction | None,
+        previous_verified_tasks: tuple[str, ...] | None = None,
     ) -> SafetySupport:
         if not isinstance(perception, JointPerceptionResult):
             raise TypeError("decision support requires JointPerceptionResult")
         prediction = perception.prediction
+        if prediction.score_semantics == "hard_label_v1":
+            raise ValueError(
+                "legacy Gate decision support requires confidence rankings; "
+                "hard_label_v1 H0 must use the single_pass pipeline"
+            )
         risks: list[SoftRisk] = []
         features: dict[str, float] = {}
         selected_confidences: list[float] = []
         margins: list[float] = []
+        if self.phase_ivt_support is not None and prediction.triplet_ids:
+            supported = set(self.phase_ivt_support.get(prediction.phase_id, ()))
+            unsupported = set(prediction.triplet_ids) - supported
+            if unsupported:
+                risks.append(
+                    SoftRisk(
+                        "PHASE_IVT_UNOBSERVED",
+                        ("ivt", "phase"),
+                        len(unsupported) / len(prediction.triplet_ids),
+                    )
+                )
         for task in TASK_NAMES:
             ranking = perception.raw_evidence.ranked_candidates[task]
             by_id = {item.class_id: float(item.confidence) for item in ranking}
@@ -196,22 +229,37 @@ class DecisionSupportBuilder:
                 risks.append(SoftRisk("LOW_CONFIDENCE", (task,), 1.0 - floor))
 
         uncertainty_tasks = tuple(
-            dict.fromkeys(item.path.split("/")[1] for item in perception.raw_evidence.field_uncertainties)
+            dict.fromkeys(
+                item.path.split("/")[1]
+                for item in perception.raw_evidence.field_uncertainties
+            )
         )
         for task in uncertainty_tasks:
             risks.append(SoftRisk("EXPLICIT_UNCERTAINTY", (task,), 1.0))
 
+        temporal_tasks = ("instrument", "verb", "target", "ivt")
+        if previous_verified_tasks is not None:
+            if any(task not in TASK_NAMES for task in previous_verified_tasks):
+                raise ValueError("previous_verified_tasks contains an unknown task")
+            reliable_temporal_tasks = tuple(
+                task for task in temporal_tasks if task in previous_verified_tasks
+            )
+        else:
+            # Callers without task-wise Memory retain the legacy all-task contract.
+            reliable_temporal_tasks = temporal_tasks
         temporal_jump = 0.0
-        if previous is not None:
+        if previous is not None and reliable_temporal_tasks:
             temporal_jump = max(
-                _jaccard_distance(_selected(previous, task), _selected(prediction, task))
-                for task in ("instrument", "verb", "target", "ivt")
+                _jaccard_distance(
+                    _selected(previous, task), _selected(prediction, task)
+                )
+                for task in reliable_temporal_tasks
             )
             if temporal_jump >= self.temporal_jump_threshold:
                 risks.append(
                     SoftRisk(
                         "TEMPORAL_JUMP",
-                        ("instrument", "verb", "target", "ivt"),
+                        reliable_temporal_tasks,
                         temporal_jump,
                     )
                 )

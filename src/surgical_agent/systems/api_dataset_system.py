@@ -19,6 +19,7 @@ from surgical_agent.data.api_rollout_selection import RolloutSelection
 from surgical_agent.inference.frame_result_writer import FrameResultWriter
 from surgical_agent.inference.schemas import PredictionRecord
 from surgical_agent.perception.context_builder import CausalPerceptionContextBuilder
+from surgical_agent.perception.final_only import FINAL_ONLY_SCHEMA_VERSION
 from surgical_agent.perception.joint_api_vlm import (
     JointApiVlm,
     JointPerceptionRequestBuilder,
@@ -122,6 +123,17 @@ class DatasetApiPipelineSystem:
             raise ValueError("unsupported API pipeline profile")
         if not isinstance(config, ApiConfig):
             raise TypeError("config must be an ApiConfig")
+        final_only = config.response_schema_version == FINAL_ONLY_SCHEMA_VERSION
+        if final_only:
+            if pipeline_profile != "single_pass":
+                raise ValueError(
+                    "final-only H0 requires pipeline_profile=single_pass; "
+                    "legacy Gate and Verifier profiles require ranked predictions"
+                )
+            if context_profile not in {None, "frames_only"}:
+                raise ValueError("final-only H0 requires context_profile=frames_only")
+            if event_memory_enabled is True:
+                raise ValueError("final-only H0 requires event_memory_enabled=False")
         if verification_config is not None and not isinstance(
             verification_config, ApiConfig
         ):
@@ -157,11 +169,11 @@ class DatasetApiPipelineSystem:
         if event_memory_enabled is not None and type(event_memory_enabled) is not bool:
             raise TypeError("event_memory_enabled must be boolean or None")
         resolved_event_memory_enabled = (
-            True if event_memory_enabled is None else event_memory_enabled
+            not final_only if event_memory_enabled is None else event_memory_enabled
         )
         resolved_context_profile = context_profile
         if resolved_context_profile is None:
-            resolved_context_profile = "workflow"
+            resolved_context_profile = "frames_only" if final_only else "workflow"
         if resolved_context_profile not in {
             "frames_only",
             "track_only",

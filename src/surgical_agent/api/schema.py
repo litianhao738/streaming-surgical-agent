@@ -8,6 +8,11 @@ from typing import Any
 
 from surgical_agent.api.errors import ApiContractError, ApiSchemaError
 from surgical_agent.data.constants import TASK_ID_BOUNDS
+from surgical_agent.perception.expert_ablation import EXPERT_CONTRACTS
+from surgical_agent.research.verification.grounded_repair import GROUNDED_CONTRACTS
+from surgical_agent.perception.final_only import (
+    FINAL_ONLY_SCHEMA_VERSION, final_only_schema, validate_final_only,
+)
 from surgical_agent.perception.contracts import (
     FIELD_UNCERTAINTY_PATHS,
     FIELD_UNCERTAINTY_REASONS,
@@ -299,6 +304,10 @@ SCHEMAS: Mapping[
             _FROZEN_P3_SMOKE_JSON_SCHEMA,
             validate_p3_smoke_payload,
         ),
+        **{version: (_freeze_schema(schema), validator)
+           for version, (schema, validator) in EXPERT_CONTRACTS.items()},
+        **{version: (_freeze_schema(schema), validator)
+           for version, (schema, validator) in GROUNDED_CONTRACTS.items()},
         JOINT_PERCEPTION_SCHEMA_VERSION: (
             _FROZEN_JOINT_PERCEPTION_JSON_SCHEMA,
             validate_joint_perception_payload,
@@ -318,6 +327,9 @@ SCHEMAS: Mapping[
         GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION: (
             _FROZEN_GATE_OWNED_COMPACT_JOINT_PERCEPTION_JSON_SCHEMA,
             validate_gate_owned_compact_joint_perception_payload,
+        ),
+        FINAL_ONLY_SCHEMA_VERSION: (
+            _freeze_schema(final_only_schema()), validate_final_only,
         ),
     }
 )

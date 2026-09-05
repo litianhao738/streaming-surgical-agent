@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Literal
 
 from surgical_agent.inference.schemas import InitialPrediction
+from surgical_agent.research.reliability.taskwise import (
+    normalize_task_states,
+    tasks_in_state,
+)
 from surgical_agent.runtime.state import ObservationIdentity
 
 MemoryDestination = Literal["RELIABLE_LONG_TERM", "SHORT_TERM", "PENDING_BUFFER"]
@@ -18,6 +23,7 @@ class MemoryEntry:
     state: Literal["Accepted", "Verified"]
     hypothesis: InitialPrediction
     provenance: str
+    task_states: Mapping[str, str] | None = None
 
     def __post_init__(self) -> None:
         if self.state not in {"Accepted", "Verified"}:
@@ -26,10 +32,34 @@ class MemoryEntry:
             raise TypeError("observation must be ObservationIdentity")
         if not isinstance(self.hypothesis, InitialPrediction):
             raise TypeError("trusted Memory requires a hypothesis")
+        states = normalize_task_states(
+            self.task_states,
+            default="Verified" if self.state == "Verified" else "Accepted",
+        )
+        if self.state == "Verified" and set(states.values()) != {"Verified"}:
+            raise ValueError("frame-level Verified Memory requires every task Verified")
+        if any(value in {"Pending", "Rejected"} for value in states.values()):
+            raise ValueError("trusted Memory cannot contain Pending or Rejected tasks")
+        object.__setattr__(self, "task_states", states)
 
     @property
     def destination(self) -> MemoryDestination:
-        return "RELIABLE_LONG_TERM" if self.state == "Verified" else "SHORT_TERM"
+        return "RELIABLE_LONG_TERM" if self.verified_tasks else "SHORT_TERM"
+
+    @property
+    def verified_tasks(self) -> tuple[str, ...]:
+        assert self.task_states is not None
+        return tasks_in_state(self.task_states, "Verified")
+
+    @property
+    def checked_tasks(self) -> tuple[str, ...]:
+        assert self.task_states is not None
+        return tasks_in_state(self.task_states, "Checked")
+
+    @property
+    def derived_tasks(self) -> tuple[str, ...]:
+        assert self.task_states is not None
+        return tasks_in_state(self.task_states, "Derived")
 
 
 @dataclass(frozen=True)
@@ -74,6 +104,7 @@ class ReliabilityMemorySnapshot:
     def as_mapping(self) -> MappingProxyType:
         def payload(item: MemoryEntry) -> dict[str, object]:
             hypothesis = item.hypothesis
+            assert item.task_states is not None
             return {
                 "observation_id": item.observation.key,
                 "frame_id": item.observation.frame_id,
@@ -84,6 +115,10 @@ class ReliabilityMemorySnapshot:
                 "target_ids": hypothesis.target_ids,
                 "ivt_ids": hypothesis.triplet_ids,
                 "phase_id": hypothesis.phase_id,
+                "task_states": dict(item.task_states),
+                "verified_tasks": item.verified_tasks,
+                "checked_tasks": item.checked_tasks,
+                "derived_tasks": item.derived_tasks,
             }
 
         return MappingProxyType(

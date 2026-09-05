@@ -59,7 +59,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--api-config",
         type=Path,
-        default=PROJECT_ROOT / "configs/perception/joint_openrouter_final_fixed6.yaml",
+        default=PROJECT_ROOT / "configs/perception/joint_openrouter_final_fixed3.yaml",
     )
     parser.add_argument(
         "--verification-api-config",
@@ -67,7 +67,8 @@ def build_parser() -> argparse.ArgumentParser:
         required=True,
         help=(
             "Explicit Verifier config. Same-model verification requires the "
-            "conservative V7 contract; heterogeneous V6 remains pilot-only."
+            "conservative V7 or evidence-first V8 contract; heterogeneous V6 "
+            "remains pilot-only."
         ),
     )
     parser.add_argument("--phase-transition-graph", type=Path)
@@ -94,12 +95,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=PROJECT_ROOT / "artifacts/training/gate/formal/collection",
+        default=PROJECT_ROOT / "artifacts/training/gate/formal/collection_fixed3",
     )
     parser.add_argument(
         "--cache-root",
         type=Path,
-        default=PROJECT_ROOT / "artifacts/final_pipeline_cache/gate_collection",
+        default=PROJECT_ROOT / "artifacts/final_pipeline_cache/gate_collection_fixed3",
     )
     return parser
 
@@ -123,6 +124,18 @@ def run(args: argparse.Namespace) -> Path:
     heterogeneous_verifier = verifier_pair_is_heterogeneous(
         api_config, verification_api_config
     )
+    evidence_first_verifier = (
+        verification_api_config.prompt_version == "targeted_verification_prompt_v8"
+    )
+    verifier_architecture = (
+        "HETEROGENEOUS_V6"
+        if heterogeneous_verifier
+        else (
+            "EVIDENCE_FIRST_SAME_MODEL_V8"
+            if evidence_first_verifier
+            else "CONSERVATIVE_SAME_MODEL_V7"
+        )
+    )
     index = load_tracker_oof_index(args.tracker_oof_index)
     selected_video_ids = tuple(
         sorted(
@@ -132,8 +145,13 @@ def run(args: argparse.Namespace) -> Path:
         )
     )
     if not selected_video_ids or set(selected_video_ids) - set(index.video_to_artifact):
-        raise ValueError("selected videos are not fully covered by the Tracker OOF index")
-    adapter = CholecTrack20DatasetAdapter(dataset_root, causal_window_size=6)
+        raise ValueError(
+            "selected videos are not fully covered by the Tracker OOF index"
+        )
+    adapter = CholecTrack20DatasetAdapter(
+        dataset_root,
+        causal_window_size=api_config.max_causal_frames,
+    )
     if any(
         video_id not in adapter.entries
         or adapter.entries[video_id].split is not DatasetSplit.TRAINING
@@ -161,28 +179,21 @@ def run(args: argparse.Namespace) -> Path:
     collection_contract = {
         "schema_version": "formal_gate_collection_contract_v3",
         "initial_api_config_sha256": sha256_file(args.api_config),
-        "verification_api_config_sha256": sha256_file(
-            args.verification_api_config
-        ),
+        "verification_api_config_sha256": sha256_file(args.verification_api_config),
         "initial_model_requested": api_config.requested_model_identifier,
         "verification_model_requested": (
             verification_api_config.requested_model_identifier
         ),
         "heterogeneous_verifier": heterogeneous_verifier,
-        "verifier_architecture": (
-            "HETEROGENEOUS_V6"
-            if heterogeneous_verifier
-            else "CONSERVATIVE_SAME_MODEL_V7"
-        ),
+        "verifier_architecture": verifier_architecture,
+        "specialist_tracker_independent": not evidence_first_verifier,
         "tracker_oof_index_sha256": sha256_file(args.tracker_oof_index),
         "sampling_version": "deterministic_timeline_spread_v1",
         "scope_execution": "PARALLEL_SAME_PREDECISION_SNAPSHOT_V1",
         "selected_frames_by_video": selected_frames_by_video,
     }
     collection_key = sha256_mapping(collection_contract)
-    store = CounterfactualCollectionStore(
-        output_dir / "observations" / collection_key
-    )
+    store = CounterfactualCollectionStore(output_dir / "observations" / collection_key)
     state_path = output_dir / "collection_state.json"
     atomic_write_json(
         state_path,
@@ -265,9 +276,7 @@ def run(args: argparse.Namespace) -> Path:
             pipeline=pipeline,
             tracker_artifact_sha256=index.artifact_sha256[artifact],
             max_provider_attempts=(
-                len(samples)
-                * 3
-                * pipeline.components.max_verify_attempts
+                len(samples) * 3 * pipeline.components.max_verify_attempts
             ),
         )
         # No GT object exists in this loop: all provider calls finish first.
@@ -315,9 +324,7 @@ def run(args: argparse.Namespace) -> Path:
             )
     observations = store.observations()
     records = store.records()
-    hard_invalid = sum(
-        item["safety_class"] == "HARD_INVALID" for item in observations
-    )
+    hard_invalid = sum(item["safety_class"] == "HARD_INVALID" for item in observations)
     label_counts = {
         scope: {"0": 0, "1": 0, "null": 0}
         for scope in ("instrument_presence", "interaction", "workflow")
@@ -334,21 +341,15 @@ def run(args: argparse.Namespace) -> Path:
         "source_split": "Training",
         "ground_truth_access": "AFTER_ALL_PROVIDER_CALLS_PER_VIDEO",
         "joint_h0_tracker_independent": True,
-        "specialist_tracker_independent": True,
+        "specialist_tracker_independent": not evidence_first_verifier,
         "heterogeneous_verifier": heterogeneous_verifier,
-        "verifier_architecture": (
-            "HETEROGENEOUS_V6"
-            if heterogeneous_verifier
-            else "CONSERVATIVE_SAME_MODEL_V7"
-        ),
+        "verifier_architecture": verifier_architecture,
         "initial_model_requested": api_config.requested_model_identifier,
         "verification_model_requested": (
             verification_api_config.requested_model_identifier
         ),
         "initial_api_config_sha256": sha256_file(args.api_config),
-        "verification_api_config_sha256": sha256_file(
-            args.verification_api_config
-        ),
+        "verification_api_config_sha256": sha256_file(args.verification_api_config),
         "tracker_source": "VIDEO_OOF_INDEX",
         "tracker_oof_index_sha256": sha256_file(args.tracker_oof_index),
         "video_ids": list(selected_video_ids),
@@ -380,16 +381,12 @@ def run(args: argparse.Namespace) -> Path:
         {
             **collection_contract,
             "collection_key": collection_key,
-            "status": (
-                "COMPLETE_WITH_API_FAILURES" if api_failures else "COMPLETE"
-            ),
+            "status": ("COMPLETE_WITH_API_FAILURES" if api_failures else "COMPLETE"),
             "manifest_sha256": sha256_file(output_dir / "manifest.json"),
         },
     )
     secrets = tuple(
-        secret
-        for secret in (initial_secret, verification_secret)
-        if secret is not None
+        secret for secret in (initial_secret, verification_secret) if secret is not None
     )
     if secrets:
         files = tuple(
@@ -400,7 +397,9 @@ def run(args: argparse.Namespace) -> Path:
         )
         for secret in secrets:
             assert_secret_absent(secret, files)
-    print("FORMAL_GATE_COUNTERFACTUALS_COMPLETE " + json.dumps(manifest, sort_keys=True))
+    print(
+        "FORMAL_GATE_COUNTERFACTUALS_COMPLETE " + json.dumps(manifest, sort_keys=True)
+    )
     return output_path
 
 

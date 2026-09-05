@@ -1,0 +1,6 @@
+schema_version: tracker_gate_ablation_cell_v1
+cell: B_tracker
+shared_config: configs/experiments/final_pipeline_smoke_force_verify.yaml
+tracker_enabled: true
+gate_mode: RULE
+gate_artifact: null

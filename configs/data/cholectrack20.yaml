@@ -18,6 +18,8 @@ media:
   annotation_frame_alignment: explicit
   annotation_sampling_fps: 1
   annotation_sampling_fps_status: VERIFIED_OFFICIAL_EMAIL_AND_DATASET_DOCUMENTATION
+  annotation_frame_id_step: 25
+  annotation_frame_id_step_status: VERIFIED_FROM_CANONICAL_FRAME_INDEX
   raw_test_video_fps: 25
   raw_test_video_fps_status: VERIFIED_OFFICIAL_EMAIL_AND_LOCAL_FFPROBE
   mp4_index_offset: -1

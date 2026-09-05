@@ -830,7 +830,7 @@ def test_dataset_rollout_freezes_compact_json_budget_at_lowest_reasoning_effort(
     assert real.provider_options["routing_profile"] == "strict_openai"
     assert latency.provider_options["routing_profile"] == "latency_fallback"
     assert latency.generation_parameters == real.generation_parameters
-    assert latency.max_causal_frames == real.max_causal_frames == 6
+    assert latency.max_causal_frames == real.max_causal_frames == 3
     assert latency.max_api_images == real.max_api_images == 3
     assert dict(mock.generation_parameters) == {"max_output_tokens": 4096}
     dataset_cli._require_exact_dataset_config(

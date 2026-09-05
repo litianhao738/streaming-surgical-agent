@@ -145,6 +145,13 @@ def _validate_evidence_score_semantics(
 ) -> None:
     if score_semantics == "uncalibrated_rank_v1":
         return
+    if score_semantics == "hard_label_v1":
+        if any(raw_evidence.ranked_candidates.values()) or any(
+            confidence is not None
+            for confidence in raw_evidence.self_reported_confidence.values()
+        ):
+            raise ValueError("hard_label_v1 cannot carry ranking or confidence evidence")
+        return
     if (
         raw_evidence.source == "local_smoke"
         and all(not candidates for candidates in raw_evidence.ranked_candidates.values())

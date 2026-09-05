@@ -18,6 +18,46 @@ from surgical_agent.tracking.training_data import model_to_instrument_label
 TRACKER_CHECKPOINT_SCHEMA_VERSION = "predicted_tracker_checkpoint_v1"
 
 
+def _restore_coco_backbone_structure(model: torch.nn.Module) -> None:
+    """Recreate torchvision's COCO normalization/freezing without downloading weights."""
+
+    from torchvision.ops.misc import FrozenBatchNorm2d
+
+    def replace_norms(module: torch.nn.Module) -> None:
+        for name, child in tuple(module.named_children()):
+            if isinstance(child, torch.nn.BatchNorm2d):
+                frozen = FrozenBatchNorm2d(child.num_features, eps=child.eps)
+                frozen.load_state_dict(child.state_dict(), strict=True)
+                setattr(module, name, frozen)
+            else:
+                replace_norms(child)
+
+    replace_norms(model.backbone)  # type: ignore[attr-defined]
+    blocks = tuple(model.backbone.body.children())  # type: ignore[attr-defined]
+    stages = [0] + [
+        index for index, block in enumerate(blocks) if getattr(block, "_is_cn", False)
+    ] + [len(blocks) - 1]
+    freeze_before = stages[len(stages) - 3]
+    for block in blocks[:freeze_before]:
+        for parameter in block.parameters():
+            parameter.requires_grad_(False)
+
+
+def tracker_model_contract(model: torch.nn.Module) -> dict[str, object]:
+    """Describe architecture and ordered optimizer parameters independently of weights."""
+
+    return {
+        "schema_version": "tracker_model_contract_v1",
+        "model_type": f"{type(model).__module__}.{type(model).__qualname__}",
+        "architecture": getattr(model, "_tracker_architecture_contract", None),
+        "trainable_parameters": [
+            {"name": name, "shape": list(parameter.shape)}
+            for name, parameter in model.named_parameters()
+            if parameter.requires_grad
+        ],
+    }
+
+
 def build_instrument_detector(
     config: TrackerTrainingConfig,
     *,
@@ -39,9 +79,20 @@ def build_instrument_detector(
         min_size=config.min_size,
         max_size=config.max_size,
     )
+    # ``use_pretrained`` controls downloading/initialization, not the architecture
+    # required to restore the configured training checkpoint and optimizer.
+    coco_structure = config.initial_weights == "COCO_V1" or pretrained
+    if coco_structure and not pretrained:
+        _restore_coco_backbone_structure(model)
     in_features = model.roi_heads.box_predictor.cls_score.in_features
     model.roi_heads.box_predictor = FastRCNNPredictor(in_features, config.num_classes)
     model.roi_heads.nms_thresh = config.nms_threshold
+    model._tracker_architecture_contract = {
+        "architecture": config.architecture,
+        "normalization": "FrozenBatchNorm2d" if coco_structure else "BatchNorm2d",
+        "trainable_backbone_layers": 3 if coco_structure else 6,
+        "num_classes": config.num_classes,
+    }
     return model
 
 
@@ -192,7 +243,7 @@ def save_tracker_checkpoint(
     payload = {
         "schema_version": TRACKER_CHECKPOINT_SCHEMA_VERSION,
         "model_state": model.state_dict(),
-        "metadata": dict(metadata),
+        "metadata": {**dict(metadata), "model_contract": tracker_model_contract(model)},
     }
     descriptor, temporary_name = tempfile.mkstemp(
         dir=output.parent, prefix=f".{output.name}.", suffix=".tmp"
@@ -225,6 +276,9 @@ def load_tracker_checkpoint(
     metadata = payload.get("metadata")
     if not isinstance(state, Mapping) or not isinstance(metadata, Mapping):
         raise TypeError("tracker checkpoint is incomplete")
+    contract = metadata.get("model_contract")
+    if contract is not None and contract != tracker_model_contract(model):
+        raise ValueError("tracker checkpoint model contract differs from the constructed model")
     model.load_state_dict(state, strict=True)
     return dict(metadata)
 
@@ -236,4 +290,5 @@ __all__ = [
     "decode_detections",
     "load_tracker_checkpoint",
     "save_tracker_checkpoint",
+    "tracker_model_contract",
 ]

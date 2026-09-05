@@ -47,9 +47,8 @@ class FinalPipelineArtifactWriter:
             not initial_model_requested.strip()
             or not verification_model_requested
             or not verification_model_requested.strip()
-            or initial_model_requested == verification_model_requested
         ):
-            raise ValueError("artifact model identities must be distinct non-empty text")
+            raise ValueError("artifact model identities must be non-empty text")
         self.output_dir = Path(output_dir).expanduser().resolve()
         self.records_dir = self.output_dir / "final_records"
         self.status_path = self.output_dir / "run_status.json"
@@ -92,7 +91,7 @@ class FinalPipelineArtifactWriter:
 
     def write(self, record: FinalizationRecord) -> None:
         payload = {
-            "schema_version": "final_pipeline_output_v1",
+            "schema_version": "final_pipeline_output_v2",
             "run_id": self.run_id,
             "cell": self.cell,
             **AtomicFinalizationStore.record_payload(record),

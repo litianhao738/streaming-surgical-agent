@@ -196,11 +196,12 @@ def test_selection_rejects_out_of_order_samples() -> None:
         )
 
 
-def test_inference_iterator_preserves_configured_six_frame_buffer() -> None:
-    """The adapter emits the full buffer before adaptive image selection."""
+def test_inference_iterator_preserves_configured_causal_buffer() -> None:
+    """The adapter emits the configured contiguous causal buffer."""
 
     adapter = object.__new__(CholecTrack20DatasetAdapter)
     adapter.causal_window_size = 5
+    adapter.expected_frame_id_step = 1
     entry = SimpleNamespace(video_id="VID30", split=DatasetSplit.VALIDATION)
     resolver = SimpleNamespace(
         available_frame_ids=(1, 2, 3, 4),
@@ -213,3 +214,27 @@ def test_inference_iterator_preserves_configured_six_frame_buffer() -> None:
     sample = tuple(adapter.iter_inference_video("VID30"))[-1]
 
     assert sample.causal_frame_ids == (1, 2, 3, 4)
+
+
+def test_inference_iterator_does_not_bridge_a_frame_clock_gap() -> None:
+    adapter = object.__new__(CholecTrack20DatasetAdapter)
+    adapter.causal_window_size = 3
+    adapter.expected_frame_id_step = 25
+    entry = SimpleNamespace(video_id="VID30", split=DatasetSplit.VALIDATION)
+    resolver = SimpleNamespace(
+        available_frame_ids=(1, 26, 51, 101, 126, 151),
+        resolve=lambda frame_id: SimpleNamespace(media_path=f"{frame_id}.png"),
+    )
+    adapter._entry = lambda video_id: entry
+    adapter._derived = lambda video_id: None
+    adapter._png_resolver = lambda entry, derived: resolver
+
+    samples = {
+        sample.target_frame_id: sample
+        for sample in adapter.iter_inference_video("VID30")
+    }
+
+    assert samples[51].causal_frame_ids == (1, 26, 51)
+    assert samples[101].causal_frame_ids == (101,)
+    assert samples[126].causal_frame_ids == (101, 126)
+    assert samples[151].causal_frame_ids == (101, 126, 151)

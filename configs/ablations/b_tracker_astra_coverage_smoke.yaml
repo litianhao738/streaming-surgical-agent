@@ -1,0 +1,7 @@
+schema_version: tracker_gate_ablation_cell_v1
+# Experimental capability smoke only; not a recommended replacement for V8.
+cell: B_tracker
+shared_config: configs/experiments/final_pipeline_astra_coverage_smoke.yaml
+tracker_enabled: true
+gate_mode: RULE
+gate_artifact: null

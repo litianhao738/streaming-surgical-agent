@@ -119,17 +119,24 @@ Every rollout artifact records the experiment-config hash, resolved context
 profile, actual event-memory switch, phase-graph version/hash/source videos,
 and predicted-track artifact hash plus provenance fields.
 
-## Adaptive six-frame causal window
+## Fixed three-frame causal window
 
-The dataset API path uses `[t-5, ..., t]` as its maximum causal observation
-buffer. Predicted tracks and image-change statistics are computed across the
-whole available buffer. The target frame is always uploaded; at most two
-historical images are selected, keeping the API image budget at three. Omitted
-frames still contribute deterministic temporal evidence. At a video boundary,
-the window grows naturally from one to six frames rather than duplicating the
-first image.
+The current dataset API path uses `[t-2, t-1, t]` as its maximum causal
+observation buffer. All available frames in that window are uploaded in
+chronological order, the target frame is always last, and Tracker never selects
+the visual input. At a video boundary, the window grows naturally from one to
+three frames rather than duplicating the first image. The earlier adaptive
+six-frame-buffer/three-image policy is historical and is not valid for the
+primary factorial.
+
+For CholecTrack20, `[t-2, t-1, t]` means frame IDs `[t-50, t-25, t]` at the
+verified 1 FPS annotation clock. A frame-ID increment greater than 25 resets
+the causal window and immediate temporal comparison; history before the gap is
+not presented as adjacent motion. Tracker association generation uses the same
+maximum link gap. Detector weights are unchanged, but association artifacts
+created before this policy must be regenerated for strict formal use.
 
 Every run persists `causal_window_audit.jsonl`. It records candidate frame IDs,
-selected and omitted image IDs, frame scores, tracker availability, track
-persistence, visual change, displacement, and the motion-state summary. This is
-the audit record used for fixed-window and adaptive-window ablations.
+selected image IDs, tracker availability, track persistence, visual change,
+displacement, and the motion-state summary. This is the audit record used for
+fixed-window checks and any separately declared supplementary ablation.

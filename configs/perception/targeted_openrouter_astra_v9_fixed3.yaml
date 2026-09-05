@@ -1,0 +1,27 @@
+# EXPERIMENTAL / NOT PROMOTED: the 2026-09-05 paired Astra smoke showed no
+# semantic gain and lost V8 Tracker-assisted instrument corrections.
+# See docs/ASTRA_SIX_ISSUE_SMOKE_AND_FIXES_2026-09-05.md before using this profile.
+enabled: true
+mode: real
+provider: openrouter
+endpoint_identifier: https://openrouter.ai/api/v1/chat/completions
+requested_model_identifier: openai/gpt-6-astra
+prompt_version: targeted_verification_prompt_v9
+response_schema_version: targeted_verification_v1
+generation_parameters:
+  max_output_tokens: 4096
+  reasoning:
+    effort: low
+provider_options:
+  timeout_seconds: 180.0
+  routing_profile: strict_openai
+  frame_selection_strategy: fixed_all
+  history_image_detail: low
+  target_image_detail: auto
+  initial_prompt_profile: fixed_visual_only
+  verification_prompt_profile: fixed_visual_only
+synthetic_input_required: false
+cache_required: true
+data_upload_authorized: true
+max_causal_frames: 3
+max_api_images: 3

@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from numbers import Integral, Real
 from types import MappingProxyType
 
@@ -26,6 +26,28 @@ class TaskMapReport:
     class_video_support: Mapping[int, int]
     video_wise_map: float | None
     excluded_classes: tuple[int, ...] = ()
+
+
+@dataclass(frozen=True)
+class UnsupportedTaskMapReport(TaskMapReport):
+    """Preserve GT support without assigning AP to label-membership indicators."""
+
+    status: str = "unsupported"
+    reason: str = "hard_label_v1_does_not_provide_ranking_scores"
+    score_semantics: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class TaskLabelReport:
+    valid_frames: int
+    exact_matches: int
+    true_positives: int
+    false_positives: int
+    false_negatives: int
+    micro_precision: float | None
+    micro_recall: float | None
+    micro_f1: float | None
+    exact_set_accuracy: float | None
 
 
 @dataclass(frozen=True)
@@ -59,6 +81,18 @@ class FrameMetricReport:
     phase: PhaseMetricReport
     score_semantics: tuple[str, ...]
     schema_version: str = "frame_recognition_metrics_v1"
+
+
+@dataclass(frozen=True)
+class HardLabelFrameMetricReport(FrameMetricReport):
+    """Versioned extension; legacy ranking-only v1 reports remain unchanged."""
+
+    schema_version: str = "frame_recognition_metrics_v2"
+    label_metrics: Mapping[str, TaskLabelReport] = field(default_factory=dict)
+    label_metric_protocol: str = (
+        "task_masked_pooled_micro_and_exact_set_v1; all_valid_ids_including_null; "
+        "zero_division=0; no_valid_frames=null"
+    )
 
 
 class FrameMetricAccumulator:
@@ -150,7 +184,9 @@ def _snapshot_records(
     return tuple(snapshots)
 
 
-def _task_target_ids(target: FrameSupervisionTarget, task: str) -> tuple[int, ...]:
+def _task_target_ids(
+    target: FrameSupervisionTarget | PredictionRecord, task: str
+) -> tuple[int, ...]:
     if task == "instrument":
         return target.instrument_ids
     if task == "verb":
@@ -158,6 +194,44 @@ def _task_target_ids(target: FrameSupervisionTarget, task: str) -> tuple[int, ..
     if task == "target":
         return target.target_ids
     return target.triplet_ids
+
+
+def _compute_task_labels(
+    task: str,
+    records: Iterable[tuple[PredictionRecord, FrameSupervisionTarget]],
+) -> TaskLabelReport:
+    valid_frames = exact_matches = tp = fp = fn = 0
+    for prediction, target in records:
+        if not getattr(target.mask, task):
+            continue
+        predicted = (
+            {prediction.phase_id}
+            if task == "phase"
+            else set(_task_target_ids(prediction, task))
+        )
+        expected = (
+            {target.phase_id}
+            if task == "phase"
+            else set(_task_target_ids(target, task))
+        )
+        valid_frames += 1
+        exact_matches += predicted == expected
+        tp += len(predicted & expected)
+        fp += len(predicted - expected)
+        fn += len(expected - predicted)
+    return TaskLabelReport(
+        valid_frames=valid_frames,
+        exact_matches=exact_matches,
+        true_positives=tp,
+        false_positives=fp,
+        false_negatives=fn,
+        micro_precision=(tp / (tp + fp) if tp + fp else 0.0) if valid_frames else None,
+        micro_recall=(tp / (tp + fn) if tp + fn else 0.0) if valid_frames else None,
+        micro_f1=(2 * tp / (2 * tp + fp + fn) if 2 * tp + fp + fn else 0.0)
+        if valid_frames
+        else None,
+        exact_set_accuracy=exact_matches / valid_frames if valid_frames else None,
+    )
 
 
 def _compute_task_map(
@@ -173,6 +247,34 @@ def _compute_task_map(
 
     class_count = TASK_CLASS_COUNTS[task]
     excluded_classes = _IVT_NULL_CLASSES if task == "ivt" else ()
+    score_semantics = tuple(
+        sorted(
+            {
+                prediction.score_semantics
+                for video_records in by_video.values()
+                for prediction, _ in video_records
+            }
+        )
+    )
+    if "hard_label_v1" in score_semantics:
+        # Do not score binary membership vectors as rankings or silently remove
+        # those rows from a mixed cohort. Label metrics keep the full valid set.
+        return UnsupportedTaskMapReport(
+            class_ap={class_id: None for class_id in range(class_count)},
+            class_video_support={
+                class_id: sum(
+                    any(
+                        class_id in _task_target_ids(target, task)
+                        for _, target in video_records
+                    )
+                    for video_records in by_video.values()
+                )
+                for class_id in range(class_count)
+            },
+            video_wise_map=None,
+            excluded_classes=excluded_classes,
+            score_semantics=score_semantics,
+        )
     excluded_set = set(excluded_classes)
     class_ap: dict[int, float | None] = {}
     class_video_support: dict[int, int] = {}
@@ -279,14 +381,27 @@ def compute_frame_metric_report(
     records: Iterable[tuple[PredictionRecord, FrameSupervisionTarget]],
 ) -> FrameMetricReport:
     record_tuple = _snapshot_records(records)
+    score_semantics = tuple(
+        sorted({prediction.score_semantics for prediction, _ in record_tuple})
+    )
+    if "hard_label_v1" in score_semantics:
+        return HardLabelFrameMetricReport(
+            tasks={
+                task: _compute_task_map(task, record_tuple) for task in _MULTILABEL_TASKS
+            },
+            phase=_compute_phase(record_tuple),
+            score_semantics=score_semantics,
+            label_metrics={
+                task: _compute_task_labels(task, record_tuple)
+                for task in (*_MULTILABEL_TASKS, "phase")
+            },
+        )
     return FrameMetricReport(
         tasks={
             task: _compute_task_map(task, record_tuple) for task in _MULTILABEL_TASKS
         },
         phase=_compute_phase(record_tuple),
-        score_semantics=tuple(
-            sorted({prediction.score_semantics for prediction, _ in record_tuple})
-        ),
+        score_semantics=score_semantics,
     )
 
 

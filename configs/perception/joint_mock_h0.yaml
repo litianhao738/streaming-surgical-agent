@@ -1,0 +1,23 @@
+# Offline execution of the same main H0 request/response protocol.
+enabled: true
+mode: mock
+provider: mock
+endpoint_identifier: mock://local/p3
+requested_model_identifier: mock-joint-perception-v1
+prompt_version: joint_perception_main_h0_v1
+response_schema_version: joint_perception_final_only_v1
+generation_parameters:
+  max_output_tokens: 4096
+  temperature: 0
+  reasoning:
+    effort: low
+provider_options:
+  frame_selection_strategy: fixed_all
+  history_image_detail: low
+  target_image_detail: high
+  initial_prompt_profile: fixed_visual_only
+synthetic_input_required: false
+cache_required: true
+data_upload_authorized: true
+max_causal_frames: 3
+max_api_images: 3

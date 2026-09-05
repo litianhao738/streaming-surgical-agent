@@ -13,6 +13,12 @@ from PIL import Image
 from surgical_agent.cli.progress import progress_bar
 from surgical_agent.data.constants import TASK_ID_BOUNDS
 from surgical_agent.data.schemas import BoundingBox, DatasetSplit
+from surgical_agent.tracking.box_policy import (
+    BBoxPolicy,
+    apply_bbox_policy,
+    new_box_audit,
+    record_box_policy_result,
+)
 
 
 @dataclass(frozen=True)
@@ -147,7 +153,15 @@ def build_detection_training_records(
     max_samples_per_video: int | None = None,
     progress_enabled: bool = False,
     progress_file: IO[str] | None = None,
+    bbox_policy: BBoxPolicy | str = BBoxPolicy.LEGACY_STRICT_V1,
+    box_audit: dict[str, int | str] | None = None,
 ) -> tuple[DetectionTrainingRecord, ...]:
+    selected_policy = BBoxPolicy(bbox_policy)
+    audit = new_box_audit(selected_policy) if box_audit is None else box_audit
+    if not audit:
+        audit.update(new_box_audit(selected_policy))
+    if audit.get("bbox_policy") != selected_policy.value:
+        raise ValueError("box audit policy does not match training bbox policy")
     qualified = set(supervision_qualified_training_video_ids(adapter))
     if set(video_ids) - qualified:
         raise ValueError("detector training received a non-qualified video")
@@ -168,17 +182,20 @@ def build_detection_training_records(
                 evaluation = resolved.evaluation
                 if evaluation is None or not evaluation.instance_supervision_available:
                     continue
-                targets = tuple(
-                    DetectionTrainingTarget(
+                selected_targets = []
+                for instance in evaluation.instances:
+                    if not instance.mask.instrument:
+                        continue
+                    decision = apply_bbox_policy(instance.bbox, policy=selected_policy)
+                    record_box_policy_result(audit, decision)
+                    if decision.bbox is None:
+                        continue
+                    selected_targets.append(DetectionTrainingTarget(
                         instrument_id=instance.instrument_id,
-                        bbox=instance.bbox,
+                        bbox=decision.bbox,
                         is_crowd=False,
-                    )
-                    for instance in evaluation.instances
-                    if instance.mask.instrument
-                    and instance.bbox.has_positive_extent
-                    and instance.bbox.is_inside_unit_frame
-                )
+                    ))
+                targets = tuple(selected_targets)
                 if not targets:
                     continue
                 records.append(

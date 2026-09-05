@@ -16,6 +16,11 @@ from surgical_agent.perception.contracts import (
     PerceptionEvidence,
     RankedCandidate,
 )
+from surgical_agent.perception.final_only import (
+    FINAL_ONLY_SCHEMA_VERSION,
+    TASKS,
+    validate_final_only,
+)
 from surgical_agent.perception.schema import (
     GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
     RELIABILITY_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
@@ -71,8 +76,47 @@ def parse_joint_perception_response(
             _invalid()
 
         payload = response.parsed_payload
-        validate_joint_perception_payload_by_version(payload)
         schema_version = payload["schema_version"]
+        if schema_version == FINAL_ONLY_SCHEMA_VERSION:
+            validate_final_only(payload)
+            selected = {
+                task: (
+                    (payload[task]["selected_id"],)
+                    if task == "phase"
+                    else _selected_ids(payload, task)
+                )
+                for task in TASKS
+            }
+            # The stable PredictionRecord requires a dense field. These are
+            # label indicators, never measured probabilities or API rankings.
+            prediction = InitialPrediction(
+                instrument_ids=selected["instrument"],
+                verb_ids=selected["verb"],
+                target_ids=selected["target"],
+                triplet_ids=selected["ivt"],
+                phase_id=selected["phase"][0],
+                probabilities={
+                    task: tuple(
+                        float(index in selected[task])
+                        for index in range(TASK_CLASS_COUNTS[task])
+                    )
+                    for task in TASKS
+                },
+                score_semantics="hard_label_v1",
+                backend=backend,
+            )
+            return JointPerceptionResult(
+                prediction=prediction,
+                raw_evidence=PerceptionEvidence(
+                    source=backend,
+                    ranked_candidates={task: () for task in TASKS},
+                    self_reported_confidence={task: None for task in TASKS},
+                    evidence_refs=(),
+                    source_max_frame_id=frame_id,
+                ),
+                api_provenance=ApiCallProvenance.from_response(response),
+            )
+        validate_joint_perception_payload_by_version(payload)
         task_layout = task_layout_for_schema_version(schema_version)
         confidence_key = (
             "confidence"

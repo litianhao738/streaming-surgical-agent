@@ -1,6 +1,6 @@
 schema_version: local_joint_perception_training_v1
 seed: 42
-window_size: 6
+window_size: 3
 image_size: 192
 smoke_samples_per_video: 4
 

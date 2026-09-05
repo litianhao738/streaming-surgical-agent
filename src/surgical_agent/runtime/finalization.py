@@ -123,7 +123,8 @@ class FinalizationRecord:
 class AtomicFinalizationStore:
     """Commit audit and all Memory destinations through one atomic state file."""
 
-    schema_version = "streaming_finalization_v1"
+    schema_version = "streaming_finalization_v2"
+    legacy_schema_version = "streaming_finalization_v1"
 
     def __init__(
         self,
@@ -263,6 +264,7 @@ class AtomicFinalizationStore:
                         state="Verified",
                         hypothesis=outcome.hypothesis,
                         provenance=outcome.provenance,
+                        task_states=outcome.task_states,
                     )
                 )
                 del verified[:-self.max_verified]
@@ -327,10 +329,19 @@ class AtomicFinalizationStore:
                         state=outcome.state,
                         hypothesis=outcome.hypothesis,
                         provenance=outcome.provenance,
+                        task_states=outcome.task_states,
                     )
-                    destination = verified if outcome.state == "Verified" else accepted
+                    destination = (
+                        verified
+                        if entry.destination == "RELIABLE_LONG_TERM"
+                        else accepted
+                    )
                     destination.append(entry)
-                    bound = self.max_verified if outcome.state == "Verified" else self.max_accepted
+                    bound = (
+                        self.max_verified
+                        if entry.destination == "RELIABLE_LONG_TERM"
+                        else self.max_accepted
+                    )
                     del destination[:-bound]
                 elif outcome.state == "Pending":
                     pending[observation.key] = PendingEntry(
@@ -420,12 +431,17 @@ class AtomicFinalizationStore:
         """Return the canonical, path-free frame output/audit payload."""
         outcome = record.outcome
         if isinstance(outcome, FinalOutcome):
+            assert outcome.task_states is not None
             encoded_outcome: dict[str, object] = {
                 "kind": "SEMANTIC",
                 "state": outcome.state,
                 "hypothesis": _hypothesis_payload(outcome.hypothesis),
                 "provenance": outcome.provenance,
                 "lower_reliability": outcome.lower_reliability,
+                "task_states": dict(outcome.task_states),
+                "verified_tasks": list(outcome.verified_tasks),
+                "checked_tasks": list(outcome.checked_tasks),
+                "derived_tasks": list(outcome.derived_tasks),
             }
         else:
             encoded_outcome = {
@@ -441,11 +457,16 @@ class AtomicFinalizationStore:
 
     @classmethod
     def _memory_payload(cls, item: MemoryEntry) -> dict[str, object]:
+        assert item.task_states is not None
         return {
             "observation": _observation_payload(item.observation),
             "state": item.state,
             "hypothesis": _hypothesis_payload(item.hypothesis),
             "provenance": item.provenance,
+            "task_states": dict(item.task_states),
+            "verified_tasks": list(item.verified_tasks),
+            "checked_tasks": list(item.checked_tasks),
+            "derived_tasks": list(item.derived_tasks),
         }
 
     @classmethod
@@ -491,19 +512,34 @@ class AtomicFinalizationStore:
             payload = json.loads(path.read_text(encoding="utf-8"))
         except (OSError, UnicodeError, json.JSONDecodeError) as exc:
             raise ValueError("invalid finalization state file") from exc
-        if not isinstance(payload, dict) or payload.get("schema_version") != self.schema_version:
+        if not isinstance(payload, dict) or payload.get("schema_version") not in {
+            self.schema_version,
+            self.legacy_schema_version,
+        }:
             raise ValueError("unsupported finalization state schema")
+        legacy = payload.get("schema_version") == self.legacy_schema_version
         self._video_id = str(payload["video_id"])
         records: dict[str, FinalizationRecord] = {}
         for key, raw in payload["records"].items():
             observation = _parse_observation(raw["observation"])
             raw_outcome = raw["outcome"]
             if raw_outcome["kind"] == "SEMANTIC":
+                raw_state = str(raw_outcome["state"])
+                task_states = raw_outcome.get("task_states")
+                if legacy and raw_state == "Verified":
+                    # V1 stored one scope-level check as whole-frame Verified.
+                    # Migrate it conservatively instead of trusting all five heads.
+                    raw_state = "Accepted"
+                    task_states = {
+                        task: "Checked"
+                        for task in ("instrument", "verb", "target", "ivt", "phase")
+                    }
                 outcome: FinalOutcome | ExecutionOutcome = FinalOutcome(
-                    state=raw_outcome["state"],
+                    state=raw_state,  # type: ignore[arg-type]
                     hypothesis=_parse_hypothesis(raw_outcome["hypothesis"]),
                     provenance=raw_outcome["provenance"],
                     lower_reliability=bool(raw_outcome["lower_reliability"]),
+                    task_states=task_states,
                 )
             else:
                 outcome = ExecutionOutcome(raw_outcome["status"], raw_outcome["reason"])
@@ -513,8 +549,16 @@ class AtomicFinalizationStore:
                 raw.get("audit", {}),
             )
         self._records = records
-        self._verified = [self._parse_memory(item) for item in payload["verified"]]
-        self._accepted = [self._parse_memory(item) for item in payload["accepted"]]
+        memory = [
+            self._parse_memory(item, legacy=legacy)
+            for item in (*payload["verified"], *payload["accepted"])
+        ]
+        self._verified = [
+            item for item in memory if item.destination == "RELIABLE_LONG_TERM"
+        ]
+        self._accepted = [
+            item for item in memory if item.destination == "SHORT_TERM"
+        ]
         self._pending = {
             str(key): self._parse_pending(value)
             for key, value in payload["pending"].items()
@@ -522,16 +566,25 @@ class AtomicFinalizationStore:
         self._last_observation = _parse_observation(payload["last_observation"])
 
     @staticmethod
-    def _parse_memory(value: object) -> MemoryEntry:
+    def _parse_memory(value: object, *, legacy: bool = False) -> MemoryEntry:
         if not isinstance(value, dict):
             raise TypeError("invalid trusted Memory entry")
         hypothesis = _parse_hypothesis(value["hypothesis"])
         assert hypothesis is not None
+        raw_state = str(value["state"])
+        task_states = value.get("task_states")
+        if legacy and raw_state == "Verified":
+            raw_state = "Accepted"
+            task_states = {
+                task: "Checked"
+                for task in ("instrument", "verb", "target", "ivt", "phase")
+            }
         return MemoryEntry(
             observation=_parse_observation(value["observation"]),
-            state=value["state"],
+            state=raw_state,  # type: ignore[arg-type]
             hypothesis=hypothesis,
             provenance=str(value["provenance"]),
+            task_states=task_states,
         )
 
     @staticmethod

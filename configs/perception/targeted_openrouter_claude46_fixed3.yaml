@@ -1,0 +1,24 @@
+# Experimental capability-probe candidate; not an approved formal-run default.
+enabled: true
+mode: real
+provider: openrouter
+endpoint_identifier: https://openrouter.ai/api/v1/chat/completions
+requested_model_identifier: anthropic/claude-sonnet-4.6
+prompt_version: targeted_verification_prompt_v6
+response_schema_version: targeted_verification_v1
+generation_parameters:
+  max_output_tokens: 2048
+  temperature: 0.0
+provider_options:
+  timeout_seconds: 120.0
+  routing_profile: strict_anthropic
+  frame_selection_strategy: fixed_all
+  history_image_detail: low
+  target_image_detail: auto
+  initial_prompt_profile: fixed_visual_only
+  verification_prompt_profile: fixed_visual_only
+synthetic_input_required: false
+cache_required: true
+data_upload_authorized: true
+max_causal_frames: 3
+max_api_images: 3

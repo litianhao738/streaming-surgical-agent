@@ -202,6 +202,29 @@ def test_causal_window_is_ordered_and_excludes_future_frames() -> None:
     ) == (26, 51, 76)
 
 
+def test_causal_window_resets_at_a_missing_expected_frame() -> None:
+    available = [1, 26, 51, 101, 126, 151]
+
+    assert build_causal_frame_ids(
+        available,
+        target_frame_id=101,
+        max_frames=3,
+        expected_frame_id_step=25,
+    ) == (101,)
+    assert build_causal_frame_ids(
+        available,
+        target_frame_id=126,
+        max_frames=3,
+        expected_frame_id_step=25,
+    ) == (101, 126)
+    assert build_causal_frame_ids(
+        available,
+        target_frame_id=151,
+        max_frames=3,
+        expected_frame_id_step=25,
+    ) == (101, 126, 151)
+
+
 def test_gold_free_runtime_and_evaluation_targets_are_separate(tmp_path: Path) -> None:
     annotation_path = tmp_path / "vid02.json"
     _write_annotation(annotation_path, _annotation_payload())

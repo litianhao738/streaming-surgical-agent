@@ -1,0 +1,22 @@
+schema_version: final_pipeline_experiment_v1
+context:
+  max_frames: 3
+  max_images: 3
+  selection_strategy: fixed_all
+  history_image_detail: low
+  target_image_detail: auto
+safety:
+  mandatory_guard_enabled: true
+  require_component_coverage: false
+verification:
+  scopes: [instrument_presence, interaction, workflow]
+  max_attempts: 1
+budget:
+  safety_reserve: 6
+  optional_capacity: 18
+  shared_capacity: 6
+memory:
+  max_verified: 16
+  max_accepted: 16
+  max_resolution_attempts: 1
+rule_gate_threshold: 0.0

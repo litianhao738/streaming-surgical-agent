@@ -35,6 +35,7 @@ from surgical_agent.research.safety import (
 )
 from surgical_agent.research.signals.contracts import EvidenceProfile
 from surgical_agent.research.verification.contracts import CandidateSet
+from surgical_agent.research.verification.coverage import run_scope_coverage
 from surgical_agent.research.verification.repair import (
     BoundedVerifyRepairLoop,
     RepairProposal,
@@ -92,19 +93,22 @@ class FinalPipelineComponents:
     track_provider: _TrackProvider | None = None
     pending_resolver: BoundedPendingResolver | None = None
     max_verify_attempts: int = 1
+    max_coverage_scopes: int = 1
 
     def __post_init__(self) -> None:
         builder = self.context_builder
         if (
-            builder.max_frames != 6
-            or builder.max_images != 6
+            builder.max_frames != 3
+            or builder.max_images != 3
             or builder.selection_strategy != "fixed_all"
         ):
             raise ValueError(
-                "final Pipeline requires fixed_all causal input with max_frames=max_images=6"
+                "final Pipeline requires fixed_all causal input with max_frames=max_images=3"
             )
         if self.max_verify_attempts not in {1, 2}:
             raise ValueError("max_verify_attempts must be 1 or 2")
+        if self.max_coverage_scopes not in {1, 2, 3}:
+            raise ValueError("max_coverage_scopes must be one to three")
         if (self.initial_model_requested is None) != (
             self.verification_model_requested is None
         ):
@@ -164,7 +168,10 @@ class FinalStreamingPipeline:
             if not isinstance(attempts, list):
                 continue
             for attempt in attempts:
-                if not isinstance(attempt, Mapping) or attempt.get("budget_granted") is not True:
+                if (
+                    not isinstance(attempt, Mapping)
+                    or attempt.get("budget_granted") is not True
+                ):
                     continue
                 bucket = attempt.get("budget_bucket")
                 if bucket in {"SAFETY_RESERVE", "OPTIONAL", "SHARED"}:
@@ -189,7 +196,18 @@ class FinalStreamingPipeline:
         self.clock.accept(observation)
         tracker_snapshot = self.tracker_snapshot(sample)
         memory = self.components.finalization_store.snapshot()
-        previous = self.components.finalization_store.prior_trusted_hypothesis
+        previous_entry = memory.trusted[-1] if memory.trusted else None
+        previous = (
+            previous_entry.hypothesis
+            if previous_entry is not None
+            and previous_entry.observation.frame_id in sample.causal_frame_ids[:-1]
+            else None
+        )
+        previous_verified_tasks = (
+            ()
+            if previous is None or previous_entry is None
+            else previous_entry.verified_tasks
+        )
         workflow_snapshot = self._workflow_snapshot(memory.trusted)
         try:
             context = self.components.context_builder.build(
@@ -224,13 +242,16 @@ class FinalStreamingPipeline:
                 raise TypeError("candidate generator returned the wrong type")
             if not isinstance(evidence, EvidenceProfile):
                 raise TypeError("signal extractor returned the wrong type")
-            violations = self.components.safety_validator.validate(perception.prediction)
+            violations = self.components.safety_validator.validate(
+                perception.prediction
+            )
             support = self.components.support_builder.build(
                 perception=perception,
                 candidates=candidates,
                 violations=violations,
                 tracker_snapshot=tracker_snapshot,
                 previous=previous,
+                previous_verified_tasks=previous_verified_tasks,
             )
         except Exception as exc:  # noqa: BLE001 - malformed support is an execution status
             return self._execution_failure(
@@ -268,33 +289,64 @@ class FinalStreamingPipeline:
             proposal = gate_accepted(h0)
         else:
             assert route.scope is not None and route.priority is not None
-            specialist = self.components.specialist_factory(context, candidates, evidence)
+            specialist = self.components.specialist_factory(
+                context, candidates, evidence
+            )
             loop = BoundedVerifyRepairLoop(
                 specialist=specialist,
                 validator=self.components.safety_validator,
                 budget=self.components.budget,
                 max_attempts=self.components.max_verify_attempts,
             )
-            proposal = loop.run(
-                h0=h0,
-                candidates=candidates,
-                scope=route.scope,
-                priority=route.priority,
-                fallback_h0_allowed=route.fallback_h0_allowed,
+            proposal = (
+                loop.run(
+                    h0=h0,
+                    candidates=candidates,
+                    scope=route.scope,
+                    priority=route.priority,
+                    fallback_h0_allowed=route.fallback_h0_allowed,
+                )
+                if self.components.max_coverage_scopes == 1
+                else run_scope_coverage(
+                    h0=h0,
+                    candidates=candidates,
+                    initial_scope=route.scope,
+                    specialist=specialist,
+                    validator=self.components.safety_validator,
+                    budget=self.components.budget,
+                    max_scopes=self.components.max_coverage_scopes,
+                )
             )
 
         outcome = self.components.outcome_finalizer.finalize(h0=h0, proposal=proposal)
+        audit = self._audit_payload(
+            tracker_snapshot=tracker_snapshot,
+            context=context,
+            candidates=candidates,
+            support=support,
+            route=route,
+            proposal=proposal,
+        )
+        phase_support = getattr(
+            self.components.support_builder, "phase_ivt_support", None
+        )
+        final_hypothesis = outcome.hypothesis
+        audit["phase_ivt_check"] = {
+            "soft_training_support_enabled": phase_support is not None,
+            "hard_constraints_enabled": self.components.safety_validator.strict_phase_allowed_ivt
+            is not None,
+            "final_unobserved_ivt_ids": sorted(
+                set(final_hypothesis.triplet_ids)
+                - set(phase_support.get(final_hypothesis.phase_id, ()))
+            )
+            if phase_support is not None and final_hypothesis is not None
+            else [],
+        }
         finalization = self.components.finalization_store.commit(
             observation=observation,
             outcome=outcome,
             pending_scope=route.scope,
-            audit=self._audit_payload(
-                tracker_snapshot=tracker_snapshot,
-                context=context,
-                support=support,
-                route=route,
-                proposal=proposal,
-            ),
+            audit=audit,
         )
         resolved_pending = (
             ()
@@ -339,7 +391,11 @@ class FinalStreamingPipeline:
             }
         frames = raw.get("frames", ())
         last_tracks: Any = None
-        if isinstance(frames, (tuple, list)) and frames and isinstance(frames[-1], Mapping):
+        if (
+            isinstance(frames, (tuple, list))
+            and frames
+            and isinstance(frames[-1], Mapping)
+        ):
             last_tracks = frames[-1].get("tracks", ())
         empty_current = isinstance(last_tracks, (tuple, list)) and not last_tracks
         raw["runtime_status"] = "AVAILABLE_EMPTY" if empty_current else "OK"
@@ -369,15 +425,18 @@ class FinalStreamingPipeline:
 
     @staticmethod
     def _workflow_snapshot(trusted: tuple[Any, ...]) -> Mapping[str, object]:
-        phases = tuple(str(item.hypothesis.phase_id) for item in trusted[-16:])
+        phase_entries = trusted[-16:]
+        phases = tuple(str(item.hypothesis.phase_id) for item in phase_entries)
+        phase_states = tuple(item.task_states["phase"] for item in phase_entries)
         transitions = tuple(pairwise(phases))
         stability = None if not phases else phases.count(phases[-1]) / len(phases)
         return {
             "status": "FINALIZED_ONLY",
             "source_max_frame_id": (
-                trusted[-1].observation.frame_id if trusted else None
+                phase_entries[-1].observation.frame_id if phase_entries else None
             ),
             "recent_finalized_phases": phases,
+            "recent_phase_states": phase_states,
             "phase_stability": stability,
             "observed_transitions": transitions,
         }
@@ -387,6 +446,7 @@ class FinalStreamingPipeline:
         *,
         tracker_snapshot: Mapping[str, object],
         context: PerceptionContext,
+        candidates: CandidateSet,
         support: SafetySupport,
         route: RouteDecision,
         proposal: RepairProposal,
@@ -395,6 +455,13 @@ class FinalStreamingPipeline:
             "schema_version": "final_pipeline_frame_audit_v1",
             "causal_frame_ids": list(context.sample.causal_frame_ids),
             "selected_image_frame_ids": list(context.selected_image_frame_ids),
+            "candidate_set": {
+                "version": candidates.candidate_version,
+                "allowed_ids": {
+                    task: list(candidates.allowed_ids[task])
+                    for task in candidates.allowed_ids
+                },
+            },
             "tracker_runtime_status": tracker_snapshot.get("runtime_status"),
             "safety_class": support.safety_class,
             "hard_violations": [
@@ -425,9 +492,20 @@ class FinalStreamingPipeline:
                         "budget_bucket": item.budget.bucket,
                         "budget_reason": item.budget.reason,
                         "specialist_status": item.specialist_status,
+                        "specialist_reason": item.specialist_reason,
+                        "accepted": item.accepted,
+                        "candidate_labels": {
+                            task: list(values) for task, values in item.candidate_labels
+                        },
+                        "certified_task_values": {
+                            task: list(values)
+                            for task, values in item.certified_task_values
+                        },
                         "candidate_id": item.candidate_id,
                         "postcheck_hard_valid": item.postcheck_hard_valid,
                         "violation_codes": list(item.violation_codes),
+                        "repair_evidence_kind": item.repair_evidence_kind,
+                        "repair_evidence_sources": list(item.repair_evidence_sources),
                     }
                     for item in proposal.attempts
                 ],

@@ -15,6 +15,7 @@ if str(SRC_ROOT) not in sys.path:
 from surgical_agent.artifacts.manifest import atomic_write_json
 from surgical_agent.config.loader import load_yaml, resolve_dataset_root
 from surgical_agent.data.dataset import CholecTrack20DatasetAdapter
+from surgical_agent.tracking.box_policy import BBoxPolicy
 from surgical_agent.tracking.oof_evaluation import evaluate_tracker_oof
 
 
@@ -39,6 +40,12 @@ def parser() -> argparse.ArgumentParser:
         type=Path,
         help="default: heldout_evaluation.json beside the OOF index",
     )
+    result.add_argument(
+        "--gt-bbox-policy",
+        choices=[policy.value for policy in BBoxPolicy],
+        default=BBoxPolicy.LEGACY_STRICT_V1.value,
+        help="GT box handling; legacy default reproduces old denominators, v2 clips intersecting boxes",
+    )
     return result
 
 
@@ -48,7 +55,11 @@ def run(args: argparse.Namespace) -> dict[str, object]:
     index_path = args.tracker_oof_index.expanduser().resolve()
     tracker_config_path = args.tracker_config.expanduser().resolve()
     output = (
-        index_path.parent / "heldout_evaluation.json"
+        index_path.parent / (
+            "heldout_evaluation.json"
+            if args.gt_bbox_policy == BBoxPolicy.LEGACY_STRICT_V1.value
+            else f"heldout_evaluation_{args.gt_bbox_policy}.json"
+        )
         if args.output is None
         else args.output.expanduser().resolve()
     )
@@ -62,12 +73,15 @@ def run(args: argparse.Namespace) -> dict[str, object]:
         adapter=adapter,
         index_path=index_path,
         tracker_config_path=tracker_config_path,
+        gt_bbox_policy=args.gt_bbox_policy,
     )
     atomic_write_json(output, report)
     overall = report["overall_pooled"]
     if not isinstance(overall, dict) or not isinstance(overall.get("metrics"), dict):
         raise TypeError("Tracker OOF evaluator returned an invalid report")
     summary = {
+        "gt_bbox_policy": report["metric_protocol"]["gt_bbox_policy"],
+        "gt_box_audit": overall["gt_box_audit"],
         "output": str(output),
         "scored_videos": report["coverage"]["scored_video_count"],
         "scored_frames": overall["scored_frame_count"],

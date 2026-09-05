@@ -195,6 +195,38 @@ def test_local_unavailable_probability_semantics_remain_supported() -> None:
     assert profile.task_values["phase"]["self_reported_uncertainty"].available is False
 
 
+def test_final_only_hard_labels_leave_score_evidence_unavailable() -> None:
+    profile = _extractor().extract(
+        _context(),
+        _result(
+            prediction=_prediction(score_semantics="hard_label_v1"),
+            scores=(),
+            confidence=None,
+            source="joint_final_only",
+        ),
+    )
+
+    for task in TASK_CLASS_COUNTS:
+        assert profile.task_values[task]["candidate_ambiguity"].available is False
+        assert profile.task_values[task]["self_reported_uncertainty"].available is False
+    assert profile.global_values["ivt_internal_conflict"].available is True
+
+
+@pytest.mark.parametrize(
+    ("scores", "confidence"), (((0.8,), None), ((), 0.8))
+)
+def test_hard_label_semantics_cannot_smuggle_confidence_evidence(scores, confidence):
+    with pytest.raises(ValueError, match="cannot carry ranking or confidence"):
+        _extractor().extract(
+            _context(),
+            _result(
+                prediction=_prediction(score_semantics="hard_label_v1"),
+                scores=scores,
+                confidence=confidence,
+            ),
+        )
+
+
 def test_ivt_internal_conflict_is_fraction_of_selected_inconsistent_triplets() -> None:
     profile = _extractor().extract(
         _context(),

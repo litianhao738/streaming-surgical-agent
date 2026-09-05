@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import random
 import sys
@@ -29,6 +30,7 @@ from surgical_agent.data.dataset import CholecTrack20DatasetAdapter
 from surgical_agent.data.schemas import DatasetSplit
 from surgical_agent.tracking.artifact_writer import write_predicted_track_artifact
 from surgical_agent.tracking.associator import CausalHungarianAssociator
+from surgical_agent.tracking.box_policy import apply_bbox_policy, new_box_audit
 from surgical_agent.tracking.config import (
     TrackerTrainingConfig,
     load_tracker_training_config,
@@ -40,6 +42,7 @@ from surgical_agent.tracking.detector import (
     decode_detections,
     load_tracker_checkpoint,
     save_tracker_checkpoint,
+    tracker_model_contract,
 )
 from surgical_agent.tracking.oof_index import write_tracker_oof_index
 from surgical_agent.tracking.training_checkpoint import (
@@ -69,13 +72,25 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument(
         "--output-root",
         type=Path,
-        default=PROJECT_ROOT / "artifacts/training/tracker",
+        help="new output tree (default: artifacts/training/tracker_clip_v2)",
     )
     result.add_argument("--device", default="cuda")
     result.add_argument("--epochs", type=int)
     result.add_argument("--max-train-batches", type=int)
     result.add_argument("--max-prediction-frames", type=int)
     result.add_argument("--no-pretrained", action="store_true")
+    result.add_argument(
+        "--bbox-policy", choices=("clip_to_frame_v2", "legacy_strict_v1"),
+        default="clip_to_frame_v2",
+    )
+    result.add_argument(
+        "--resume-source-root", type=Path,
+        help="read states from a separate existing run tree; write only to --output-root",
+    )
+    result.add_argument(
+        "--allow-legacy-resume", action="store_true",
+        help="explicitly replay legacy_strict_v1 states into a separate output tree",
+    )
     result.add_argument(
         "--resume",
         action="store_true",
@@ -104,6 +119,62 @@ def _device(value: str) -> torch.device:
     return selected
 
 
+def _training_data_identity(adapter, records, training_video_ids) -> dict[str, object]:
+    """Freeze annotation bytes and the exact resolved supervision, without reading GT at inference."""
+
+    digest = hashlib.sha256()
+    for record in records:
+        value = {
+            "video_id": record.video_id,
+            "frame_id": record.frame_id,
+            "media": record.media_path.relative_to(adapter.dataset_root).as_posix(),
+            "targets": [
+                {"instrument_id": target.instrument_id, "bbox": asdict(target.bbox),
+                 "is_crowd": target.is_crowd}
+                for target in record.targets
+            ],
+        }
+        digest.update(json.dumps(value, sort_keys=True, separators=(",", ":")).encode())
+        digest.update(b"\n")
+    return {
+        "fingerprint_scope": "annotation_bytes_and_resolved_supervision_v1",
+        "training_records_sha256": digest.hexdigest(),
+        "training_annotation_sha256": {
+            video_id: sha256_file(adapter.entries[video_id].annotation_file)
+            for video_id in training_video_ids
+        },
+        "dataset_repair_manifest_sha256": sha256_file(
+            adapter.dataset_root / "repair_manifest.json"
+        ),
+        "training_samples": len(records),
+    }
+
+
+def _resume_source_dir(args, output_root: Path, output_dir: Path) -> Path | None:
+    if args.resume_source_root is None:
+        return None
+    return args.resume_source_root.expanduser().resolve() / output_dir.relative_to(output_root)
+
+
+def _validate_legacy_resume_source(
+    source_dir: Path, output_dir: Path, *, identity: dict[str, object],
+) -> None:
+    if source_dir.resolve() == output_dir.resolve():
+        raise ValueError("legacy resume must write to a separate output directory")
+    source_manifest = source_dir / "training_manifest.json"
+    if not source_manifest.is_file():
+        raise ValueError("legacy resume requires its historical training manifest")
+    raw = json.loads(source_manifest.read_text(encoding="utf-8"))
+    data = identity["training_data"]
+    assert isinstance(data, dict)
+    for name in ("dataset_repair_manifest_sha256", "training_samples"):
+        if raw.get(name) != data[name]:
+            raise ValueError(f"legacy resume data provenance differs: {name}")
+    for name in ("training_video_ids", "excluded_video_ids", "tracker_config_sha256"):
+        if raw.get(name) != identity[name]:
+            raise ValueError(f"legacy resume manifest identity differs: {name}")
+
+
 def _train(
     *,
     adapter: CholecTrack20DatasetAdapter,
@@ -119,15 +190,28 @@ def _train(
     use_pretrained: bool,
     resume: bool,
     mode: str,
+    bbox_policy: str = "clip_to_frame_v2",
+    resume_source_dir: Path | None = None,
+    allow_legacy_resume: bool = False,
     progress_enabled: bool = False,
     progress_file: IO[str] | None = None,
 ) -> tuple[torch.nn.Module, Path, dict[str, object]]:
+    if (not resume or resume_source_dir is not None) and any(
+        (output_dir / name).exists()
+        for name in ("checkpoint.pt", "training_state.pt", "training_manifest.json")
+    ):
+        raise FileExistsError("training output already exists; select a new output root")
+    if allow_legacy_resume and bbox_policy != "legacy_strict_v1":
+        raise ValueError("legacy states cannot resume under a different bbox policy")
+    box_audit = new_box_audit(bbox_policy)
     records = build_detection_training_records(
         adapter,
         training_video_ids,
         max_samples_per_video=64 if mode == "smoke" else None,
         progress_enabled=progress_enabled,
         progress_file=progress_file,
+        bbox_policy=bbox_policy,
+        box_audit=box_audit,
     )
     if max_records is not None:
         records = records[:max_records]
@@ -141,7 +225,10 @@ def _train(
         collate_fn=detection_collate,
         generator=generator,
     )
-    resume_path = output_dir / "training_state.pt"
+    resume_path = (resume_source_dir or output_dir) / "training_state.pt"
+    output_resume_path = output_dir / "training_state.pt"
+    if resume and not resume_path.is_file():
+        raise FileNotFoundError(f"resume state is missing: {resume_path}")
     model = build_instrument_detector(
         config,
         use_pretrained=False if resume and resume_path.is_file() else use_pretrained,
@@ -160,10 +247,17 @@ def _train(
         "mode": mode,
         "initial_weights": config.initial_weights,
         "max_train_batches": max_train_batches,
+        "bbox_policy": bbox_policy,
+        "training_data": _training_data_identity(adapter, records, training_video_ids),
+        "model_contract": tracker_model_contract(model),
     }
     start_epoch = 0
     losses: list[float] = []
     if resume and resume_path.is_file():
+        if allow_legacy_resume:
+            _validate_legacy_resume_source(
+                resume_path.parent, output_dir, identity=identity,
+            )
         start_epoch, losses = load_tracker_training_state(
             resume_path,
             model=model,
@@ -171,6 +265,8 @@ def _train(
             loader_generator=generator,
             expected_identity=identity,
             map_location=device,
+            allow_legacy_identity=allow_legacy_resume,
+            restore_cuda_rng=device.type == "cuda",
         )
         if start_epoch > epochs:
             raise ValueError("Tracker resume epoch exceeds the requested epoch count")
@@ -211,7 +307,7 @@ def _train(
                 )
                 progress.update()
             save_tracker_training_state(
-                resume_path,
+                output_resume_path,
                 model=model,
                 optimizer=optimizer,
                 loader_generator=generator,
@@ -221,6 +317,13 @@ def _train(
             )
     if not losses:
         raise RuntimeError("tracker training completed no optimizer steps")
+    # Materialize a migrated state even when the requested epoch was already complete.
+    if start_epoch == epochs:
+        save_tracker_training_state(
+            output_resume_path, model=model, optimizer=optimizer,
+            loader_generator=generator, epoch_completed=epochs, losses=losses,
+            identity=identity,
+        )
     try:
         import torchvision
 
@@ -244,7 +347,15 @@ def _train(
         "optimizer_steps": len(losses),
         "mode": mode,
         "resumed_from_epoch": start_epoch,
-        "training_state_path": str(resume_path),
+        "training_state_path": str(output_resume_path),
+        "resume_source_path": str(resume_path) if resume else None,
+        "legacy_resume_explicit": allow_legacy_resume,
+        "cuda_rng_restore_requested": bool(resume and device.type == "cuda"),
+        "bbox_policy": bbox_policy,
+        "training_data": identity["training_data"],
+        "model_contract": tracker_model_contract(model),
+        "box_audit": box_audit,
+        "box_audit_scope": "eligible_videos_before_optional_smoke_record_limit",
     }
     checkpoint_path = save_tracker_checkpoint(
         output_dir / "checkpoint.pt", model=model, metadata=metadata
@@ -313,6 +424,7 @@ def _predict_videos(
             associator = CausalHungarianAssociator(
                 iou_threshold=config.association_iou_threshold,
                 max_age=config.max_age,
+                max_frame_id_gap=adapter.expected_frame_id_step,
             )
             associator.reset(video_id)
             frames: list[PredictedTrackFrame] = []
@@ -350,6 +462,7 @@ def _validation_targets(
     *,
     progress_enabled: bool = False,
     progress_file: IO[str] | None = None,
+    bbox_policy: str = "legacy_strict_v1",
 ) -> dict[tuple[str, int], list[tuple[int, tuple[float, float, float, float]]]]:
     targets: dict[
         tuple[str, int], list[tuple[int, tuple[float, float, float, float]]]
@@ -367,21 +480,16 @@ def _validation_targets(
                 evaluation = resolved.evaluation
                 if evaluation is None:
                     continue
-                targets[(video_id, resolved.inference.target_frame_id)] = [
-                    (
-                        instance.instrument_id,
-                        (
-                            instance.bbox.x,
-                            instance.bbox.y,
-                            instance.bbox.width,
-                            instance.bbox.height,
-                        ),
-                    )
-                    for instance in evaluation.instances
-                    if instance.mask.instrument
-                    and instance.bbox.has_positive_extent
-                    and instance.bbox.is_inside_unit_frame
-                ]
+                boxes = []
+                for instance in evaluation.instances:
+                    if not instance.mask.instrument:
+                        continue
+                    result = apply_bbox_policy(instance.bbox, policy=bbox_policy)
+                    if result.bbox is None:
+                        continue
+                    box = result.bbox
+                    boxes.append((instance.instrument_id, (box.x, box.y, box.width, box.height)))
+                targets[(video_id, resolved.inference.target_frame_id)] = boxes
             progress.update()
     return targets
 
@@ -392,6 +500,7 @@ def _write_metrics(
     predictions: dict[
         tuple[str, int], list[tuple[int, tuple[float, float, float, float], float]]
     ],
+    bbox_policy: str = "legacy_strict_v1",
     targets: dict[
         tuple[str, int], list[tuple[int, tuple[float, float, float, float]]]
     ],
@@ -404,6 +513,7 @@ def _write_metrics(
         [targets[key] for key in keys],
         num_classes=7,
     )
+    metrics["gt_bbox_policy"] = bbox_policy
     atomic_write_json(path, metrics)
 
 
@@ -444,6 +554,9 @@ def _run_full_or_smoke(
         use_pretrained=config.initial_weights == "COCO_V1",
         resume=args.resume,
         mode=args.mode,
+        bbox_policy=args.bbox_policy,
+        resume_source_dir=_resume_source_dir(args, output_root, output_dir),
+        allow_legacy_resume=args.allow_legacy_resume,
         progress_enabled=not args.no_progress,
     )
     if smoke:
@@ -492,7 +605,9 @@ def _run_full_or_smoke(
             adapter,
             validation_ids,
             progress_enabled=not args.no_progress,
+            bbox_policy=args.bbox_policy,
         ),
+        bbox_policy=args.bbox_policy,
     )
     return {
         "mode": args.mode,
@@ -514,6 +629,13 @@ def _run_oof(
 ) -> dict[str, object]:
     fold_outputs: list[dict[str, object]] = []
     video_to_artifact: dict[str, Path] = {}
+    full_checkpoint = output_root / "full/checkpoint.pt"
+    full_manifest_path = output_root / "full/training_manifest.json"
+    if not full_checkpoint.is_file() or not full_manifest_path.is_file():
+        raise RuntimeError("OOF export requires a completed full detector in the new output tree")
+    full_manifest = json.loads(full_manifest_path.read_text(encoding="utf-8"))
+    if full_manifest.get("bbox_policy", "legacy_strict_v1") != args.bbox_policy:
+        raise ValueError("OOF full detector uses a different bbox supervision policy")
     folds = deterministic_video_folds(qualified, config.oof_folds)
     for fold_index, held_out in enumerate(folds):
         training_ids = tuple(video_id for video_id in qualified if video_id not in held_out)
@@ -532,6 +654,9 @@ def _run_oof(
             use_pretrained=config.initial_weights == "COCO_V1",
             resume=args.resume,
             mode="oof",
+            bbox_policy=args.bbox_policy,
+            resume_source_dir=_resume_source_dir(args, output_root, output_dir),
+            allow_legacy_resume=args.allow_legacy_resume,
             progress_enabled=not args.no_progress,
         )
         videos, _ = _predict_videos(
@@ -575,6 +700,9 @@ def _run_oof(
     )
     if "VID31" in full_metadata.get("training_video_ids", []):
         raise RuntimeError("full checkpoint illegally consumed VID31 instance supervision")
+    full_policy = full_metadata.get("bbox_policy", "legacy_strict_v1")
+    if full_policy != args.bbox_policy:
+        raise ValueError("OOF VID31 checkpoint uses a different bbox supervision policy")
     vid31_videos, _ = _predict_videos(
         model=full_model,
         adapter=adapter,
@@ -627,9 +755,19 @@ def run(args: argparse.Namespace) -> dict[str, object]:
         raise ValueError("--max-train-batches must be positive")
     if args.max_prediction_frames is not None and args.max_prediction_frames <= 0:
         raise ValueError("--max-prediction-frames must be positive")
+    if (args.resume_source_root is not None or args.allow_legacy_resume) and not args.resume:
+        raise ValueError("resume options require --resume")
+    if args.allow_legacy_resume and args.bbox_policy != "legacy_strict_v1":
+        raise ValueError("legacy resume requires --bbox-policy legacy_strict_v1")
     dataset_config = load_yaml(PROJECT_ROOT / "configs/data/cholectrack20.yaml")
     dataset_root = resolve_dataset_root(dataset_config, cli_root=args.dataset_root)
-    output_root = args.output_root.expanduser().resolve()
+    default_name = (
+        "tracker_clip_v2" if args.bbox_policy == "clip_to_frame_v2"
+        else "tracker_legacy_replay_v1"
+    )
+    output_root = (
+        args.output_root or PROJECT_ROOT / "artifacts/training" / default_name
+    ).expanduser().resolve()
     if dataset_root == output_root or dataset_root in output_root.parents:
         raise ValueError("tracker outputs must be outside the dataset root")
     device = _device(args.device)

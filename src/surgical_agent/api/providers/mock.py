@@ -18,6 +18,7 @@ from surgical_agent.api.schema import (
     P3_SMOKE_SCHEMA_VERSION,
     TARGETED_VERIFICATION_SCHEMA_VERSION,
 )
+from surgical_agent.perception.final_only import FINAL_ONLY_SCHEMA_VERSION, TASKS
 from surgical_agent.perception.schema import (
     COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
     GATE_OWNED_COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
@@ -132,6 +133,19 @@ class MockProviderTransport:
                 "message": "deterministic mock multimodal response",
                 "image_observed": bool(request.images),
                 "structured": True,
+            }
+        elif request.response_schema_version == FINAL_ONLY_SCHEMA_VERSION:
+            selected = {"instrument": 0, "verb": 2, "target": 1, "ivt": 0, "phase": 0}
+            payload = {
+                "schema_version": FINAL_ONLY_SCHEMA_VERSION,
+                **{
+                    task: (
+                        {"selected_id": selected[task]}
+                        if task == "phase"
+                        else {"selected_ids": [selected[task]]}
+                    )
+                    for task in TASKS
+                },
             }
         elif request.response_schema_version in {
             JOINT_PERCEPTION_SCHEMA_VERSION,

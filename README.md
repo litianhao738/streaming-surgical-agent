@@ -4,9 +4,26 @@ CholecTrack20-only research code for strict-causal surgical video inference,
 predicted tracking, selective structured verification, and reliability-aware
 event memory.
 
-> **Status summary; the authoritative live checkpoint is
+## Main API Pipeline — 2026-09-06
+
+The main runnable API entry point is `scripts/run_dataset_api_pipeline.py`.
+It defaults to `configs/perception/joint_openrouter_h0.yaml`: OpenRouter
+`qwen/qwen3.8-max-0902`, strict Alibaba routing, three causal images
+`[t-50,t-25,t]`, and **one joint call for the target's I/V/T/IVT/Phase**.
+It uses the evaluated original prompt, the full 100-class IVT ontology, a strict
+final-label JSON schema, temperature 0 and low reasoning. The schema-only and
+tuned prompt candidates were not adopted. Runtime prompts are packaged with
+the code and do not depend on ignored experiment artifacts.
+
+Start with [the main API run guide](docs/MAIN_API_PIPELINE.md), including
+zero-cost request preflight, offline smoke and real API commands.
+Historical Tracker/Gate/Verifier experiments remain explicit separate profiles;
+the main H0 does not return ranking/confidence scores and is not silently
+connected to a Gate trained on the old top-k contract.
+
+> **Research Pipeline status; the authoritative live checkpoint is
 > [docs/README.md](docs/README.md):** the core final Pipeline is executable with
-> fixed six-frame input, predicted Tracker evidence, explicit hard Guard and
+> fixed three-frame input, predicted Tracker evidence, explicit hard Guard and
 > Rule/learned Gate slot, bounded targeted Verify/Repair, deterministic
 > postcheck, OutcomeFinalizer, atomic Memory/Pending state, exact provider-attempt
 > budgets and resumable D0 collection. Tracker OOF training/evaluation is
@@ -17,6 +34,7 @@ event memory.
 
 - [Complete target Pipeline architecture and pseudocode](docs/architecture/Streaming_Surgical_Final_Pipeline_Architecture_and_Pseudocode.md): the sole source of truth for the full online graph, every Guard/Gate/Repair path, fields, outcomes, causal Memory, and pseudocode; implementation is incomplete.
 - [Canonical Tracker × Gate ablation and academic protocol](docs/architecture/CANONICAL_PIPELINE_TRACKER_GATE_SPEC_2026-09-03.md): the sole source of truth for the `A_base/B_tracker/C_gate/D_full` experiment, labels, frame clock, statistics, and research gates.
+- [Three-frame causal input decision](docs/architecture/CAUSAL_THREE_FRAME_DECISION_2026-09-04.md): records the current fixed three-frame visual contract and keeps older six-frame artifacts historical.
 - [V3.1-API academic architecture revision](docs/architecture/Streaming_SurgicalAgent_V3_1_API_学术修订版完整项目与代码架构说明.md): historical research rationale and claim framing where it does not conflict with the two sources above.
 - [V3.1-API Codex implementation specification](docs/architecture/Streaming_SurgicalAgent_V3_1_API_Codex_Implementation_Spec.md): legacy detailed engineering guidance where it does not conflict with the two sources above.
 
@@ -53,10 +71,13 @@ CLI option or resolved configuration; it must not be embedded in source code.
 - CholecTrack20 is external and read only. Resolve it with `--dataset-root`, then
   `CHOLECTRACK20_ROOT`, then an optional local config value; source code and the
   committed default config contain no workstation path.
-- Main requested backbone: OpenRouter `openai/gpt-5.6-sol` for joint perception
-  and same-backbone joint verification. Requested and provider-returned model
-  identifiers are persisted separately for audit.
-- Dataset API rollouts use the versioned
+- Main requested backbone: OpenRouter `qwen/qwen3.8-max-0902` for one-call joint
+  initial perception. Requested and returned identifiers are both persisted.
+- Main H0 uses `joint_perception_final_only_v1`: selected label IDs only,
+  without top-k, generated confidence, or reasoning prose. Internal vectors
+  carry `hard_label_v1` semantics; their 0/1 values are label indicators,
+  not probabilities or suitable calibrated scores for mAP.
+- Historical research rollouts can explicitly select the versioned
   `joint_perception_gate_owned_compact_v1` wire
   contract (I3/V4/T5/IVT8/P3). The parser places returned IDs into the original
   7/10/15/100/7 task vectors and zero-fills omitted classes, so evaluator shapes
@@ -155,21 +176,24 @@ supervision.
 
 ### Formal input contract
 
-The final Pipeline profiles use a fixed causal window of up to six ordered
+The final Pipeline profiles use a fixed causal window of up to three ordered
 images and never let Tracker select images. JointPerception and targeted Verify
 receive the same selected frame IDs in all four cells. Verify omits Tracker,
 workflow and Memory fields, preserving the Tracker ablation boundary. Verify is
 also blind to H0 selections and upstream rank scores, labels the target frame
 rather than the union of its history, and receives all seven Phase IDs. Frozen
 unrequested-IVT components are passed only as deterministic closure constraints. Older
-three-image/adaptive dataset profiles remain legacy engineering or supplementary
+six-frame/adaptive dataset profiles remain legacy engineering or supplementary
 profiles and are not valid for the primary factorial.
 
 For a one-call full-window engineering probe, combine
 `--target-frame-id <FRAME_ID>` with `--max-frames 1`; the selected target must
 exist in the requested video.
 
-## P3 API infrastructure
+## Historical API / verification experiments
+
+The commands and top-k profiles below are retained for research reproduction.
+For the default final-label H0, use [the main API guide](docs/MAIN_API_PIPELINE.md).
 
 The deterministic mock exercises multimodal transport boundaries, structured
 response validation, one injected retry, canonical request hashing, cache replay,

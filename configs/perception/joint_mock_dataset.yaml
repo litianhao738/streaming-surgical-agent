@@ -11,5 +11,5 @@ provider_options: {}
 synthetic_input_required: false
 cache_required: true
 data_upload_authorized: true
-max_causal_frames: 6
+max_causal_frames: 3
 max_api_images: 3

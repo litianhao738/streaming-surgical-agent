@@ -102,7 +102,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--config",
         type=Path,
-        default=PROJECT_ROOT / "configs/perception/joint_openai_fixed6_dataset.yaml",
+        default=PROJECT_ROOT / "configs/perception/joint_openai_fixed3_dataset.yaml",
     )
     parser.add_argument(
         "--api-key-file",
@@ -131,12 +131,12 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=PROJECT_ROOT / "artifacts/training/learned_gate",
+        default=PROJECT_ROOT / "artifacts/training/learned_gate_fixed3",
     )
     parser.add_argument(
         "--cache-root",
         type=Path,
-        default=PROJECT_ROOT / "artifacts/api_dataset_cache/openai_fixed6_shared",
+        default=PROJECT_ROOT / "artifacts/api_dataset_cache/openai_fixed3_shared",
     )
     parser.add_argument("--seed", type=int, default=20260831)
     parser.add_argument("--collect-only", action="store_true")
@@ -160,7 +160,7 @@ def _first_full_window_frame(
     for resolved in adapter.iter_video(video_id):
         if len(resolved.inference.causal_frame_ids) == adapter.causal_window_size:
             return resolved.inference.target_frame_id
-    raise ValueError("selected video has no complete six-frame causal window")
+    raise ValueError("selected video has no complete three-frame causal window")
 
 
 def _partition_for_position(
@@ -212,11 +212,14 @@ def main() -> None:
         or config.requested_model_identifier != "gpt-5.6-sol"
     ):
         raise SystemExit("training collector requires the fixed official OpenAI config")
-    if config.max_causal_frames != 6 or config.max_api_images != 6:
-        raise SystemExit("training collector requires the fixed six-frame config")
+    if config.max_causal_frames != 3 or config.max_api_images != 3:
+        raise SystemExit("training collector requires the fixed three-frame config")
 
     dataset_root = args.dataset_root.expanduser().resolve()
-    adapter = CholecTrack20DatasetAdapter(dataset_root, causal_window_size=6)
+    adapter = CholecTrack20DatasetAdapter(
+        dataset_root,
+        causal_window_size=config.max_causal_frames,
+    )
     video_id = args.video_id.upper()
     entry = adapter.entries.get(video_id)
     if entry is None or entry.split is not DatasetSplit.TRAINING:
@@ -318,7 +321,7 @@ def main() -> None:
         "schema_version": "learned_gate_training_split_v1",
         "source_split": "Training",
         "video_id": video_id,
-        "fixed_six_frames": True,
+        "fixed_causal_frames": 3,
         "initial_prompt_uses_tracker": False,
         "train_frame_ids": [
             item.frame_id for item in examples if item.partition == "train"

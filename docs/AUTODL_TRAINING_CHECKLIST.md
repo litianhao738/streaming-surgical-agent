@@ -29,7 +29,7 @@ the rule Gate are deterministic and also require no gradient training.
    metrics, and `predicted_tracks.json`. Run `--mode oof` before D0/D1 so every
    Training video uses a checkpoint that excluded it.
 2. **Local Joint Perception — ready for AutoDL training.**
-   `scripts/train_perception.py` now trains one causal six-frame model with
+   `scripts/train_perception.py` now trains one causal three-frame model with
    Instrument/Verb/Target/IVT multi-label heads and a Phase single-label head.
    It trains only on Training, calibrates thresholds on Validation, never opens
    Testing, and exports a loadable checkpoint plus validation metrics.
@@ -51,7 +51,7 @@ the rule Gate are deterministic and also require no gradient training.
    The active Repair-development path is now the conservative same-model V7
    contract: `--api-config` supplies Joint H0 and `--verification-api-config`
    supplies the same GPT model with
-   `targeted_openrouter_gpt56sol_constrained_fixed6.yaml`. Interaction verification
+   `targeted_openrouter_gpt56sol_constrained_fixed3.yaml`. Interaction verification
    selects IVT only and derives I/V/T deterministically; Verified cannot coexist
    with uncertainty; and hard-valid H0 cannot be replaced automatically. The
    two-frame VID13 endpoint probe on 2026-09-04 had 6/6 successful fresh Verifier

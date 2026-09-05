@@ -11,6 +11,7 @@ from surgical_agent.api.schema import TARGETED_VERIFICATION_SCHEMA_VERSION
 from surgical_agent.config.final_experiment import TrackerGateCell
 from surgical_agent.config.schema import ApiConfig
 from surgical_agent.perception.context_builder import CausalPerceptionContextBuilder
+from surgical_agent.perception.final_only import FINAL_ONLY_SCHEMA_VERSION
 from surgical_agent.perception.joint_api_vlm import (
     JointApiVlm,
     JointPerceptionRequestBuilder,
@@ -37,6 +38,8 @@ from surgical_agent.research.verification.hypotheses import FactorizedCandidateG
 from surgical_agent.research.verification.targeted_api import (
     TARGETED_VERIFICATION_PROMPT_V6,
     TARGETED_VERIFICATION_PROMPT_V7,
+    TARGETED_VERIFICATION_PROMPT_V8,
+    TARGETED_VERIFICATION_PROMPT_V9,
     TargetedApiVerifier,
     TargetedVerificationRequestBuilder,
 )
@@ -111,7 +114,9 @@ def validate_heterogeneous_verifier_pair(
         verification_config.response_schema_version
         != TARGETED_VERIFICATION_SCHEMA_VERSION
     ):
-        raise ValueError("Verifier config must declare the targeted verification schema")
+        raise ValueError(
+            "Verifier config must declare the targeted verification schema"
+        )
 
 
 def validate_verifier_pair(
@@ -130,7 +135,9 @@ def validate_verifier_pair(
         verification_config.response_schema_version
         != TARGETED_VERIFICATION_SCHEMA_VERSION
     ):
-        raise ValueError("Verifier config must declare the targeted verification schema")
+        raise ValueError(
+            "Verifier config must declare the targeted verification schema"
+        )
     same_model = (
         initial_config.provider == verification_config.provider
         and initial_config.endpoint_identifier
@@ -139,8 +146,14 @@ def validate_verifier_pair(
         == verification_config.requested_model_identifier
     )
     if same_model:
-        if verification_config.prompt_version != TARGETED_VERIFICATION_PROMPT_V7:
-            raise ValueError("same-model Verifier must use the conservative V7 prompt")
+        if verification_config.prompt_version not in {
+            TARGETED_VERIFICATION_PROMPT_V7,
+            TARGETED_VERIFICATION_PROMPT_V8,
+            TARGETED_VERIFICATION_PROMPT_V9,
+        }:
+            raise ValueError(
+                "same-model Verifier must use V7, V8, or V9 review prompts"
+            )
         return
     validate_heterogeneous_verifier_pair(initial_config, verification_config)
 
@@ -171,7 +184,9 @@ def build_final_api_pipeline(
     state_dir: str | Path | None = None,
     track_provider: object | None = None,
     phase_transition_graph: PhaseTransitionGraph | None = None,
+    phase_instrument_ivt_prior: Mapping[tuple[int, int], tuple[int, ...]] | None = None,
     strict_phase_allowed_ivt: Mapping[int, tuple[int, ...]] | None = None,
+    phase_ivt_support: Mapping[int, tuple[int, ...]] | None = None,
     pending_resolution_backend: PendingResolutionBackend | None = None,
 ) -> FinalStreamingPipeline:
     """Assemble one executable cell; no legacy coordinator or Gate may enter."""
@@ -179,18 +194,24 @@ def build_final_api_pipeline(
     if not isinstance(api_config, ApiConfig):
         raise TypeError("api_config must be ApiConfig")
     api_config.validate()
+    if api_config.response_schema_version == FINAL_ONLY_SCHEMA_VERSION:
+        raise ValueError(
+            "final-only H0 has no confidence rankings and cannot use the legacy "
+            "Tracker/Gate/Verifier pipeline; run scripts/run_dataset_api_pipeline.py "
+            "with the main H0 single_pass experiment, or select an explicit ranked "
+            "research configuration for this factory"
+        )
     validate_verifier_pair(api_config, verification_api_config)
     if verification_client is None and (
         api_config.provider != verification_api_config.provider
-        or api_config.endpoint_identifier
-        != verification_api_config.endpoint_identifier
+        or api_config.endpoint_identifier != verification_api_config.endpoint_identifier
     ):
-        raise ValueError(
-            "cross-provider verification requires verification_client"
-        )
+        raise ValueError("cross-provider verification requires verification_client")
     effective_verification_client = verification_client or client
-    if api_config.max_causal_frames != 6 or api_config.max_api_images != 6:
-        raise ValueError("the final Pipeline API config must expose all six causal images")
+    if api_config.max_causal_frames != 3 or api_config.max_api_images != 3:
+        raise ValueError(
+            "the final Pipeline API config must expose all three causal images"
+        )
     provider_options = api_config.provider_options
     if provider_options.get("frame_selection_strategy") != "fixed_all":
         raise ValueError("the final Pipeline forbids adaptive frame selection")
@@ -208,10 +229,10 @@ def build_final_api_pipeline(
         )
     verification_provider_options = verification_api_config.provider_options
     if (
-        verification_api_config.max_causal_frames != 6
-        or verification_api_config.max_api_images != 6
+        verification_api_config.max_causal_frames != 3
+        or verification_api_config.max_api_images != 3
     ):
-        raise ValueError("the Verifier must expose all six causal images")
+        raise ValueError("the Verifier must expose all three causal images")
     if verification_provider_options.get("frame_selection_strategy") != "fixed_all":
         raise ValueError("the Verifier forbids adaptive frame selection")
     if verification_provider_options.get("history_image_detail") != "low":
@@ -222,15 +243,20 @@ def build_final_api_pipeline(
         verification_provider_options.get("verification_prompt_profile")
         != "fixed_visual_only"
     ):
-        raise ValueError(
-            "Specialist input must remain identical across Tracker cells"
-        )
+        raise ValueError("Specialist input must remain identical across Tracker cells")
     if cell.tracker_enabled and track_provider is None:
         raise ValueError("Tracker-enabled cells require one predicted-track provider")
     if not cell.tracker_enabled and track_provider is not None:
         raise ValueError("Tracker-disabled cells forbid a track provider")
 
     shared = cell.shared
+    coverage_review = (
+        verification_api_config.prompt_version == "targeted_verification_prompt_v9"
+    )
+    if coverage_review and cell.gate_mode == "LEARNED":
+        raise ValueError(
+            "V9 coverage requires freshly collected Gate supervision; use RULE for the capability pilot"
+        )
     context = _mapping(shared["context"], "context")
     safety = _mapping(shared["safety"], "safety")
     verification = _mapping(shared["verification"], "verification")
@@ -247,7 +273,9 @@ def build_final_api_pipeline(
         require_component_coverage=bool(safety["require_component_coverage"]),
     )
     if cell.gate_mode == "RULE":
-        gate = RuleBenefitGate(risk_threshold=float(shared.get("rule_gate_threshold", 0.5)))
+        gate = RuleBenefitGate(
+            risk_threshold=float(shared.get("rule_gate_threshold", 0.5))
+        )
     else:
         assert cell.gate_artifact is not None
         gate = LearnedBenefitGate(
@@ -268,6 +296,7 @@ def build_final_api_pipeline(
             context=context_value,
             candidates=candidates,
             evidence=evidence,
+            phase_transition_graph=phase_transition_graph,
         )
 
     return FinalStreamingPipeline(
@@ -284,12 +313,18 @@ def build_final_api_pipeline(
                 request_builder=JointPerceptionRequestBuilder(config=api_config),
                 data_upload_authorized=api_config.data_upload_authorized,
             ),
-            candidate_generator=FactorizedCandidateGenerator(),
+            candidate_generator=FactorizedCandidateGenerator(
+                max_candidates_per_task=20,
+                phase_instrument_ivt_prior=phase_instrument_ivt_prior,
+                complete_ontology=coverage_review,
+            ),
             signal_extractor=FrameEvidenceSignalExtractor(
                 phase_transition_graph=phase_transition_graph
             ),
             safety_validator=validator,
-            support_builder=DecisionSupportBuilder(),
+            support_builder=DecisionSupportBuilder(
+                phase_ivt_support=phase_ivt_support if coverage_review else None
+            ),
             mandatory_guard=MandatorySafetyGuard(),
             benefit_gate=gate,
             budget=VerificationBudgetManager(
@@ -330,6 +365,7 @@ def build_final_api_pipeline(
             max_verify_attempts=_integer(
                 verification["max_attempts"], "verification.max_attempts"
             ),
+            max_coverage_scopes=3 if coverage_review else 1,
         )
     )
 

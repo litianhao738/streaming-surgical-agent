@@ -11,6 +11,7 @@ from surgical_agent.research.signals.frame_evidence import (
 )
 from surgical_agent.research.signals.phase_graph import (
     PhaseObservation,
+    build_phase_instrument_ivt_prior_from_training_adapter,
     build_phase_ivt_compatibility_from_training_adapter,
     build_phase_transition_graph,
     build_phase_transition_graph_from_training_adapter,
@@ -25,6 +26,7 @@ __all__ = [
     "FrameEvidenceSignalExtractor",
     "PhaseObservation",
     "PhaseTransitionGraph",
+    "build_phase_instrument_ivt_prior_from_training_adapter",
     "build_phase_ivt_compatibility_from_training_adapter",
     "build_phase_transition_graph",
     "build_phase_transition_graph_from_training_adapter",

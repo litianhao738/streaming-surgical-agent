@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from scripts import run_final_dataset_pipeline as final_dataset_cli
 from surgical_agent.config.final_experiment import (
     load_tracker_gate_cell,
     validate_tracker_gate_matrix,
@@ -62,7 +63,7 @@ class _UnusedClient:
         raise AssertionError(request)
 
 
-def _api_config(*, max_images: int = 6) -> ApiConfig:
+def _api_config(*, max_images: int = 3) -> ApiConfig:
     return ApiConfig.from_mapping(
         {
             "enabled": True,
@@ -72,7 +73,7 @@ def _api_config(*, max_images: int = 6) -> ApiConfig:
             "requested_model_identifier": "mock-final-pipeline-v1",
             "prompt_version": "joint_perception_v1",
             "response_schema_version": "joint_perception_v1",
-            "max_causal_frames": 6,
+            "max_causal_frames": 3,
             "max_api_images": max_images,
             "provider_options": {
                 "frame_selection_strategy": "fixed_all",
@@ -98,8 +99,8 @@ def _verification_api_config(
             "requested_model_identifier": model,
             "prompt_version": "targeted_verification_prompt_v6",
             "response_schema_version": "targeted_verification_v1",
-            "max_causal_frames": 6,
-            "max_api_images": 6,
+            "max_causal_frames": 3,
+            "max_api_images": 3,
             "provider_options": {
                 "frame_selection_strategy": "fixed_all",
                 "history_image_detail": "low",
@@ -109,6 +110,29 @@ def _verification_api_config(
             },
         }
     )
+
+
+def test_final_dataset_entry_uses_the_configured_three_frame_window(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    observed: dict[str, object] = {}
+
+    class _AdapterProbe:
+        def __init__(self, root: Path, *, causal_window_size: int) -> None:
+            observed["root"] = root
+            observed["causal_window_size"] = causal_window_size
+
+    monkeypatch.setattr(
+        final_dataset_cli,
+        "CholecTrack20DatasetAdapter",
+        _AdapterProbe,
+    )
+
+    adapter = final_dataset_cli._build_dataset_adapter(tmp_path, _api_config())
+
+    assert isinstance(adapter, _AdapterProbe)
+    assert observed == {"root": tmp_path, "causal_window_size": 3}
 
 
 def test_factory_assembles_rule_cell_without_legacy_coordinator(tmp_path: Path) -> None:
@@ -155,17 +179,32 @@ def test_heterogeneous_verifier_rejects_the_initial_model() -> None:
 
 def test_conservative_v7_accepts_the_same_initial_model() -> None:
     initial = load_api_config(
-        PROJECT_ROOT / "configs/perception/joint_openrouter_final_fixed6.yaml"
+        PROJECT_ROOT / "configs/perception/joint_openrouter_final_fixed3.yaml"
     )
     verification = load_api_config(
         PROJECT_ROOT
-        / "configs/perception/targeted_openrouter_gpt56sol_constrained_fixed6.yaml"
+        / "configs/perception/targeted_openrouter_gpt56sol_constrained_fixed3.yaml"
     )
 
     validate_verifier_pair(initial, verification)
 
     assert initial.requested_model_identifier == verification.requested_model_identifier
     assert verification.prompt_version == "targeted_verification_prompt_v7"
+
+
+def test_evidence_first_v8_accepts_the_same_initial_model() -> None:
+    initial = load_api_config(
+        PROJECT_ROOT / "configs/perception/joint_openrouter_final_fixed3.yaml"
+    )
+    verification = load_api_config(
+        PROJECT_ROOT
+        / "configs/perception/targeted_openrouter_gpt56sol_evidence_first_fixed3.yaml"
+    )
+
+    validate_verifier_pair(initial, verification)
+
+    assert initial.requested_model_identifier == verification.requested_model_identifier
+    assert verification.prompt_version == "targeted_verification_prompt_v8"
 
 
 def test_cross_provider_verifier_requires_an_independent_client(tmp_path: Path) -> None:
@@ -178,8 +217,8 @@ def test_cross_provider_verifier_requires_an_independent_client(tmp_path: Path) 
             "requested_model_identifier": "grok-4.6",
             "prompt_version": "targeted_verification_prompt_v6",
             "response_schema_version": "targeted_verification_v1",
-            "max_causal_frames": 6,
-            "max_api_images": 6,
+            "max_causal_frames": 3,
+            "max_api_images": 3,
             "provider_options": {
                 "frame_selection_strategy": "fixed_all",
                 "history_image_detail": "low",
@@ -190,7 +229,7 @@ def test_cross_provider_verifier_requires_an_independent_client(tmp_path: Path) 
         }
     )
     initial = load_api_config(
-        PROJECT_ROOT / "configs/perception/joint_openrouter_final_fixed6.yaml"
+        PROJECT_ROOT / "configs/perception/joint_openrouter_final_fixed3.yaml"
     )
 
     validate_heterogeneous_verifier_pair(initial, verification)
@@ -218,14 +257,14 @@ def test_cross_provider_verifier_requires_an_independent_client(tmp_path: Path) 
     ("config_name", "expected_model"),
     [
         (
-            "targeted_openrouter_gemini31pro_fixed6.yaml",
+            "targeted_openrouter_gemini31pro_fixed3.yaml",
             "google/gemini-3.1-pro-preview",
         ),
         (
-            "targeted_openrouter_claude46_fixed6.yaml",
+            "targeted_openrouter_claude46_fixed3.yaml",
             "anthropic/claude-sonnet-4.6",
         ),
-        ("targeted_xai_grok46_fixed6.yaml", "grok-4.6"),
+        ("targeted_xai_grok46_fixed3.yaml", "grok-4.6"),
     ],
 )
 def test_checked_in_capability_candidates_are_cross_family_and_blind(
@@ -233,11 +272,9 @@ def test_checked_in_capability_candidates_are_cross_family_and_blind(
     expected_model: str,
 ) -> None:
     initial = load_api_config(
-        PROJECT_ROOT / "configs/perception/joint_openrouter_final_fixed6.yaml"
+        PROJECT_ROOT / "configs/perception/joint_openrouter_final_fixed3.yaml"
     )
-    verification = load_api_config(
-        PROJECT_ROOT / "configs/perception" / config_name
-    )
+    verification = load_api_config(PROJECT_ROOT / "configs/perception" / config_name)
 
     validate_heterogeneous_verifier_pair(initial, verification)
 
@@ -249,10 +286,10 @@ def test_checked_in_capability_candidates_are_cross_family_and_blind(
 
 
 def test_factory_rejects_an_api_config_that_hides_causal_images() -> None:
-    with pytest.raises(ValueError, match="all six"):
+    with pytest.raises(ValueError, match="all three"):
         build_final_api_pipeline(
             client=_UnusedClient(),  # type: ignore[arg-type]
-            api_config=_api_config(max_images=3),
+            api_config=_api_config(max_images=2),
             verification_api_config=_verification_api_config(),
             cell=_load_formal_cells()[0],
         )

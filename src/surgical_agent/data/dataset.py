@@ -39,6 +39,7 @@ from surgical_agent.data.targets import build_evaluation_target, build_inference
 
 PNG_ALIGNMENT_VERSION = "ct20_exact_png_stem_v1"
 MP4_ALIGNMENT_VERSION = "ct20_test_mp4_annotation_id_minus_1_v1"
+CHOLECTRACK20_ANNOTATION_FRAME_ID_STEP = 25
 
 
 class DatasetContractError(RuntimeError):
@@ -50,13 +51,29 @@ def _causal_from_sorted(
     *,
     target_frame_id: int,
     max_frames: int,
+    expected_frame_id_step: int,
 ) -> tuple[int, ...]:
-    """Build a window in logarithmic time from an already validated index."""
+    """Build the latest contiguous causal window from a validated frame index."""
+
+    if (
+        not isinstance(expected_frame_id_step, int)
+        or isinstance(expected_frame_id_step, bool)
+        or expected_frame_id_step <= 0
+    ):
+        raise ValueError("expected_frame_id_step must be a positive integer")
 
     position = bisect_right(available_frame_ids, target_frame_id)
     if position == 0 or available_frame_ids[position - 1] != target_frame_id:
         raise DatasetContractError(f"No exact media for frame {target_frame_id}")
-    return available_frame_ids[max(0, position - max_frames) : position]
+    first = position - 1
+    lower_bound = max(0, position - max_frames)
+    while (
+        first > lower_bound
+        and available_frame_ids[first] - available_frame_ids[first - 1]
+        == expected_frame_id_step
+    ):
+        first -= 1
+    return available_frame_ids[first:position]
 
 
 @dataclass(frozen=True)
@@ -207,11 +224,19 @@ class CholecTrack20DatasetAdapter:
         *,
         derived_manifest_path: str | Path | None = None,
         causal_window_size: int = 3,
+        expected_frame_id_step: int = CHOLECTRACK20_ANNOTATION_FRAME_ID_STEP,
     ) -> None:
         if causal_window_size <= 0:
             raise ValueError("causal_window_size must be positive")
+        if (
+            not isinstance(expected_frame_id_step, int)
+            or isinstance(expected_frame_id_step, bool)
+            or expected_frame_id_step <= 0
+        ):
+            raise ValueError("expected_frame_id_step must be a positive integer")
         self.dataset_root = Path(dataset_root).expanduser().resolve()
         self.causal_window_size = causal_window_size
+        self.expected_frame_id_step = expected_frame_id_step
         entries = discover_official_split_manifest(self.dataset_root)
         self.entries = {entry.video_id: entry for entry in entries}
         split_counts = {
@@ -359,6 +384,7 @@ class CholecTrack20DatasetAdapter:
                 frame_ids,
                 target_frame_id=frame_id,
                 max_frames=self.causal_window_size,
+                expected_frame_id_step=self.expected_frame_id_step,
             )
             yield InferenceSample(
                 video_id=entry.video_id,
@@ -439,6 +465,7 @@ class CholecTrack20DatasetAdapter:
                 available,
                 target_frame_id=frame.frame_id,
                 max_frames=self.causal_window_size,
+                expected_frame_id_step=self.expected_frame_id_step,
             )
             refs = tuple(resolver.resolve(value).media_path for value in causal_ids)
             inference = build_inference_sample(
@@ -514,6 +541,7 @@ class CholecTrack20DatasetAdapter:
                 available,
                 target_frame_id=frame_id,
                 max_frames=self.causal_window_size,
+                expected_frame_id_step=self.expected_frame_id_step,
             )
             refs = tuple(resolver.resolve(value).media_path for value in causal_ids)
             inference = InferenceSample(
@@ -584,6 +612,7 @@ class CholecTrack20DatasetAdapter:
                 frame_ids,
                 target_frame_id=frame_id,
                 max_frames=self.causal_window_size,
+                expected_frame_id_step=self.expected_frame_id_step,
             )
             refs = tuple(resolver.resolve(value).media_path for value in causal_ids)
             yield ResolvedSample(
