@@ -9,6 +9,10 @@ baseline prompt and final-label five-head JSON. It is now the default of
 `--preflight` mode that sends no API request. `joint_openrouter_h0.yaml` is the
 one main real configuration; `joint_mock_h0.yaml` exercises the same protocol offline.
 
+The [collaborator quickstart](API_EXPERIMENT_QUICKSTART_2026-09-06.md) documents
+the published synchronous baseline, installation, three-target smoke, full-split
+selection and independent GT scoring. Record the Git commit with every run.
+
 The following authority and implementation notes describe the separate research
 Tracker/Gate/Verifier Pipeline. Its top-k-dependent Gate is not compatible with
 main H0's hard labels and is explicitly rejected rather than supplied invented

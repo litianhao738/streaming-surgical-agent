@@ -17,6 +17,8 @@ the code and do not depend on ignored experiment artifacts.
 
 Start with [the main API run guide](docs/MAIN_API_PIPELINE.md), including
 zero-cost request preflight, offline smoke and real API commands.
+New collaborators should follow the [clone-to-results quickstart](docs/API_EXPERIMENT_QUICKSTART_2026-09-06.md)
+for installation, external dataset requirements, a three-target run and offline scoring.
 Historical Tracker/Gate/Verifier experiments remain explicit separate profiles;
 the main H0 does not return ranking/confidence scores and is not silently
 connected to a Gate trained on the old top-k contract.

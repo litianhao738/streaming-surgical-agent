@@ -220,10 +220,20 @@ def load_evaluation_data(
             )
             available_ids = resolver.available_frame_ids
             requested_count = len(predictions_by_video[video_id])
+            start_index = 0
+            if run.mode == "engineering" and requested_count:
+                # The engineering CLI permits an explicit start target. Rebuild
+                # its contiguous media slice, not an assumed video prefix.
+                first_id = predictions_by_video[video_id][0]
+                if first_id not in available_ids:
+                    raise OfflineEvaluationError(
+                        f"prediction start is outside canonical selection for {video_id}"
+                    )
+                start_index = available_ids.index(first_id)
             selected_ids = (
                 available_ids
                 if run.mode == "paper"
-                else available_ids[:requested_count]
+                else available_ids[start_index:start_index + requested_count]
             )
         else:
             video_dir = root / "Testing" / video_id

@@ -3,6 +3,10 @@
 Updated 2026-09-06. This is the main entry point for the adopted initial five-head
 predictor. The old full research Pipeline remains available separately.
 See the [promotion and validation record](MAIN_H0_PROMOTION_2026-09-06.md).
+For a fresh download, use the [collaborator quickstart](API_EXPERIMENT_QUICKSTART_2026-09-06.md).
+This published baseline uses synchronous OpenRouter calls. Its protocol is fixed
+by `validate_main_h0_config()` and the prompt hash regression test; changing the
+model, route, prompt or image window constitutes a separate experiment.
 
 ## Adopted protocol
 
@@ -77,7 +81,6 @@ One complete official split can be selected with `--mode paper --split validatio
 or `--split testing`, omitting the per-video and maximum-frame arguments.
 This selector means complete-split execution, not publication eligibility.
 Do not launch the full split before estimating its sample count and spend.
-The current user request only promoted the code; it did not launch a paid run.
 
 ## Result semantics
 

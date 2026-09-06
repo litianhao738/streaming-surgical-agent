@@ -186,3 +186,51 @@ def test_validation_loader_reports_media_only_identity(tmp_path: Path) -> None:
 
     assert data.runtime_identities == (("VID110", 1), ("VID110", 2))
     assert tuple(data.targets) == (("VID110", 1),)
+
+
+@pytest.mark.parametrize(
+    ("mode", "frame_ids", "valid"),
+    [
+        ("engineering", (51, 76), True),
+        ("engineering", (1, 26), True),
+        ("engineering", (26, 76), False),
+        ("engineering", (50, 76), False),
+        ("engineering", (76, 51), False),
+        ("paper", (51, 76), False),
+        ("paper", (1, 26, 51, 76), True),
+    ],
+)
+def test_validation_selection_honors_start_without_allowing_skipped_frames(
+    tmp_path: Path, mode: str, frame_ids: tuple[int, ...], valid: bool,
+) -> None:
+    dataset = tmp_path / "dataset"
+    video_dir = dataset / "Validation" / "VID110"
+    frames_dir = video_dir / "Frames"
+    frames_dir.mkdir(parents=True)
+    for frame_id in (1, 26, 51, 76):
+        (frames_dir / f"{frame_id}.png").touch()
+    payload = _annotation_payload()
+    annotation = payload["annotations"]["1"]
+    payload["annotations"] = {str(fid): annotation for fid in (1, 26, 51, 76)}
+    payload["video"]["num_frames"] = 4
+    (video_dir / "vid110.json").write_text(json.dumps(payload), encoding="utf-8")
+    repair_path = dataset / "repair_manifest.json"
+    repair_path.write_text("{}\n", encoding="utf-8")
+    run = SimpleNamespace(
+        effective_split=DatasetSplit.VALIDATION,
+        mode=mode,
+        declared_split=DatasetSplit.VALIDATION if mode == "paper" else None,
+        video_ids=("VID110",),
+        predictions=tuple(
+            SimpleNamespace(video_id="VID110", frame_id=fid) for fid in frame_ids
+        ),
+        prediction_identities=tuple(("VID110", fid) for fid in frame_ids),
+        repair_manifest_sha256=hashlib.sha256(repair_path.read_bytes()).hexdigest(),
+    )
+    if not valid:
+        with pytest.raises(OfflineEvaluationError, match="canonical selection"):
+            load_evaluation_data(run, dataset, authorize_test_gt_evaluation=False)
+        return
+    data = load_evaluation_data(run, dataset, authorize_test_gt_evaluation=False)
+    assert data.runtime_identities == run.prediction_identities
+    assert tuple(data.targets) == run.prediction_identities
