@@ -1,0 +1,202 @@
+{
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "h0_prior_panel_judge_v1"
+    },
+    "assessments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "proposition_id": {
+            "type": "string",
+            "pattern": "^p[0-9]{3}$"
+          },
+          "presence": {
+            "type": "string",
+            "enum": [
+              "PRESENT",
+              "ABSENT",
+              "UNCLEAR"
+            ]
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "FRAME",
+              "LOCAL",
+              "UNCLEAR"
+            ]
+          },
+          "full_frame_reviewed": {
+            "type": "boolean"
+          },
+          "other_instances_accounted_for": {
+            "type": "boolean"
+          },
+          "evidence_refs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 160
+            },
+            "minItems": 0,
+            "maxItems": 4
+          },
+          "witness": {
+            "type": "object",
+            "properties": {
+              "local_instance_id": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 32
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "target_frame_ref": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "tool_point_xy": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    "minItems": 2,
+                    "maxItems": 2
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "interaction_point_xy": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    "minItems": 2,
+                    "maxItems": 2
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "target_role": {
+                "type": "string",
+                "enum": [
+                  "INTERACTION_TARGET",
+                  "VISIBLE_ONLY",
+                  "NOT_APPLICABLE",
+                  "UNCLEAR"
+                ]
+              },
+              "same_interaction": {
+                "type": "string",
+                "enum": [
+                  "YES",
+                  "NO",
+                  "NOT_APPLICABLE",
+                  "UNCLEAR"
+                ]
+              },
+              "ontology_boundary": {
+                "type": "string",
+                "enum": [
+                  "IN_VOCABULARY",
+                  "VERB_OUT_OF_VOCABULARY",
+                  "TARGET_OUT_OF_VOCABULARY",
+                  "JOINT_OUT_OF_VOCABULARY",
+                  "NOT_APPLICABLE",
+                  "UNCLEAR"
+                ]
+              },
+              "temporal_refs": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 160
+                },
+                "minItems": 0,
+                "maxItems": 3
+              }
+            },
+            "required": [
+              "local_instance_id",
+              "target_frame_ref",
+              "tool_point_xy",
+              "interaction_point_xy",
+              "target_role",
+              "same_interaction",
+              "ontology_boundary",
+              "temporal_refs"
+            ],
+            "additionalProperties": false
+          },
+          "issue_codes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "NONE",
+                "TOOL_IDENTITY",
+                "ACTION_EVIDENCE",
+                "TARGET_ROLE",
+                "INTERACTION_BINDING",
+                "OCCLUSION",
+                "TEMPORAL_PERSISTENCE",
+                "OTHER_INSTANCE",
+                "ONTOLOGY_BOUNDARY"
+              ]
+            },
+            "minItems": 1,
+            "maxItems": 3
+          },
+          "observation": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "proposition_id",
+          "presence",
+          "scope",
+          "full_frame_reviewed",
+          "other_instances_accounted_for",
+          "evidence_refs",
+          "witness",
+          "issue_codes",
+          "observation"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "maxItems": 48
+    }
+  },
+  "required": [
+    "schema_version",
+    "assessments"
+  ],
+  "additionalProperties": false
+}

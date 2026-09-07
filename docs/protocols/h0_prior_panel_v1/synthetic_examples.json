@@ -1,0 +1,50 @@
+{
+  "status": "SYNTHETIC_FORMAT_ONLY_NOT_MODEL_OR_GT",
+  "judge_response": {
+    "schema_version": "h0_prior_panel_judge_v1",
+    "assessments": [
+      {
+        "proposition_id": "p001",
+        "presence": "UNCLEAR",
+        "scope": "UNCLEAR",
+        "full_frame_reviewed": true,
+        "other_instances_accounted_for": false,
+        "evidence_refs": [
+          "example:target"
+        ],
+        "witness": {
+          "local_instance_id": null,
+          "target_frame_ref": "example:target",
+          "tool_point_xy": null,
+          "interaction_point_xy": null,
+          "target_role": "UNCLEAR",
+          "same_interaction": "UNCLEAR",
+          "ontology_boundary": "UNCLEAR",
+          "temporal_refs": []
+        },
+        "issue_codes": [
+          "OCCLUSION"
+        ],
+        "observation": "Synthetic format example: the interaction cannot be established."
+      }
+    ]
+  },
+  "repair_response": {
+    "schema_version": "h0_prior_panel_patch_v1",
+    "edits": [
+      {
+        "proposition_id": "p002",
+        "operation": "ADD",
+        "edit_role": "INDEPENDENT_COMPONENT",
+        "dependency_ivt_proposition_ids": [],
+        "issue_refs": [
+          "example:issue:p002"
+        ],
+        "evidence_refs": [
+          "example:target"
+        ],
+        "observation": "Synthetic format example only; this is not an actual proposed surgical label."
+      }
+    ]
+  }
+}

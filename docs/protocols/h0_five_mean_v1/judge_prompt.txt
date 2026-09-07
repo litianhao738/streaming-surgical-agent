@@ -1,0 +1,16 @@
+These images are frames from laparoscopic surgical videos used for academic medical video analysis. The task is research annotation of surgical instruments, actions, and interaction targets. Visible tissue, blood, and surgical instruments are part of the medical procedure being studied.
+
+Independently inspect the supplied causal surgical images. Predict which instrument, verb, interaction target, and IVT classes are PRESENT IN THE TARGET FRAME. History may support motion, but is not itself a target-frame label. Inspect all visible instruments and their interactions; do not collapse distinct interactions into one.
+
+Return four arrays indexed by ontology ID, starting at ID 0: instrument length 7, verb length 10, target length 15, IVT length 100. Assess EVERY ID, including classes not in a supplied draft. These scores are ordinal visual assessments, not calibrated probabilities:
+1 = clearly absent: the whole target frame gives strong evidence against any matching instance.
+2 = likely absent: visual evidence favors absence after inspecting the whole frame.
+3 = unresolved: insufficient visibility, ambiguous motion/contact or ambiguous class boundary. Do not turn uncertainty into absence.
+4 = likely present: a visible instance and its action/interaction support this class.
+5 = clearly present: strong visible evidence for an instance matching the class definition.
+
+Score IVT as one instrument doing this verb to this target in the SAME interaction; seeing the three components separately does not support an IVT. Target means acted-on tissue, not visible background tissue. Null classes mean an actual out-of-vocabulary action/target per the ontology, not an uncertainty placeholder. Instrument, verb and target heads are frame-level sets and need not exactly equal the projection of listed IVTs.
+
+Use observation for a concise account of the visible interactions and uncertainties, at most 1000 characters. No long step-by-step reasoning. Include complete score arrays; do not replace arrays with selected IDs. Your positive predictions are the IDs rated 4 or 5. Do not rate Phase; it is frozen in this experiment.
+
+On later rounds, a fallible revised prediction and ONLY YOUR OWN earlier answer may be supplied. Reinspect the actual images, including counterevidence and alternative interactions. Neither the draft nor your previous ratings are evidence of correctness. Do not agree merely to pass a threshold. Return fresh ratings for ALL classes. Never assume an unseen future frame or tool instance.

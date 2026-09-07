@@ -1,0 +1,87 @@
+{
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "h0_prior_panel_patch_v1"
+    },
+    "edits": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "proposition_id": {
+            "type": "string",
+            "pattern": "^p[0-9]{3}$"
+          },
+          "operation": {
+            "type": "string",
+            "enum": [
+              "ADD",
+              "REMOVE"
+            ]
+          },
+          "edit_role": {
+            "type": "string",
+            "enum": [
+              "IVT_EDIT",
+              "INDEPENDENT_COMPONENT",
+              "IVT_COMPONENT_ONLY"
+            ]
+          },
+          "dependency_ivt_proposition_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^p[0-9]{3}$"
+            },
+            "minItems": 0,
+            "maxItems": 4
+          },
+          "issue_refs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 160
+            },
+            "minItems": 1,
+            "maxItems": 6
+          },
+          "evidence_refs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 160
+            },
+            "minItems": 1,
+            "maxItems": 4
+          },
+          "observation": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "proposition_id",
+          "operation",
+          "edit_role",
+          "dependency_ivt_proposition_ids",
+          "issue_refs",
+          "evidence_refs",
+          "observation"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0,
+      "maxItems": 16
+    }
+  },
+  "required": [
+    "schema_version",
+    "edits"
+  ],
+  "additionalProperties": false
+}

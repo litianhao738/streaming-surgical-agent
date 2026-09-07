@@ -7,6 +7,7 @@ Not wired into the default production pipeline.
 import io
 import math
 from collections.abc import Mapping
+from copy import deepcopy
 from functools import partial
 
 from PIL import Image
@@ -18,6 +19,7 @@ from surgical_agent.perception.ontology_prompt import _ivt_rows
 LOCATOR_VERSION = "contact_locator_v1"
 PROPOSAL_VERSION = "instance_interaction_proposal_v1"
 REVIEW_VERSION = "contact_contrast_review_v1"
+REVIEW_1000_VERSION = "contact_contrast_review_v2"
 
 
 def obj(properties):
@@ -52,6 +54,12 @@ REVIEW_SCHEMA = obj({"schema_version": {"type": "string", "const": REVIEW_VERSIO
     "instances": array(obj({"instance_id": integer(1, 3), "crop_relevant": BOOL,
         "instrument_identity_supported": BOOL, "target_identity_or_oov_supported": BOOL,
         "action_or_oov_supported": BOOL, "distinguishing_observation": TEXT}), 3)})
+
+# The proposal still references the historical 300-character TEXT contract.
+# A deep copy prevents the new review limit from changing that shared object.
+REVIEW_1000_SCHEMA = deepcopy(REVIEW_SCHEMA)
+REVIEW_1000_SCHEMA["properties"]["schema_version"]["const"] = REVIEW_1000_VERSION
+REVIEW_1000_SCHEMA["properties"]["instances"]["items"]["properties"]["distinguishing_observation"]["maxLength"] = 1000
 
 
 def validate_shape(value, schema):
@@ -106,7 +114,7 @@ def validate_grounded(value, *, schema):
 
 GROUNDED_CONTRACTS = {schema["properties"]["schema_version"]["const"]:
     (schema, partial(validate_grounded, schema=schema))
-    for schema in (LOCATOR_SCHEMA, PROPOSAL_SCHEMA, REVIEW_SCHEMA)}
+    for schema in (LOCATOR_SCHEMA, PROPOSAL_SCHEMA, REVIEW_SCHEMA, REVIEW_1000_SCHEMA)}
 
 
 def make_contact_crops(target_image, locator, *, target_frame_id):
@@ -152,7 +160,8 @@ def proposed_labels(h0, locator, proposal):
     return labels
 
 
-def admit(h0, h1, locator, proposal, review, *, proposal_slot):
+def admit(h0, h1, locator, proposal, review, *, proposal_slot,
+          review_schema_version=REVIEW_VERSION):
     """Uncalibrated safety policy; semantic benefit must be evaluated offline."""
     if h1 is None or h1 != proposed_labels(h0, locator, proposal):
         return {"decision": "KEEP", "reason": "INCOMPLETE_OR_INVALID_GROUNDING"}
@@ -160,7 +169,9 @@ def admit(h0, h1, locator, proposal, review, *, proposal_slot):
         return {"decision": "KEEP", "reason": "NO_CHANGE"}
     if review is None:
         return {"decision": "KEEP", "reason": "NO_VALID_REVIEW"}
-    validate_grounded(review, schema=REVIEW_SCHEMA)
+    if review_schema_version not in (REVIEW_VERSION, REVIEW_1000_VERSION):
+        raise ValueError("unsupported contrast-review schema version")
+    validate_grounded(review, schema=GROUNDED_CONTRACTS[review_schema_version][0])
     if proposal_slot not in {"FIRST", "SECOND"}:
         raise ValueError("invalid blinded hypothesis slot")
     ids = {x["instance_id"] for x in locator["instances"]}

@@ -1,0 +1,53 @@
+DESIGN TEMPLATE — h0_prior_panel_judge_v1. Not loaded by the current pipeline.
+
+Assess the supplied propositions from the actual causal images and the full
+ontology. current_prediction is an untrusted draft, not ground truth. Its author
+and model identity are deliberately not provided. Judge every proposition in U
+exactly once, including labels absent from current_prediction. Do not invent
+labels outside U or assume a label is correct because it is in the draft.
+
+PRESENT: target-frame evidence supports the frame-level label.
+ABSENT: sufficient evidence establishes absence throughout the target frame.
+UNCLEAR: neither presence nor absence is established.
+
+For IVT, instrument, action and target must belong to the same interaction.
+For Target, an organ merely visible in the background is not enough: establish
+that it is the target of a current interaction. Use the supplied ontology's null
+boundaries; null does not mean uncertainty, poor image quality, or occlusion.
+Record ontology_boundary explicitly. A null-class PRESENT needs an observed
+out-of-vocabulary verb, target, or joint combination under the supplied frozen
+ontology, not merely an invisible contact point. Bind it to a visible target-frame
+tool instance and tool point. A null target may use interaction_point_xy=null,
+target_role=NOT_APPLICABLE and same_interaction=NOT_APPLICABLE when the stated
+TARGET_OUT_OF_VOCABULARY or JOINT_OUT_OF_VOCABULARY boundary makes an in-ontology
+interaction target inapplicable. A named target, including an IVT with a null
+verb but a named target, still needs an interaction target witness. Use UNCLEAR
+if the boundary itself cannot be established. These statements are observations
+to audit, not verified truth merely because the response is structurally valid.
+An action earlier in the supplied history does not prove it continues now.
+Account for other visible instances before asserting frame-level absence.
+
+Record the target-frame tool/object and interaction points when you can actually
+locate them; otherwise use null. Use a response-local instance ID only when an
+instance can be identified, consistently within this response; otherwise null.
+Coordinates use the full target image with x,y
+in [0,1]. These are model observations, not trusted detections. A witness within
+one response can bind components of an interaction. Coordinates from different
+judges are not automatically the same instance or independent proof.
+
+Every evidence reference must identify a supplied image. PRESENT and ABSENT
+must cite the full target frame. ABSENT needs FRAME scope, full-frame inspection,
+and consideration of other instances. Unsupported or incomplete evidence must
+remain UNCLEAR. Do not use compatibility or label frequency as visual proof.
+
+Use NONE as the sole issue code when no issue applies. Explain only observable
+facts and counterevidence, usually one concise sentence of 80–160 characters.
+The strict maximum is 1000 characters per observation; do not fill the allowance
+or provide a long reasoning trace. Return only the complete required JSON.
+
+The executable builder must append the unchanged full ontology and label
+boundaries, the supplied input packet, and the exact versioned response Schema.
+The packet includes target/video IDs, ordered image hashes and timestamps,
+current_prediction, and U with deterministic names and IVT decomposition.
+It excludes GT, task masks, prior frequencies/ranks, other judges' responses,
+vote totals, prior-round explanations, and model-author identities.

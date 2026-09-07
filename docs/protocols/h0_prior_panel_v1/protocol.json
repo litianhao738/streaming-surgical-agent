@@ -1,0 +1,178 @@
+{
+  "schema_version": "h0_prior_panel_design_v1",
+  "status": "DESIGN_PREPARED_NOT_IMPLEMENTED_OR_EXECUTION_FROZEN",
+  "execution_enabled": false,
+  "default_h0_commit": "25fee9485a8f740aadf7921d5312e9c488955cbb",
+  "h0": {
+    "config": "configs/perception/joint_openrouter_h0.yaml",
+    "immutable": true,
+    "max_output_tokens": 4096,
+    "temperature": 0,
+    "reasoning": {
+      "effort": "low"
+    },
+    "model": "qwen/qwen3.8-max-0902",
+    "provider_tag": "alibaba"
+  },
+  "design": {
+    "pre_h0_candidate_call": false,
+    "pre_verifier_h1_call": false,
+    "locator_calls": 0,
+    "max_rounds": 3,
+    "max_patch_calls": 2,
+    "panel_size": 3,
+    "phase_policy": "KEEP_H0",
+    "dynamic_images": false,
+    "cross_window_prediction_memory": false,
+    "prior_scores_visible_to_judges": false,
+    "current_prediction_visible_to_judges": true,
+    "other_judges_or_previous_round_answers_visible_to_judges": false
+  },
+  "priors": {
+    "fit_split": "Training",
+    "cross_fit": "leave_one_entire_video_out",
+    "per_video_equal_weight": true,
+    "phase_shrinkage_frames": 20,
+    "minimum_valid_frames": 100,
+    "minimum_valid_videos": 3,
+    "minimum_positive_frames": 5,
+    "minimum_positive_videos": 2,
+    "max_new_ivt": 4,
+    "phase_preferred_ivt_slots": 2,
+    "global_ivt_slots": 2,
+    "unrestricted_instrument_global_slots": 1,
+    "max_independent_target": 1,
+    "all_h0_labels_preserved": true,
+    "instrument_inventory_ids": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "max_propositions": 48,
+    "sort": [
+      "task_order",
+      "label_id"
+    ],
+    "parameters_validated_for_benefit": false
+  },
+  "panel": {
+    "judge_schema": "judge_response.schema.json",
+    "prompt_template": "judge_prompt.txt",
+    "max_output_tokens": 16384,
+    "temperature": 0,
+    "reasoning_parameter_policy": "OMIT_AND_RECORD_PROVIDER_NATIVE_USAGE",
+    "observation_max_characters": 1000,
+    "minimum_add_votes": 2,
+    "minimum_removal_issue_votes": 2,
+    "minimum_remove_admission_votes": 3,
+    "fixed_denominator": true,
+    "cross_round_vote_accumulation": false,
+    "require_all_judges_structurally_valid_for_round": true,
+    "single_item_mechanical_contradiction": "UNCLEAR",
+    "whole_judge_failure": "STOP_KEEP_LAST_ACCEPTED",
+    "same_image_manifest_for_all_judges": true,
+    "models": [
+      {
+        "id": "google/gemini-2.5-flash-lite",
+        "provider_tag": "google-vertex/eu",
+        "input_usd_per_million": "0.10",
+        "output_usd_per_million": "0.40"
+      },
+      {
+        "id": "openai/gpt-4.1-mini",
+        "provider_tag": "openai",
+        "input_usd_per_million": "0.40",
+        "output_usd_per_million": "1.60"
+      },
+      {
+        "id": "anthropic/claude-haiku-4.5",
+        "provider_tag": "anthropic",
+        "input_usd_per_million": "1.00",
+        "output_usd_per_million": "5.00"
+      }
+    ],
+    "provider_options": {
+      "allow_fallbacks": false,
+      "require_parameters": true,
+      "only_and_order": "PER_MODEL_SINGLE_FIXED_TAG"
+    },
+    "paid_schema_smoke_completed": false,
+    "semantic_item_rules": [
+      "all image references exist in the exact input manifest and contain no duplicates",
+      "witness target_frame_ref equals the actual target full frame; temporal_refs are supplied causal frames in time order",
+      "PRESENT cites target full frame",
+      "Non-null Target PRESENT requires INTERACTION_TARGET, non-null visible instance and interaction point",
+      "IVT PRESENT with a non-null target requires YES same_interaction, INTERACTION_TARGET, non-null instance/tool/interaction points, including null-verb IVTs with named targets",
+      "Null-class PRESENT requires a visible target-frame tool instance/tool point and explicit ontology_boundary consistent with frozen null verb/target/IVT decomposition; uncertainty is insufficient. Only a null target with TARGET_OUT_OF_VOCABULARY or JOINT_OUT_OF_VOCABULARY may omit interaction point and use NOT_APPLICABLE target_role/same_interaction. Model boundary assertions are not mechanically verified truth.",
+      "ABSENT requires FRAME, target full frame citation, full_frame_reviewed and other_instances_accounted_for",
+      "NONE issue code is exclusive",
+      "failures of these semantic-context rules normalize only this proposition to UNCLEAR; no keyword or GT based semantic correction"
+    ]
+  },
+  "repair": {
+    "model": "qwen/qwen3.8-max-0902",
+    "provider_tag": "alibaba",
+    "schema": "repair_response.schema.json",
+    "prompt_template": "repair_prompt.txt",
+    "max_output_tokens": 4096,
+    "temperature": 0,
+    "reasoning": {
+      "effort": "low"
+    },
+    "patch_base": "last_accepted",
+    "candidate_universe": "FROZEN_U_ONLY",
+    "admission_base": "IMMUTABLE_H0",
+    "remove_ivt_cascades_to_components": false,
+    "full_head_projection": false,
+    "final_draft_requires_complete_panel": true,
+    "revalidate_all_cumulative_edits_in_last_valid_round": true,
+    "repeat_or_unchanged_draft": "STOP_KEEP_LAST_ACCEPTED",
+    "component_edit_role_policy": "INDEPENDENT_VS_DEPENDENCY_ONLY_ELIGIBILITY_FIXED_BY_IMMUTABLE_U_ORIGIN",
+    "max_patch_edits": 16,
+    "component_parent_edge_policy": "REBUILD_FROM_CURRENT_CUMULATIVE_DRAFT_NET_NEW_IVTS_AND_ONTOLOGY_EACH_ROUND; RETAIN_SHARED_COMPONENT_IF_ANY_APPROVED_PARENT_NEEDS_IT_AND_OWN_VOTE_PASSES"
+  },
+  "experiment": {
+    "split": "Training",
+    "image_proposal": "artifacts/research/h0_prior_panel_protocol_20260907/proposed_training_images.json",
+    "target_count": 8,
+    "arms": [
+      "h0_inventory_panel",
+      "h0_inventory_prior_panel"
+    ],
+    "share_h0": true,
+    "arm_order": "ALTERNATE_BY_TARGET_INDEX",
+    "round_snapshots": "CORRELATED_PREFIXES_NOT_GT_SELECTED",
+    "max_main_calls": 184,
+    "max_additional_smoke_calls": 4,
+    "max_total_calls": 188,
+    "automatic_retries": 0,
+    "official_mask_preflight_completed": false,
+    "prior_fit_completed": false,
+    "clinical_or_semantic_benefit_proven": false
+  },
+  "budget": {
+    "proposed_new_total_usd": "20.00",
+    "reuse_previous_goal_or_ledger": false,
+    "new_ledger_created": false,
+    "public_price_snapshot_utc": "2026-09-07T03:58:02Z",
+    "reserve_before_dispatch": true,
+    "reserve_patch_and_full_followup_panel_together": true,
+    "unknown_cost": "RETAIN_RESERVATION_AND_STOP",
+    "all_image_reasoning_cache_fees_must_be_bounded_before_dispatch": true,
+    "dollar_upper_bound_verified": false
+  },
+  "pending_execution_checks": [
+    "implement and independently verify source-isolated Training priors",
+    "implement fixed-U builder, panel semantic validator, patch/state machine and independent scorer",
+    "complete canonical Training source/split/mask and history-exclusion preflight",
+    "freeze executable code and concrete H0/U/request hashes",
+    "recheck provider price/capability and billing upper bounds",
+    "perform at most four bounded compatibility smoke calls with final schemas",
+    "freeze execution manifest and new budget ledger before main experiment"
+  ],
+  "paid_calls_in_preparation": 0
+}

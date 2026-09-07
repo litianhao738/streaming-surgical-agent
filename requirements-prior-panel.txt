@@ -1,0 +1,3 @@
+# Optional dependencies for the isolated OpenRouter panel experiment.
+requests>=2.31
+jsonschema==4.25.1

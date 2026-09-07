@@ -1,0 +1,40 @@
+DESIGN TEMPLATE — h0_prior_panel_patch_v1. Not loaded by the current pipeline.
+
+Use the actual causal images, complete ontology, immutable original H0,
+last_accepted labels, and the supplied structured issue packet to propose a
+bounded local patch to last_accepted. The issue packet contains model-assessed
+observations and counterevidence, not ground truth. Do not treat vote counts or
+prior frequency as proof that an interaction occurred.
+
+Every edit must reference a proposition in the frozen universe U and an actual
+issue ID. ADD requires the label to be absent from last_accepted; REMOVE requires
+it to be present. Do not introduce labels or Phase edits outside this contract.
+Do not rewrite the whole scene or make changes unrelated to the issues.
+
+For new IVT, establish the same instrument–action–target interaction. Include
+necessary missing component additions in the patch, with their own U/issue
+references; other existing independent labels should be preserved. Removing an
+IVT never automatically removes its components. A shared component still needed
+by a retained IVT cannot be removed. Do not force all heads to equal the IVT
+projection. Independent instrument 6 remains representable without an IVT.
+
+Identify IVT edits as IVT_EDIT. A component addition that only supports new IVTs
+is IVT_COMPONENT_ONLY and must name its parent IVT proposition IDs. Independently
+justified component edits are INDEPENDENT_COMPONENT. The program validates this
+against immutable U eligibility; re-labelling a dependency-only component as
+independent cannot bypass a rejected IVT. Independent versus dependency-only
+eligibility is immutable; parent edges are not. The program rebuilds parent IVT
+edges from the current cumulative draft and ontology each round, including
+carried components reused by a newly proposed IVT. Do not emit a redundant ADD
+for a component already in last_accepted. IVT_EDIT and independent edits have
+no parent IDs. Return at most 16 elementary edits; overflow invalidates the whole
+patch, without truncation or an extra repair round to bypass this limit.
+
+Address concrete evidence gaps. If an alternative cannot be justified, return
+no edit for it. Uncertainty is not absence and is not a null ontology label.
+Return an empty edit list if no justified patch can be produced. Keep observation
+text concise and within 1000 characters; do not return a long reasoning trace.
+
+The program, not this response, will apply the patch to form an unpublished
+draft. A full subsequent panel must review that draft before any change can be
+published. Only JSON matching h0_prior_panel_patch_v1 is allowed.

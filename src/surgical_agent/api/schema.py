@@ -3,19 +3,21 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
+from functools import partial
 from types import MappingProxyType
 from typing import Any
 
 from surgical_agent.api.errors import ApiContractError, ApiSchemaError
 from surgical_agent.data.constants import TASK_ID_BOUNDS
-from surgical_agent.perception.expert_ablation import EXPERT_CONTRACTS
-from surgical_agent.research.verification.grounded_repair import GROUNDED_CONTRACTS
-from surgical_agent.perception.final_only import (
-    FINAL_ONLY_SCHEMA_VERSION, final_only_schema, validate_final_only,
-)
 from surgical_agent.perception.contracts import (
     FIELD_UNCERTAINTY_PATHS,
     FIELD_UNCERTAINTY_REASONS,
+)
+from surgical_agent.perception.expert_ablation import EXPERT_CONTRACTS
+from surgical_agent.perception.final_only import (
+    FINAL_ONLY_SCHEMA_VERSION,
+    final_only_schema,
+    validate_final_only,
 )
 from surgical_agent.perception.schema import (
     COMPACT_JOINT_PERCEPTION_SCHEMA_VERSION,
@@ -27,6 +29,21 @@ from surgical_agent.perception.schema import (
     validate_gate_owned_compact_joint_perception_payload,
     validate_joint_perception_payload,
     validate_reliability_compact_joint_perception_payload,
+)
+from surgical_agent.research.verification.diff_review import (
+    DIFF_REVIEW_1000_SCHEMA,
+    DIFF_REVIEW_1000_VERSION,
+    DIFF_REVIEW_SCHEMA,
+    DIFF_REVIEW_VERSION,
+    validate_diff_review_shape,
+)
+from surgical_agent.research.verification.grounded_repair import GROUNDED_CONTRACTS
+from surgical_agent.research.verification.presence_review import (
+    PRESENCE_REVIEW_1000_SCHEMA,
+    PRESENCE_REVIEW_1000_VERSION,
+    PRESENCE_REVIEW_SCHEMA,
+    PRESENCE_REVIEW_VERSION,
+    validate_presence_review_shape,
 )
 
 P3_SMOKE_SCHEMA_VERSION = "p3_multimodal_smoke_v1"
@@ -308,6 +325,20 @@ SCHEMAS: Mapping[
            for version, (schema, validator) in EXPERT_CONTRACTS.items()},
         **{version: (_freeze_schema(schema), validator)
            for version, (schema, validator) in GROUNDED_CONTRACTS.items()},
+        DIFF_REVIEW_VERSION: (
+            _freeze_schema(DIFF_REVIEW_SCHEMA), validate_diff_review_shape,
+        ),
+        DIFF_REVIEW_1000_VERSION: (
+            _freeze_schema(DIFF_REVIEW_1000_SCHEMA),
+            partial(validate_diff_review_shape, schema_version=DIFF_REVIEW_1000_VERSION),
+        ),
+        PRESENCE_REVIEW_VERSION: (
+            _freeze_schema(PRESENCE_REVIEW_SCHEMA), validate_presence_review_shape,
+        ),
+        PRESENCE_REVIEW_1000_VERSION: (
+            _freeze_schema(PRESENCE_REVIEW_1000_SCHEMA),
+            partial(validate_presence_review_shape, schema_version=PRESENCE_REVIEW_1000_VERSION),
+        ),
         JOINT_PERCEPTION_SCHEMA_VERSION: (
             _FROZEN_JOINT_PERCEPTION_JSON_SCHEMA,
             validate_joint_perception_payload,

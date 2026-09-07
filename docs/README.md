@@ -13,6 +13,68 @@ The [collaborator quickstart](API_EXPERIMENT_QUICKSTART_2026-09-06.md) documents
 the published synchronous baseline, installation, three-target smoke, full-split
 selection and independent GT scoring. Record the Git commit with every run.
 
+The separate [Gemini grounded end-to-end smoke](GEMINI_GROUNDED_E2E_2026-09-06.md)
+uses `run_grounded_api_pipeline.py`: the same current H0 prompt and final-only
+contract, followed by blind localization, a visual proposal, contrast review and
+checked acceptance. It uses synchronous OpenRouter calls, not Batch. The report
+separates engineering targets without interaction GT from the fully annotated
+Training supplement; the default Qwen-only entry remains unchanged.
+
+The [diff-review diagnostic, 2026-09-07](DIFF_REVIEW_TRIAL_2026-09-07.md) adds
+per-change visual assessments and compares whole-candidate acceptance with
+bounded local edits on frozen historical candidates. It is a separate experiment;
+the report distinguishes synthetic mock checks from actual paid observations.
+The [subsequent small test](DIFF_REVIEW_SMALL_TEST_2026-09-07.md) records another
+first-call timeout, unknown cost and no new semantic-review result.
+The [one-off Qwen verifier test](DIFF_REVIEW_QWEN_DIRECT_TEST_2026-09-07.md)
+records two successful reviews after a provider Schema compatibility correction;
+both repair policies harmed predictions on the reviewed subset. It identifies a
+label-presence versus edit-verdict ambiguity and does not promote either policy.
+
+The [24-target neutral-presence A/B trial](PRESENCE_REVIEW_RESULTS_2026-09-07.md)
+completed 104 synchronous Qwen calls on fresh Training targets, with current H0
+connected to candidate generation and paired old/new review. Neither A nor B
+improved IVT over H0. A separate length-only offline replay recovered all 13
+overlong new reviews and still showed no IVT gain; strict and supplementary
+results remain separate. The default H0 is unchanged. See the
+[pre-inference protocol](PRESENCE_REVIEW_PROTOCOL_2026-09-07.md) for the frozen design.
+
+The [1000-character review update and SurgReflect/RAG audit](SURGREFLECT_VERIFICATION_AND_RAG_2026-09-07.md)
+versions the relaxed review contracts while preserving the 300-character history.
+New runs of `run_presence_review_trial.py` default to 1000; full-text offline
+revalidation made all 16 old and 16 new saved reviews valid without API calls.
+It did not change the negative semantic conclusion. The same note distinguishes
+the parent repository's actual verification/statistics mechanism from unverified
+paper claims and explains why RAG is not yet the preferred next change.
+
+The [new verifier development and confirmation record](VERIFIER_DEVELOPMENT_AND_CONFIRMATION_2026-09-07.md)
+reports the frozen 16-target Training comparison of numeric and decoded-name
+propositions, separate-question verification, and conditional supplementation
+with two real earlier images versus an identical-input repeat. No repair variant
+passed the predeclared development screen. The completed development total is
+136 synchronous calls / $2.063434, with no unknown charges. H0 is retained;
+Validation confirmation was not run because no repair policy qualified.
+The [mechanism and optional memory/reflection note](VERIFIER_REPAIR_MECHANISM_2026-09-07.md)
+distinguishes the default H0, historical whole-candidate review, and experimental
+local A/B repair, and explains the remaining visual-judgment and shared-omission limits.
+These experiments preserve the default H0 and the sealed Testing split.
+
+The [full-paper review and single feedback-reflection proposal](VERIFIER_PAPER_METHODS_AND_REFLECTION_2026-09-07.md)
+checks the newly supplied SurgReflect PDF against its public code and reviews
+StreamingVLM, Flash-VStream, M3-Agent, Vgent and TDC-Video. It distinguishes the
+completed blind repeat from untested feedback reflection and documents a
+zero-call structural-consistency diagnostic. This is a research proposal, with
+no new paid experiment or change to the retained H0 decision.
+
+The [H0-first prior and multi-model panel preparation](H0_PRIOR_PANEL_PROTOCOL_2026-09-07.md)
+records the user's revised design: Training-only video-excluded priors, three
+independent visual judges, and at most three review rounds with two local
+patches. It includes design-only schemas/prompts, eight image-only proposed
+targets and public model/price snapshots. The subsequent
+[execution report](H0_PRIOR_PANEL_EXECUTION_2026-09-07.md) records the completed
+eight-target trial, which did not improve IVT. Historical single-judge proposals
+remain as history.
+
 The following authority and implementation notes describe the separate research
 Tracker/Gate/Verifier Pipeline. Its top-k-dependent Gate is not compatible with
 main H0's hard labels and is explicitly rejected rather than supplied invented
@@ -126,12 +188,21 @@ prior fix, provider refusal handling, and the remaining semantic limitations.
 
 ## Current next action
 
-Tracker association regeneration and OOF routing repairs are complete; use the
-new validated artifacts for legacy-baseline runs. The independent box-supervision
-fix requires a separately versioned full/five-fold retraining before claiming
-corrected-supervision model results. No such formal training has run. Do not
-train Gate yet. Inspect the 2026-09-04 handoff
-and the 20-frame pilot, then design a predeclared paired Training-only test of a
-fixed stronger Verifier while preserving the Tracker × Gate factorial boundary.
-Resolve provider coverage and demonstrate positive Repair value with controlled
-harm before freezing `N_max` or beginning formal D0.
+Keep H0 frozen and assess actual semantic gains and harms in the
+[bounded verifier trials](VERIFIER_DEVELOPMENT_AND_CONFIRMATION_2026-09-07.md)
+before promoting any repair policy or beginning formal D0. The older Gate and
+Tracker factorial workflow remains separate; no final-only confidence is fabricated
+to enter its top-k-dependent Gate.
+
+The [H0 prior/panel execution report](H0_PRIOR_PANEL_EXECUTION_2026-09-07.md)
+records the completed eight-target Training experiment: one instrument-label
+correction in the no-prior arm, no IVT improvement in either arm, and three
+failed review arms retained as H0 fallbacks. Keep the pure API H0 as the default;
+the new direct OpenRouter runner remains an isolated research entry point.
+
+The [five-model mean-score experiment](H0_FIVE_MEAN_EXECUTION_2026-09-07.md)
+implements actual ordinal 1–5 predictions, arithmetic means, and up to three
+review rounds with local repair. It records academic surgical-video context in
+the verifier input and preserves provider moderation failures and model changes.
+This is a separate developmental replay; consult its execution status before
+claiming semantic benefit or a completed three-round experiment.
