@@ -1,8 +1,23 @@
 # Streaming SurgicalAgent V3.1
 
-> **2026-09-08 修复研究更新：[当前保留方案与离线重放](docs/VERIFIED_REPAIR_CANDIDATE_2026-09-08.md)。**
+> **本分支版本：`prior-graph-repair-v1.0.0-experimental` — [版本说明与运行入口](docs/releases/PRIOR_GRAPH_REPAIR_V1.md)。**
+> 最新已测链路：Gemini H0 → Training 留出先验提供最多两个 IVT 提示 → 单模型补候选 → 五席并行审核 → Python 局部修复；一轮。
+> 同批八目标 IVT F1：H0 **29.63%**、无图谱修复 **34.48%**、图谱辅助 **40.00%**；IVT 集合 Accuracy 仍为 **0/8**。
+> 这是修复研究实验版；已有 H0 批量导入、完整 Tracker／Gate 串联和全量并发尚未接入，不能称稳定最优或完整 Pipeline 成绩。
+> [完整评分、改坏与耗时](docs/PRIOR_GRAPH_CANDIDATE_TRIAL_2026-09-08.md) · [指标 JSON](docs/experiments/prior_candidate_summary_20260908.json) · [版本清单](PIPELINE_VERSION.json)
+
+无需图片、GT 或 API Key，重放已保存的八目标模型回答：
+
+```powershell
+python -m pip install -r requirements-repair-replay.txt
+python scripts/replay_prior_graph_candidate.py
+```
+
+该命令核对图谱检索、候选池、审核与修复，按归档聚合计数重算指标；不重新调用模型，也不是独立逐帧 GT 评分。
+
+> **此前修复研究快照：[单提案／观察反馈方案与离线重放](docs/VERIFIED_REPAIR_CANDIDATE_2026-09-08.md)。**
 > 已补齐开发 8／确认 8／反馈 4 目标的真实结果；开发收益未在确认批复现，不能称为稳定最优。
-> [完整评分](docs/REPAIR_REVISION_RESULTS_2026-09-08.md) · [GraphRAG 位置、输入输出与结构设计（尚未实现）](docs/GRAPH_RAG_VERIFIER_DESIGN_2026-09-08.md)
+> [此前完整评分](docs/REPAIR_REVISION_RESULTS_2026-09-08.md) · [早期 GraphRAG 设计](docs/GRAPH_RAG_VERIFIER_DESIGN_2026-09-08.md) · [候选后检索的六目标实验](docs/GRAPH_RAG_REVIEW_TRIAL_2026-09-08.md)
 
 > **先看实验结果：[当前实验数据与可量化指标](EXPERIMENT_RESULTS.md)（2026-09-08）**
 >

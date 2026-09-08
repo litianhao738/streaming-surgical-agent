@@ -1,13 +1,32 @@
 # Documentation Authority and Live Checkpoint
 
-Published repair research candidate: [current mechanism, results and offline replay](VERIFIED_REPAIR_CANDIDATE_2026-09-08.md).
+## This branch: prior-graph-repair-v1.0.0-experimental
+
+[Version, scope and reproduction](releases/PRIOR_GRAPH_REPAIR_V1.md) · [Eight-target results](PRIOR_GRAPH_CANDIDATE_TRIAL_2026-09-08.md) · [Metric snapshot](experiments/prior_candidate_summary_20260908.json).
+
+The newest tested research chain supplies at most two leave-query-video-out Training
+prior IVT hints to the existing visual proposer, then uses the unchanged five-seat
+visual review and local repair, for one round. Same-cohort IVT micro-F1 is
+29.63% (H0), 34.48% (control), and 40.00% (prior hints), with zero IVT exact-set
+matches in all three arms. It has not established stable best performance.
+Run `python scripts/replay_prior_graph_candidate.py` for the portable eight-target
+offline replay. It makes no API calls and does not independently rescore per-frame GT.
+
+This release does not integrate Tracker or Gate, import cached full-split H0,
+or implement Testing dispatch, target concurrency or resume. The default pure API
+H0 remains separate. The [earlier six-target retrieval-after-pool trial](GRAPH_RAG_REVIEW_TRIAL_2026-09-08.md)
+found no additional IVT gain; it is retained as a different experiment.
+
+## Earlier repair research snapshots
+
+Previously published repair research candidate: [mechanism, results and offline replay](VERIFIED_REPAIR_CANDIDATE_2026-09-08.md).
 The [20-target report](REPAIR_REVISION_RESULTS_2026-09-08.md) separates development,
 confirmation and feedback cohorts. Development gains did not persist in confirmation;
 feedback avoided one control-arm instrument error but added no second-round IVT gain.
 The [portable four-target replay](experiments/verified_repair_candidate_20260908.json)
 replays recorded model answers and deterministic repair; it does not contain images or
 per-frame GT. The default H0 is unchanged. [GraphRAG placement and interfaces](GRAPH_RAG_VERIFIER_DESIGN_2026-09-08.md)
-are a proposed design, not an implemented or evaluated module.
+record the early design; the implemented experiments for this branch are linked above.
 
 Start with the [Verifier / Repair mechanisms and measured results summary](VERIFIER_REPAIR_EXPERIMENT_SUMMARY_2026-09-08.md)
 for the tested alternatives, paired gains and harms, task masks, actual rounds,

@@ -1,0 +1,435 @@
+{
+  "arms": [
+    "none",
+    "flat",
+    "graph"
+  ],
+  "availability_inventory": {
+    "VID103": {
+      "all_heads_mask_available": 1545,
+      "canonical_targets": 1667,
+      "eligible_after_history_exclusion": 1337,
+      "historical_target_count": 26
+    },
+    "VID23": {
+      "all_heads_mask_available": 1168,
+      "canonical_targets": 1570,
+      "eligible_after_history_exclusion": 1002,
+      "historical_target_count": 28
+    },
+    "VID31": {
+      "all_heads_mask_available": 3732,
+      "canonical_targets": 3903,
+      "eligible_after_history_exclusion": 3496,
+      "historical_target_count": 22
+    },
+    "VID96": {
+      "all_heads_mask_available": 1119,
+      "canonical_targets": 1221,
+      "eligible_after_history_exclusion": 911,
+      "historical_target_count": 24
+    }
+  },
+  "dataset_root": "D:/cholec_dataset",
+  "historical_identity_source_sha256": {
+    "artifacts\\preflight\\candidate_panel_development_20260907_v1\\plan.json": "b1ff7b6a21610473e4777852bd10e4e904b55e104dd885bc50c790fced660dea",
+    "artifacts\\preflight\\candidate_panel_development_20260907_v2\\plan.json": "7088b5d15fe421b3e1ea24ec465a7341c22cd951c6018d1d19801b0c001e3ff6",
+    "artifacts\\preflight\\candidate_panel_development_prepare_20260907_v1\\plan.json": "14a41ca4a1482c81b2803827d7f879b23d6f843759acfd5f8990f65d5ec2c468",
+    "artifacts\\preflight\\candidate_panel_visual_interfaces_20260907_v1\\plan.json": "cca18789a4dfa39e2487655960918d6e5511679718fc2080c6f22222f13a9f6e",
+    "artifacts\\preflight\\candidate_panel_visual_interfaces_20260907_v2\\plan.json": "425e6f1122381f4ced769598830c83fce974a5823d66c8bae7be65a099c9683b",
+    "artifacts\\preflight\\candidate_panel_visual_interfaces_20260907_v3\\plan.json": "ddc6ac40c165334feb3e475ab5ea2c06d4f8dae04ee11946e13f26a74a5b29dc",
+    "artifacts\\preflight\\candidate_panel_visual_interfaces_20260907_v4\\plan.json": "b352d548e41f8a95b5fdac7957ac784c1de235cdd7d0896573b6d7fd90b18036",
+    "artifacts\\preflight\\diff_review_agent_mock_20260907\\plan.json": "3ca49e166c9bbfe0a4a4f1fb1dbb3cc559d4a039e71107aef8b10e549304f406",
+    "artifacts\\preflight\\diff_review_gemini_replay_20260907\\plan.json": "3ca49e166c9bbfe0a4a4f1fb1dbb3cc559d4a039e71107aef8b10e549304f406",
+    "artifacts\\preflight\\diff_review_gemini_smalltest_20260907\\plan.json": "35ecf9c73a31ea9d4098dbde417a73884e17c08da2d0b71982b0e1814b3871ef",
+    "artifacts\\preflight\\evidence_feedback_four_20260908_v1\\plan.json": "3815516643945ab42dec2cf0ec8cad64468c677b6dec6dd32a29f87b182a2229",
+    "artifacts\\preflight\\gate_final_only_collection_20260908\\plan.json": "118e34fc49124efaee39a857be1c8bc865ddd27876f0aef3244db0fafdcaefc9",
+    "artifacts\\preflight\\gemini_second_round_delta_20260908_v1\\plan.json": "dd8bf46352e011a804b12fc7f46d9d59933bb47d72ad2e450d15e405272b5f73",
+    "artifacts\\preflight\\grounded_gemini_e2e_20260906\\plan.json": "532f7f6afb77961451626a7eb5227ab2f3bb9fa1addc0fc635698bd0a7ce1e54",
+    "artifacts\\preflight\\grounded_gemini_semantic_supplement_20260906\\plan.json": "f1b51174ec87450b8d186cc1702ec4e0e52b0a616d9d4ad5dbd9e1216c3d503c",
+    "artifacts\\preflight\\h0_five_mean_openrouter_20260907_v1\\plan.json": "c25d5e9bbb139a89a1f0dd8161c3286de854500644e79a963efbbe07cbf3555b",
+    "artifacts\\preflight\\h0_five_mean_openrouter_20260907_v2\\plan.json": "3dfdb1ee6930f0a856d1d047efa2e8492a6d6d220f577ee14e8005e169794664",
+    "artifacts\\preflight\\h0_five_mean_openrouter_20260907_v3\\plan.json": "cea7645c5806cc7bfd244818bfece400c73d9c3bb64a6a73b6efbd88724ffa9f",
+    "artifacts\\preflight\\h0_five_mean_openrouter_20260907_v4\\plan.json": "6e94503945e8a9ab182e98bd092f662ea533b965d1c7b3a06b19d2d893ece8bb",
+    "artifacts\\preflight\\h0_prior_panel_openrouter_20260907_v1\\plan.json": "b5ea3c123e0d6af1d3884548b3b526f763f37257c13aeb13fdf91a101b1dd871",
+    "artifacts\\preflight\\h0_prior_panel_openrouter_20260907_v2\\plan.json": "511ccfdb31f5cdc9d0efcb493a3ae865c32be2dca2d701bef71e42415ef9cf82",
+    "artifacts\\preflight\\h0_prior_panel_openrouter_20260907_v3\\plan.json": "991780b89dee1d3d7e7db92b5dbc340d124f6e2eabafb6ecc805f466b8f5fc75",
+    "artifacts\\preflight\\h0_prior_panel_openrouter_20260907_v4\\plan.json": "23830acf751f9c8382946e38e0561f8da5b4372635224e6c2bcd19adc97cb637",
+    "artifacts\\preflight\\h0_prior_panel_openrouter_20260907_v6\\plan.json": "9a98409888ba4a7511326edde47f6df7c28375bcbbad8415b0d7fa04cfd584d8",
+    "artifacts\\preflight\\h0_prior_panel_openrouter_20260907_v7\\plan.json": "4ff0ffc905eec495f7ce59cfd17ee3d79f0d0a166ce44a1160f327f4459de272",
+    "artifacts\\preflight\\openrouter_gemini_h0_panel_20260908_v1\\plan.json": "6575bcb825b2193bc881614083d4f56427146b921df67aecebaeab28b8c99b7d",
+    "artifacts\\preflight\\presence_review_limit1000_preflight_20260907\\plan.json": "23ed18c7e99dd0865e735e19837b3b4f7abe6ccbb45d557a0f01a93750e9e83c",
+    "artifacts\\preflight\\presence_review_qwen24_20260907\\plan.json": "09fae8001e4d5686f45782a82bd5767d32cbff61b175124c002ea2b4d105f3ee",
+    "artifacts\\preflight\\recent_mean_panel_20260908_v1\\plan.json": "70dbf4eca2b08883517e9439de1675f44ad99d6bd60c02286913723db1c76812",
+    "artifacts\\preflight\\recent_mean_panel_20260908_v2\\plan.json": "4f0a7ae85ac1d5969be51adf743660233200b23188df512d4dd292634dcfb264",
+    "artifacts\\preflight\\repair_joint_reflection_20260908_v1\\plan.json": "f9baeb7fe27120e4ee286b337c548d2c6297de99e768783116d54ae5f074b9a1",
+    "artifacts\\preflight\\repair_reference_reflection_20260908_v1\\plan.json": "886195b5a423fee25d95b7129a6825cf67744284813e2e05638300c1921c3d69",
+    "artifacts\\preflight\\repair_revision_confirmation_20260908_v1\\plan.json": "f450abb58e79e00a4847f27abc63f83f377ea9d77350b9f896a7bc044140464c",
+    "artifacts\\preflight\\repair_revision_development_20260908_v1\\plan.json": "7b013341906634fcbd71be412046b7a038e9ff49896ec0604199e64756c7f769",
+    "artifacts\\preflight\\repair_revision_development_20260908_v2\\plan.json": "756ca62b9d3033441e0c66d4be6ad0d8d59d346b3d888b5886ff361e79265003",
+    "artifacts\\preflight\\repair_v2_diagnostic_20260908_v1\\plan.json": "3761cf4de3c108c8685f401bbacad051f2f1ecb76f46bbb60a2450f69c0ead93",
+    "artifacts\\preflight\\semantic_blind_candidate_20260908_v1\\plan.json": "848dc4a89a525acc9be3b4aaccc3b858cf8deec84b443d76dc9e7b4c0d04ac71",
+    "artifacts\\preflight\\semantic_candidate_20260908_v1\\plan.json": "68ed37baed61f30547bf7530544586421413e905cf96b9fa2ce9741a7cc5e1a4",
+    "artifacts\\preflight\\semantic_candidate_20260908_v2\\plan.json": "9f5322689fedc353239637d12f00416a7eaeb230e2e4c2f53549ba49f2734e1d",
+    "artifacts\\preflight\\semantic_complete_gt_20260908_v1\\plan.json": "c10e7df9d98d3307f5d456eb5e28a91845c8f20ce5e41806f51a4acefbde6a29",
+    "artifacts\\preflight\\semantic_gemini_object_rows_probe_20260908\\plan.json": "f2aedc06088617452bfa4b610263a464e272c83e09716910ede43710ce6bde91",
+    "artifacts\\preflight\\semantic_gemini_rows_probe_20260908\\plan.json": "8d97650c74de6a0573b1e359e0dd93a5bbdc8ec69c91b8aa16de4f6fc7173329",
+    "artifacts\\preflight\\semantic_gemini_strict_probe_20260908\\plan.json": "c25d621bb2b6f6d23c4830939f463ec1321ef1e4bddac7ae23aaf8cc4dd5f36f",
+    "artifacts\\preflight\\semantic_review_contract_20260908_v1\\plan.json": "439df99fb20df404ceb22a2037d9513970fef03fe44acb401286821f591735b2",
+    "artifacts\\preflight\\target_interaction_diagnosis_20260908_v1\\plan.json": "c51897f5d99c46b6b85924332341910581e6a8e71629f765f5c5785540f81239",
+    "artifacts\\preflight\\target_interaction_single_field_20260908_v1\\plan.json": "49bddcef2c3459efce742b5789a494e61840aa18847ee67883fcd6ce8eda8e70",
+    "artifacts\\preflight\\target_interaction_single_field_20260908_v2\\plan.json": "e823a2f7bcdb7ebb8de6331d15d7197ae834df73558897c2e5b6c3c820262a1d",
+    "artifacts\\preflight\\verifier_goal_training_collect_20260907\\plan.json": "5a89a09a61d9c95fc7386252ed38f849d06a96dd65a05a482ac534653d2d6a76",
+    "artifacts\\training\\gate\\final_only_preparation_20260908_v2\\pilot_selection.json": "19e49feab83f30a1bf2e8e05a5ece97f4c5291bc871b4aa90646df6e3e413c60"
+  },
+  "max_calls": 102,
+  "no_gt_label_values_used_for_selection": true,
+  "no_new_training_video_claim": true,
+  "round_cap": 1,
+  "schema_version": "graph_rag_mask_only_selection_v1",
+  "selection": [
+    {
+      "anchor_frame_id": 18501,
+      "arm_order": [
+        "none",
+        "flat",
+        "graph"
+      ],
+      "causal_frame_ids": [
+        18551,
+        18576,
+        18601
+      ],
+      "frame_id": 18601,
+      "gt_availability_only": {
+        "instrument": true,
+        "ivt": true,
+        "phase": true,
+        "target": true,
+        "verb": true
+      },
+      "images": [
+        {
+          "frame_id": 18551,
+          "path": "D:\\cholec_dataset\\Training\\VID103\\Frames\\018551.png",
+          "sha256": "5d7b44526c444938a05d2d9525ba807d8bf4dbcd952edf8cd4560721e8ad25fb"
+        },
+        {
+          "frame_id": 18576,
+          "path": "D:\\cholec_dataset\\Training\\VID103\\Frames\\018576.png",
+          "sha256": "463a0c8e0fb3fbf2a00dba1f2e8bc22cfc7896c6db5dcae17f77367825aa3ab8"
+        },
+        {
+          "frame_id": 18601,
+          "path": "D:\\cholec_dataset\\Training\\VID103\\Frames\\018601.png",
+          "sha256": "d7d7dc4f8b0afb8c6ced2baa5c04a747e823d4a78459f7d4531463e3bad6a520"
+        }
+      ],
+      "key": "VID103_18601",
+      "provenance": {
+        "annotation_source": "D:\\cholec_dataset\\Training\\VID103\\vid103.json",
+        "frame_action_source": null,
+        "manifest_source": null,
+        "media_source": "D:\\cholec_dataset\\Training\\VID103\\Frames",
+        "phase_source": null,
+        "route": "official_raw",
+        "split": "training",
+        "supervision_granularity": "instance_plus_phase_only",
+        "video_id": "VID103"
+      },
+      "quantile": [
+        1,
+        3
+      ],
+      "sampling_rule": "fixed chronological quantile; nearest all-head-mask three-frame target; earlier tie; >75 raw frames from all historical/planned targets",
+      "source_split": "Training",
+      "video_id": "VID103"
+    },
+    {
+      "anchor_frame_id": 33751,
+      "arm_order": [
+        "none",
+        "graph",
+        "flat"
+      ],
+      "causal_frame_ids": [
+        33801,
+        33826,
+        33851
+      ],
+      "frame_id": 33851,
+      "gt_availability_only": {
+        "instrument": true,
+        "ivt": true,
+        "phase": true,
+        "target": true,
+        "verb": true
+      },
+      "images": [
+        {
+          "frame_id": 33801,
+          "path": "D:\\cholec_dataset\\Training\\VID103\\Frames\\033801.png",
+          "sha256": "b0ffcc508bcd8a9c27e058dc405138cb05cd908c224a7691f954be3809352ab1"
+        },
+        {
+          "frame_id": 33826,
+          "path": "D:\\cholec_dataset\\Training\\VID103\\Frames\\033826.png",
+          "sha256": "8e8c07d55fe08aaa07a3a8b654be4150126caad4ce9ebf73659beae994aec51b"
+        },
+        {
+          "frame_id": 33851,
+          "path": "D:\\cholec_dataset\\Training\\VID103\\Frames\\033851.png",
+          "sha256": "d1d96d7c825db19cd55834a6cb2fdd8bdd7a64a50e57bee112d7ee2dc01d242e"
+        }
+      ],
+      "key": "VID103_33851",
+      "provenance": {
+        "annotation_source": "D:\\cholec_dataset\\Training\\VID103\\vid103.json",
+        "frame_action_source": null,
+        "manifest_source": null,
+        "media_source": "D:\\cholec_dataset\\Training\\VID103\\Frames",
+        "phase_source": null,
+        "route": "official_raw",
+        "split": "training",
+        "supervision_granularity": "instance_plus_phase_only",
+        "video_id": "VID103"
+      },
+      "quantile": [
+        2,
+        3
+      ],
+      "sampling_rule": "fixed chronological quantile; nearest all-head-mask three-frame target; earlier tie; >75 raw frames from all historical/planned targets",
+      "source_split": "Training",
+      "video_id": "VID103"
+    },
+    {
+      "anchor_frame_id": 13076,
+      "arm_order": [
+        "flat",
+        "none",
+        "graph"
+      ],
+      "causal_frame_ids": [
+        12926,
+        12951,
+        12976
+      ],
+      "frame_id": 12976,
+      "gt_availability_only": {
+        "instrument": true,
+        "ivt": true,
+        "phase": true,
+        "target": true,
+        "verb": true
+      },
+      "images": [
+        {
+          "frame_id": 12926,
+          "path": "D:\\cholec_dataset\\Training\\VID23\\Frames\\012926.png",
+          "sha256": "444a38f16fd59df795b468f0cd3f979e01f5ea8ef25d4e6b7108afb433ee577c"
+        },
+        {
+          "frame_id": 12951,
+          "path": "D:\\cholec_dataset\\Training\\VID23\\Frames\\012951.png",
+          "sha256": "1da86adb3028d509c5b4fd37eb02e796ee282fecdccc6b3b41997d1e0cbfaebf"
+        },
+        {
+          "frame_id": 12976,
+          "path": "D:\\cholec_dataset\\Training\\VID23\\Frames\\012976.png",
+          "sha256": "f5436b4cdf096a33d3a83c45f3f58487b48c6146db72daa4979a8c6ca39c9028"
+        }
+      ],
+      "key": "VID23_12976",
+      "provenance": {
+        "annotation_source": "D:\\cholec_dataset\\Training\\VID23\\vid23.json",
+        "frame_action_source": null,
+        "manifest_source": null,
+        "media_source": "D:\\cholec_dataset\\Training\\VID23\\Frames",
+        "phase_source": null,
+        "route": "official_raw",
+        "split": "training",
+        "supervision_granularity": "instance_plus_phase_only",
+        "video_id": "VID23"
+      },
+      "quantile": [
+        1,
+        3
+      ],
+      "sampling_rule": "fixed chronological quantile; nearest all-head-mask three-frame target; earlier tie; >75 raw frames from all historical/planned targets",
+      "source_split": "Training",
+      "video_id": "VID23"
+    },
+    {
+      "anchor_frame_id": 27726,
+      "arm_order": [
+        "flat",
+        "graph",
+        "none"
+      ],
+      "causal_frame_ids": [
+        28501,
+        28526,
+        28551
+      ],
+      "frame_id": 28551,
+      "gt_availability_only": {
+        "instrument": true,
+        "ivt": true,
+        "phase": true,
+        "target": true,
+        "verb": true
+      },
+      "images": [
+        {
+          "frame_id": 28501,
+          "path": "D:\\cholec_dataset\\Training\\VID23\\Frames\\028501.png",
+          "sha256": "f3681858eaf89b6e200ab45d6839cdd2f8883db7db4f312f339310580834b459"
+        },
+        {
+          "frame_id": 28526,
+          "path": "D:\\cholec_dataset\\Training\\VID23\\Frames\\028526.png",
+          "sha256": "58e657b673e0f08bfb96e1ce9066b25b0712007bfaf8dc17d3ae197eea3f9f07"
+        },
+        {
+          "frame_id": 28551,
+          "path": "D:\\cholec_dataset\\Training\\VID23\\Frames\\028551.png",
+          "sha256": "75b3e22db43a1d37f2e9135f2aab995b4608d3c372400f4cc73c816620b146e3"
+        }
+      ],
+      "key": "VID23_28551",
+      "provenance": {
+        "annotation_source": "D:\\cholec_dataset\\Training\\VID23\\vid23.json",
+        "frame_action_source": null,
+        "manifest_source": null,
+        "media_source": "D:\\cholec_dataset\\Training\\VID23\\Frames",
+        "phase_source": null,
+        "route": "official_raw",
+        "split": "training",
+        "supervision_granularity": "instance_plus_phase_only",
+        "video_id": "VID23"
+      },
+      "quantile": [
+        2,
+        3
+      ],
+      "sampling_rule": "fixed chronological quantile; nearest all-head-mask three-frame target; earlier tie; >75 raw frames from all historical/planned targets",
+      "source_split": "Training",
+      "video_id": "VID23"
+    },
+    {
+      "anchor_frame_id": 57076,
+      "arm_order": [
+        "graph",
+        "none",
+        "flat"
+      ],
+      "causal_frame_ids": [
+        57026,
+        57051,
+        57076
+      ],
+      "frame_id": 57076,
+      "gt_availability_only": {
+        "instrument": true,
+        "ivt": true,
+        "phase": true,
+        "target": true,
+        "verb": true
+      },
+      "images": [
+        {
+          "frame_id": 57026,
+          "path": "D:\\cholec_dataset\\Training\\VID31\\Frames\\057026.png",
+          "sha256": "5c70f384c6870ca8cffeaa64d7c6ec40cd7382d68c0b2e05929a0925ef5f6777"
+        },
+        {
+          "frame_id": 57051,
+          "path": "D:\\cholec_dataset\\Training\\VID31\\Frames\\057051.png",
+          "sha256": "0e68735846f1bf74f4b7cb7d3a5e4b40d8862cef9eb546f43ad5581f1897b4a2"
+        },
+        {
+          "frame_id": 57076,
+          "path": "D:\\cholec_dataset\\Training\\VID31\\Frames\\057076.png",
+          "sha256": "68cdad959f016583cb90a4d6cf8c15b42711cedd517933d6886469c112b3c1a4"
+        }
+      ],
+      "key": "VID31_57076",
+      "provenance": {
+        "annotation_source": null,
+        "frame_action_source": "D:\\cholec_dataset\\Training\\VID31\\vid31_frame_ivt_repaired.json",
+        "manifest_source": "D:\\cholec_dataset\\repair_manifest.json",
+        "media_source": "D:\\cholec_dataset\\Training\\VID31\\Frames",
+        "phase_source": "D:\\cholec_dataset\\Training\\VID31\\vid31_phase_repaired.json",
+        "route": "derived_vid31_frame_multilabel",
+        "split": "training",
+        "supervision_granularity": "frame_multilabel_plus_phase",
+        "video_id": "VID31"
+      },
+      "quantile": [
+        1,
+        2
+      ],
+      "sampling_rule": "fixed chronological quantile; nearest all-head-mask three-frame target; earlier tie; >75 raw frames from all historical/planned targets",
+      "source_split": "Training",
+      "video_id": "VID31"
+    },
+    {
+      "anchor_frame_id": 20076,
+      "arm_order": [
+        "graph",
+        "flat",
+        "none"
+      ],
+      "causal_frame_ids": [
+        20026,
+        20051,
+        20076
+      ],
+      "frame_id": 20076,
+      "gt_availability_only": {
+        "instrument": true,
+        "ivt": true,
+        "phase": true,
+        "target": true,
+        "verb": true
+      },
+      "images": [
+        {
+          "frame_id": 20026,
+          "path": "D:\\cholec_dataset\\Training\\VID96\\Frames\\020026.png",
+          "sha256": "cee7cfd46a1be493b6770954507c0fb138414294370daef54e4f5a7341c1669e"
+        },
+        {
+          "frame_id": 20051,
+          "path": "D:\\cholec_dataset\\Training\\VID96\\Frames\\020051.png",
+          "sha256": "894d60b671bbf6ba5ee04a05c9dd455053e0dcc1c31b54b162cf12b5dc551d7f"
+        },
+        {
+          "frame_id": 20076,
+          "path": "D:\\cholec_dataset\\Training\\VID96\\Frames\\020076.png",
+          "sha256": "e90205767e423fea923dd8e80d570af1d99cd3e6aface01561dc2c1ca32b7b68"
+        }
+      ],
+      "key": "VID96_20076",
+      "provenance": {
+        "annotation_source": "D:\\cholec_dataset\\Training\\VID96\\vid96.json",
+        "frame_action_source": null,
+        "manifest_source": null,
+        "media_source": "D:\\cholec_dataset\\Training\\VID96\\Frames",
+        "phase_source": null,
+        "route": "official_raw",
+        "split": "training",
+        "supervision_granularity": "instance_plus_phase_only",
+        "video_id": "VID96"
+      },
+      "quantile": [
+        1,
+        2
+      ],
+      "sampling_rule": "fixed chronological quantile; nearest all-head-mask three-frame target; earlier tie; >75 raw frames from all historical/planned targets",
+      "source_split": "Training",
+      "video_id": "VID96"
+    }
+  ],
+  "selection_rule": "four Training videos are the only videos with complete five-head masks; first two lexicographic IDs get two time quantiles, remaining get one midpoint; no labels or prior scores used"
+}
