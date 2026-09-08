@@ -1,5 +1,11 @@
 # Streaming SurgicalAgent V3.1
 
+> **先看实验结果：[当前实验数据与可量化指标](EXPERIMENT_RESULTS.md)（2026-09-08）**
+>
+> 按 H0、Tracker、Verifier/Repair、Gate 汇总已完成数据，包含 Precision、Recall、F1、集合 Accuracy、修复收益和费用。
+> **目前尚无最新完整 Pipeline 的四组消融结果；模块小测试不等于完整系统成绩。**
+> [可下载指标快照](docs/experiments/current_quantitative_results_20260908.json) · [历史修复实验汇总](docs/VERIFIER_REPAIR_EXPERIMENT_SUMMARY_2026-09-08.md)
+
 CholecTrack20-only research code for strict-causal surgical video inference,
 predicted tracking, selective structured verification, and reliability-aware
 event memory.
@@ -29,8 +35,11 @@ connected to a Gate trained on the old top-k contract.
 > Rule/learned Gate slot, bounded targeted Verify/Repair, deterministic
 > postcheck, OutcomeFinalizer, atomic Memory/Pending state, exact provider-attempt
 > budgets and resumable D0 collection. Tracker OOF training/evaluation is
-> complete. Real API Repair capability evidence, D1, final G1 and Validation
-> operating-point selection have not run; no current Gate artifact is final.
+> complete. Small real API Repair experiments have run without establishing
+> stable net semantic benefit. The latest final-only H0 and five-family repair
+> remain separate from this legacy ranked Pipeline. Current-policy formal Gate
+> training, Validation operating-point selection and the four-cell experiment
+> remain incomplete; no current Gate artifact is final.
 
 ## Current documentation
 
