@@ -1,13 +1,13 @@
 # Documentation Authority and Live Checkpoint
 
-Published repair research candidate: [current mechanism, results and offline replay](VERIFIED_REPAIR_CANDIDATE_2026-09-08.md).
-The [20-target report](REPAIR_REVISION_RESULTS_2026-09-08.md) separates development,
-confirmation and feedback cohorts. Development gains did not persist in confirmation;
-feedback avoided one control-arm instrument error but added no second-round IVT gain.
-The [portable four-target replay](experiments/verified_repair_candidate_20260908.json)
-replays recorded model answers and deterministic repair; it does not contain images or
-per-frame GT. The default H0 is unchanged. [GraphRAG placement and interfaces](GRAPH_RAG_VERIFIER_DESIGN_2026-09-08.md)
-are a proposed design, not an implemented or evaluated module.
+Current retained repair: [best-version manifest](../BEST_REPAIR_VERSION.json) and
+[concise same-eight-target experiment record](../EXPERIMENT_RESULTS.md), updated 2026-09-09.
+The frozen [prior-graph one-round release](https://github.com/litianhao738/streaming-surgical-agent/tree/best-repair-2026-09-09)
+keeps commit `a0406baa7e5aeb8313403e792a8e609e2fceccef` and its portable offline replay.
+Second-round feedback, relaxed quorum, and four/five-head LLM repairs did not
+outperform it on this development cohort. These are not full Tracker/Gate or Testing results.
+The default pure API H0 is unchanged. Earlier repair reports and GraphRAG design
+notes below are dated history; use the current record for implemented, measured status.
 
 Start with the [Verifier / Repair mechanisms and measured results summary](VERIFIER_REPAIR_EXPERIMENT_SUMMARY_2026-09-08.md)
 for the tested alternatives, paired gains and harms, task masks, actual rounds,

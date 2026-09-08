@@ -1,0 +1,5169 @@
+{
+  "best": {
+    "arm": "prior_graph",
+    "commit": "a0406baa7e5aeb8313403e792a8e609e2fceccef",
+    "release": "prior-graph-repair-v1.0.0-experimental",
+    "source_run": "prior_candidate_eight_20260908_v1"
+  },
+  "date": "2026-09-09",
+  "h0_model": "google/gemini-3.8-flash",
+  "publication_model_calls": 0,
+  "publication_scope": "Aggregate measurements only. Raw calls, image inputs, frame-level GT, code snapshots and failed variants remain in original local experiment archives. Best-version code and portable replay are already published at the pinned release.",
+  "runs": {
+    "five_head_repair_eight_20260909_v1": {
+      "audit": {
+        "actual_requests_verified": 48,
+        "gt_loaded_after_closed_inference": true,
+        "means_and_metric_counts_independently_checked": true,
+        "raw_outputs_replayed": true
+      },
+      "candidate_coverage": {
+        "original_pool": {
+          "instrument": {
+            "gt_positive": 14,
+            "missing_from_pool": 5,
+            "pool_false": 4,
+            "pool_true": 9,
+            "valid_targets": 8
+          },
+          "ivt": {
+            "gt_positive": 15,
+            "missing_from_pool": 8,
+            "pool_false": 15,
+            "pool_true": 7,
+            "valid_targets": 8
+          },
+          "phase": {
+            "gt_positive": 8,
+            "missing_from_pool": 8,
+            "pool_false": 0,
+            "pool_true": 0,
+            "valid_targets": 8
+          },
+          "target": {
+            "gt_positive": 15,
+            "missing_from_pool": 5,
+            "pool_false": 6,
+            "pool_true": 10,
+            "valid_targets": 8
+          },
+          "verb": {
+            "gt_positive": 14,
+            "missing_from_pool": 4,
+            "pool_false": 8,
+            "pool_true": 10,
+            "valid_targets": 8
+          }
+        },
+        "repair_pool": {
+          "instrument": {
+            "gt_positive": 14,
+            "missing_from_pool": 5,
+            "pool_false": 4,
+            "pool_true": 9,
+            "valid_targets": 8
+          },
+          "ivt": {
+            "gt_positive": 15,
+            "missing_from_pool": 8,
+            "pool_false": 15,
+            "pool_true": 7,
+            "valid_targets": 8
+          },
+          "phase": {
+            "gt_positive": 8,
+            "missing_from_pool": 0,
+            "pool_false": 48,
+            "pool_true": 8,
+            "valid_targets": 8
+          },
+          "target": {
+            "gt_positive": 15,
+            "missing_from_pool": 5,
+            "pool_false": 6,
+            "pool_true": 10,
+            "valid_targets": 8
+          },
+          "verb": {
+            "gt_positive": 14,
+            "missing_from_pool": 4,
+            "pool_false": 8,
+            "pool_true": 10,
+            "valid_targets": 8
+          }
+        }
+      },
+      "comparisons": {
+        "graph_r1_to_llm_raw": {
+          "categories": {
+            "harm": 3,
+            "partial_improvement": 1,
+            "unchanged": 4
+          },
+          "correct_additions": 0,
+          "correct_deletions": 1,
+          "error_count_after": 58,
+          "error_count_before": 54,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 1,
+          "introduced_label_errors": 5,
+          "net_errors_removed": -4,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 2,
+              "wrong_deletions": 1
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 0,
+              "correct_deletions": 1,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 1
+            },
+            "verb": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 3,
+          "wrong_deletions": 2,
+          "wrong_to_exact": 0
+        },
+        "graph_r1_to_panel_five": {
+          "categories": {
+            "harm": 2,
+            "unchanged": 6
+          },
+          "correct_additions": 0,
+          "correct_deletions": 1,
+          "error_count_after": 56,
+          "error_count_before": 54,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 1,
+          "introduced_label_errors": 3,
+          "net_errors_removed": -2,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 1,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 3,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        },
+        "graph_r1_to_paper_style": {
+          "categories": {
+            "harm": 3,
+            "partial_improvement": 1,
+            "unchanged": 4
+          },
+          "correct_additions": 0,
+          "correct_deletions": 1,
+          "error_count_after": 58,
+          "error_count_before": 54,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 1,
+          "introduced_label_errors": 5,
+          "net_errors_removed": -4,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 2,
+              "wrong_deletions": 1
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 0,
+              "correct_deletions": 1,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 1
+            },
+            "verb": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 3,
+          "wrong_deletions": 2,
+          "wrong_to_exact": 0
+        },
+        "graph_r1_to_previous_four": {
+          "categories": {
+            "harm": 1,
+            "unchanged": 7
+          },
+          "correct_additions": 0,
+          "correct_deletions": 0,
+          "error_count_after": 55,
+          "error_count_before": 54,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 0,
+          "introduced_label_errors": 1,
+          "net_errors_removed": -1,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 1,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        },
+        "h0_to_graph_r1": {
+          "categories": {
+            "harm": 2,
+            "partial_improvement": 4,
+            "unchanged": 2
+          },
+          "correct_additions": 5,
+          "correct_deletions": 1,
+          "error_count_after": 54,
+          "error_count_before": 57,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 6,
+          "introduced_label_errors": 3,
+          "net_errors_removed": 3,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 1,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 2,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 1,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 2,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 2,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 3,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        },
+        "panel_four_shadow_to_panel_five": {
+          "categories": {
+            "no_benefit_replacement": 1,
+            "unchanged": 7
+          },
+          "correct_additions": 0,
+          "correct_deletions": 1,
+          "error_count_after": 56,
+          "error_count_before": 56,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 1,
+          "introduced_label_errors": 1,
+          "net_errors_removed": 0,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 1,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 1,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        },
+        "paper_style_to_panel_five": {
+          "categories": {
+            "harm": 1,
+            "mixed": 1,
+            "partial_improvement": 1,
+            "unchanged": 5
+          },
+          "correct_additions": 2,
+          "correct_deletions": 3,
+          "error_count_after": 56,
+          "error_count_before": 58,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 5,
+          "introduced_label_errors": 3,
+          "net_errors_removed": 2,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 1,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 1,
+              "correct_deletions": 1,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 1,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 1,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 2,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 3,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        },
+        "previous_four_to_panel_five": {
+          "categories": {
+            "harm": 2,
+            "partial_improvement": 1,
+            "unchanged": 5
+          },
+          "correct_additions": 0,
+          "correct_deletions": 2,
+          "error_count_after": 56,
+          "error_count_before": 55,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 2,
+          "introduced_label_errors": 3,
+          "net_errors_removed": -1,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 0,
+              "correct_deletions": 1,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 1,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 3,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        }
+      },
+      "limitations": [
+        "Previously inspected development data, not independent confirmation.",
+        "Author-inspired adaptation to full ontology, not reproduction of the parent's MCQ experiments.",
+        "Joint rewrite and five-head review differ from the old targeted edit protocol; not a one-factor Phase ablation.",
+        "Same cached H0 and causal images; no tracker/gate or new external visual evidence.",
+        "Phase-IVT prior is a soft hint with query video excluded; it never overwrites Phase deterministically."
+      ],
+      "local_source": "artifacts/preflight/five_head_repair_eight_20260909_v1",
+      "metrics": {
+        "graph_r1": {
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 8
+          },
+          "tasks": {
+            "instrument": {
+              "exact_matches": 3,
+              "exact_set_accuracy": 0.375,
+              "failed_predictions": 0,
+              "fn": 5,
+              "fp": 3,
+              "micro_f1": 0.6923076923076923,
+              "micro_precision": 0.75,
+              "micro_recall": 0.6428571428571429,
+              "tp": 9,
+              "valid_targets": 8
+            },
+            "ivt": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 9,
+              "fp": 9,
+              "micro_f1": 0.4,
+              "micro_precision": 0.4,
+              "micro_recall": 0.4,
+              "tp": 6,
+              "valid_targets": 8
+            },
+            "phase": {
+              "exact_matches": 5,
+              "exact_set_accuracy": 0.625,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 3,
+              "micro_f1": 0.625,
+              "micro_precision": 0.625,
+              "micro_recall": 0.625,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "target": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 7,
+              "fp": 5,
+              "micro_f1": 0.5714285714285714,
+              "micro_precision": 0.6153846153846154,
+              "micro_recall": 0.5333333333333333,
+              "tp": 8,
+              "valid_targets": 8
+            },
+            "verb": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 4,
+              "fp": 6,
+              "micro_f1": 0.6666666666666666,
+              "micro_precision": 0.625,
+              "micro_recall": 0.7142857142857143,
+              "tp": 10,
+              "valid_targets": 8
+            }
+          }
+        },
+        "h0": {
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 8
+          },
+          "tasks": {
+            "instrument": {
+              "exact_matches": 3,
+              "exact_set_accuracy": 0.375,
+              "failed_predictions": 0,
+              "fn": 5,
+              "fp": 4,
+              "micro_f1": 0.6666666666666666,
+              "micro_precision": 0.6923076923076923,
+              "micro_recall": 0.6428571428571429,
+              "tp": 9,
+              "valid_targets": 8
+            },
+            "ivt": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 11,
+              "fp": 8,
+              "micro_f1": 0.2962962962962963,
+              "micro_precision": 0.3333333333333333,
+              "micro_recall": 0.26666666666666666,
+              "tp": 4,
+              "valid_targets": 8
+            },
+            "phase": {
+              "exact_matches": 5,
+              "exact_set_accuracy": 0.625,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 3,
+              "micro_f1": 0.625,
+              "micro_precision": 0.625,
+              "micro_recall": 0.625,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "target": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 8,
+              "fp": 5,
+              "micro_f1": 0.5185185185185185,
+              "micro_precision": 0.5833333333333334,
+              "micro_recall": 0.4666666666666667,
+              "tp": 7,
+              "valid_targets": 8
+            },
+            "verb": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 6,
+              "fp": 4,
+              "micro_f1": 0.6153846153846154,
+              "micro_precision": 0.6666666666666666,
+              "micro_recall": 0.5714285714285714,
+              "tp": 8,
+              "valid_targets": 8
+            }
+          }
+        },
+        "llm_raw": {
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 8
+          },
+          "tasks": {
+            "instrument": {
+              "exact_matches": 3,
+              "exact_set_accuracy": 0.375,
+              "failed_predictions": 0,
+              "fn": 5,
+              "fp": 4,
+              "micro_f1": 0.6666666666666666,
+              "micro_precision": 0.6923076923076923,
+              "micro_recall": 0.6428571428571429,
+              "tp": 9,
+              "valid_targets": 8
+            },
+            "ivt": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 10,
+              "fp": 11,
+              "micro_f1": 0.3225806451612903,
+              "micro_precision": 0.3125,
+              "micro_recall": 0.3333333333333333,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "phase": {
+              "exact_matches": 5,
+              "exact_set_accuracy": 0.625,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 3,
+              "micro_f1": 0.625,
+              "micro_precision": 0.625,
+              "micro_recall": 0.625,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "target": {
+              "exact_matches": 1,
+              "exact_set_accuracy": 0.125,
+              "failed_predictions": 0,
+              "fn": 8,
+              "fp": 4,
+              "micro_f1": 0.5384615384615384,
+              "micro_precision": 0.6363636363636364,
+              "micro_recall": 0.4666666666666667,
+              "tp": 7,
+              "valid_targets": 8
+            },
+            "verb": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 4,
+              "fp": 6,
+              "micro_f1": 0.6666666666666666,
+              "micro_precision": 0.625,
+              "micro_recall": 0.7142857142857143,
+              "tp": 10,
+              "valid_targets": 8
+            }
+          }
+        },
+        "panel_five": {
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 8
+          },
+          "tasks": {
+            "instrument": {
+              "exact_matches": 3,
+              "exact_set_accuracy": 0.375,
+              "failed_predictions": 0,
+              "fn": 5,
+              "fp": 3,
+              "micro_f1": 0.6923076923076923,
+              "micro_precision": 0.75,
+              "micro_recall": 0.6428571428571429,
+              "tp": 9,
+              "valid_targets": 8
+            },
+            "ivt": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 9,
+              "fp": 10,
+              "micro_f1": 0.3870967741935484,
+              "micro_precision": 0.375,
+              "micro_recall": 0.4,
+              "tp": 6,
+              "valid_targets": 8
+            },
+            "phase": {
+              "exact_matches": 5,
+              "exact_set_accuracy": 0.625,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 3,
+              "micro_f1": 0.625,
+              "micro_precision": 0.625,
+              "micro_recall": 0.625,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "target": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 7,
+              "fp": 6,
+              "micro_f1": 0.5517241379310345,
+              "micro_precision": 0.5714285714285714,
+              "micro_recall": 0.5333333333333333,
+              "tp": 8,
+              "valid_targets": 8
+            },
+            "verb": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 4,
+              "fp": 6,
+              "micro_f1": 0.6666666666666666,
+              "micro_precision": 0.625,
+              "micro_recall": 0.7142857142857143,
+              "tp": 10,
+              "valid_targets": 8
+            }
+          }
+        },
+        "panel_four_shadow": {
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 8
+          },
+          "tasks": {
+            "instrument": {
+              "exact_matches": 3,
+              "exact_set_accuracy": 0.375,
+              "failed_predictions": 0,
+              "fn": 5,
+              "fp": 3,
+              "micro_f1": 0.6923076923076923,
+              "micro_precision": 0.75,
+              "micro_recall": 0.6428571428571429,
+              "tp": 9,
+              "valid_targets": 8
+            },
+            "ivt": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 9,
+              "fp": 10,
+              "micro_f1": 0.3870967741935484,
+              "micro_precision": 0.375,
+              "micro_recall": 0.4,
+              "tp": 6,
+              "valid_targets": 8
+            },
+            "phase": {
+              "exact_matches": 5,
+              "exact_set_accuracy": 0.625,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 3,
+              "micro_f1": 0.625,
+              "micro_precision": 0.625,
+              "micro_recall": 0.625,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "target": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 7,
+              "fp": 6,
+              "micro_f1": 0.5517241379310345,
+              "micro_precision": 0.5714285714285714,
+              "micro_recall": 0.5333333333333333,
+              "tp": 8,
+              "valid_targets": 8
+            },
+            "verb": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 4,
+              "fp": 6,
+              "micro_f1": 0.6666666666666666,
+              "micro_precision": 0.625,
+              "micro_recall": 0.7142857142857143,
+              "tp": 10,
+              "valid_targets": 8
+            }
+          }
+        },
+        "paper_style": {
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 8
+          },
+          "tasks": {
+            "instrument": {
+              "exact_matches": 3,
+              "exact_set_accuracy": 0.375,
+              "failed_predictions": 0,
+              "fn": 5,
+              "fp": 4,
+              "micro_f1": 0.6666666666666666,
+              "micro_precision": 0.6923076923076923,
+              "micro_recall": 0.6428571428571429,
+              "tp": 9,
+              "valid_targets": 8
+            },
+            "ivt": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 10,
+              "fp": 11,
+              "micro_f1": 0.3225806451612903,
+              "micro_precision": 0.3125,
+              "micro_recall": 0.3333333333333333,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "phase": {
+              "exact_matches": 5,
+              "exact_set_accuracy": 0.625,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 3,
+              "micro_f1": 0.625,
+              "micro_precision": 0.625,
+              "micro_recall": 0.625,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "target": {
+              "exact_matches": 1,
+              "exact_set_accuracy": 0.125,
+              "failed_predictions": 0,
+              "fn": 8,
+              "fp": 4,
+              "micro_f1": 0.5384615384615384,
+              "micro_precision": 0.6363636363636364,
+              "micro_recall": 0.4666666666666667,
+              "tp": 7,
+              "valid_targets": 8
+            },
+            "verb": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 4,
+              "fp": 6,
+              "micro_f1": 0.6666666666666666,
+              "micro_precision": 0.625,
+              "micro_recall": 0.7142857142857143,
+              "tp": 10,
+              "valid_targets": 8
+            }
+          }
+        },
+        "previous_four": {
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 8
+          },
+          "tasks": {
+            "instrument": {
+              "exact_matches": 3,
+              "exact_set_accuracy": 0.375,
+              "failed_predictions": 0,
+              "fn": 5,
+              "fp": 3,
+              "micro_f1": 0.6923076923076923,
+              "micro_precision": 0.75,
+              "micro_recall": 0.6428571428571429,
+              "tp": 9,
+              "valid_targets": 8
+            },
+            "ivt": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 9,
+              "fp": 10,
+              "micro_f1": 0.3870967741935484,
+              "micro_precision": 0.375,
+              "micro_recall": 0.4,
+              "tp": 6,
+              "valid_targets": 8
+            },
+            "phase": {
+              "exact_matches": 5,
+              "exact_set_accuracy": 0.625,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 3,
+              "micro_f1": 0.625,
+              "micro_precision": 0.625,
+              "micro_recall": 0.625,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "target": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 7,
+              "fp": 5,
+              "micro_f1": 0.5714285714285714,
+              "micro_precision": 0.6153846153846154,
+              "micro_recall": 0.5333333333333333,
+              "tp": 8,
+              "valid_targets": 8
+            },
+            "verb": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 4,
+              "fp": 6,
+              "micro_f1": 0.6666666666666666,
+              "micro_precision": 0.625,
+              "micro_recall": 0.7142857142857143,
+              "tp": 10,
+              "valid_targets": 8
+            }
+          }
+        }
+      },
+      "profile": "five_head_surgreflect_adaptation_v1",
+      "runtime": {
+        "calls": 48,
+        "charges": {
+          "aliyun_cny": {
+            "conservative_estimate": "0.115377"
+          },
+          "openrouter_usd": {
+            "native": "0.13150678",
+            "unknown_reserved": "0.12173304"
+          },
+          "xai_usd": {
+            "native": "0.199638"
+          }
+        },
+        "inference_seconds": 238.15865309999936,
+        "stage_charges": {
+          "five_head_review_2": {
+            "aliyun_cny": "0.115377",
+            "openrouter_usd": "0.18398632",
+            "xai_usd": "0.199638"
+          },
+          "joint_repair_2": {
+            "openrouter_usd": "0.06925350"
+          }
+        },
+        "statuses": {
+          "API_FAILED": 3,
+          "JSON_PARSED": 45
+        },
+        "target_statuses": {
+          "REVIEWED": 8
+        }
+      },
+      "source_sha256": {
+        "budget": "b3129434a5ae7a10f09ae6907d24495f854bbc003e124789b28ba806ee3da20d",
+        "completion": "7448a6245ed237a2d0aa16f387154c6b72b6c13beb52df34568101c6c3938d3e",
+        "metrics": "036c9703b925384cf623312efc3154c2d29c67aedd1822454c63641ef7df71e0",
+        "plan": "1f2d80c23824170b498504e518a4645e9bb0c16065d74dd4cc3c222306cea11f",
+        "predictions": "e63354496d5fa54394738bd01fa7574f2652b03f5166e1637272149faaf1e8b8"
+      },
+      "targets": 8
+    },
+    "prior_candidate_eight_20260908_v1": {
+      "audit": {
+        "audit_scope": "offline replay and independent score; no extra model calls",
+        "candidate_pools_rebuilt": 16,
+        "invalid_judgments": {
+          "control": {
+            "LOCAL_ABSENCE_CANNOT_DELETE_FRAME_LABEL": 17,
+            "RATING_FINDING_CONFLICT": 1,
+            "SCHEMA_INVALID": 1
+          },
+          "prior_graph": {
+            "LOCAL_ABSENCE_CANNOT_DELETE_FRAME_LABEL": 14,
+            "RATING_FINDING_CONFLICT": 1
+          }
+        },
+        "replayed_panels": 16,
+        "source_and_closed_snapshots_valid": true
+      },
+      "candidate_coverage": {
+        "control": {
+          "instrument": {
+            "gt_positive": 14,
+            "pool_false": 4,
+            "pool_recall": 0.6428571428571429,
+            "pool_size": 13,
+            "pool_true": 9,
+            "selected_true": 9,
+            "valid_targets": 8
+          },
+          "ivt": {
+            "gt_positive": 15,
+            "pool_false": 15,
+            "pool_recall": 0.4,
+            "pool_size": 21,
+            "pool_true": 6,
+            "selected_true": 5,
+            "valid_targets": 8
+          },
+          "target": {
+            "gt_positive": 15,
+            "pool_false": 7,
+            "pool_recall": 0.6,
+            "pool_size": 16,
+            "pool_true": 9,
+            "selected_true": 8,
+            "valid_targets": 8
+          },
+          "verb": {
+            "gt_positive": 14,
+            "pool_false": 7,
+            "pool_recall": 0.7142857142857143,
+            "pool_size": 17,
+            "pool_true": 10,
+            "selected_true": 10,
+            "valid_targets": 8
+          }
+        },
+        "prior_graph": {
+          "instrument": {
+            "gt_positive": 14,
+            "pool_false": 4,
+            "pool_recall": 0.6428571428571429,
+            "pool_size": 13,
+            "pool_true": 9,
+            "selected_true": 9,
+            "valid_targets": 8
+          },
+          "ivt": {
+            "gt_positive": 15,
+            "pool_false": 15,
+            "pool_recall": 0.4666666666666667,
+            "pool_size": 22,
+            "pool_true": 7,
+            "selected_true": 6,
+            "valid_targets": 8
+          },
+          "target": {
+            "gt_positive": 15,
+            "pool_false": 6,
+            "pool_recall": 0.6666666666666666,
+            "pool_size": 16,
+            "pool_true": 10,
+            "selected_true": 8,
+            "valid_targets": 8
+          },
+          "verb": {
+            "gt_positive": 14,
+            "pool_false": 8,
+            "pool_recall": 0.7142857142857143,
+            "pool_size": 18,
+            "pool_true": 10,
+            "selected_true": 10,
+            "valid_targets": 8
+          }
+        }
+      },
+      "comparisons": {
+        "control_to_prior_graph": {
+          "categories": {
+            "partial_improvement": 2,
+            "unchanged": 6
+          },
+          "correct_additions": 1,
+          "correct_deletions": 1,
+          "error_count_after": 54,
+          "error_count_before": 56,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 2,
+          "introduced_label_errors": 0,
+          "net_errors_removed": 2,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 1,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 0,
+              "correct_deletions": 1,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 0,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        },
+        "h0_to_control": {
+          "categories": {
+            "harm": 3,
+            "partial_improvement": 4,
+            "unchanged": 1
+          },
+          "correct_additions": 4,
+          "correct_deletions": 1,
+          "error_count_after": 56,
+          "error_count_before": 57,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 5,
+          "introduced_label_errors": 4,
+          "net_errors_removed": 1,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 1,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 1,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 1,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 2,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 2,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 4,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        },
+        "h0_to_prior_graph": {
+          "categories": {
+            "harm": 2,
+            "partial_improvement": 4,
+            "unchanged": 2
+          },
+          "correct_additions": 5,
+          "correct_deletions": 1,
+          "error_count_after": 54,
+          "error_count_before": 57,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 6,
+          "introduced_label_errors": 3,
+          "net_errors_removed": 3,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 1,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 2,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 1,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 2,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 2,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 3,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        }
+      },
+      "limitations": [
+        "Eight Training time targets, not independent surgery generalization or Gate OOF.",
+        "Paired H0 but different proposals/pools; effect combines Training priors and candidate guidance.",
+        "Unresolved is not a model pass; unchanged fallback remains scored."
+      ],
+      "local_source": "artifacts/preflight/prior_candidate_eight_20260908_v1",
+      "metrics": {
+        "control": {
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 8
+          },
+          "tasks": {
+            "instrument": {
+              "exact_matches": 3,
+              "exact_set_accuracy": 0.375,
+              "failed_predictions": 0,
+              "fn": 5,
+              "fp": 3,
+              "micro_f1": 0.6923076923076923,
+              "micro_precision": 0.75,
+              "micro_recall": 0.6428571428571429,
+              "tp": 9,
+              "valid_targets": 8
+            },
+            "ivt": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 10,
+              "fp": 9,
+              "micro_f1": 0.3448275862068966,
+              "micro_precision": 0.35714285714285715,
+              "micro_recall": 0.3333333333333333,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "phase": {
+              "exact_matches": 5,
+              "exact_set_accuracy": 0.625,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 3,
+              "micro_f1": 0.625,
+              "micro_precision": 0.625,
+              "micro_recall": 0.625,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "target": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 7,
+              "fp": 6,
+              "micro_f1": 0.5517241379310345,
+              "micro_precision": 0.5714285714285714,
+              "micro_recall": 0.5333333333333333,
+              "tp": 8,
+              "valid_targets": 8
+            },
+            "verb": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 4,
+              "fp": 6,
+              "micro_f1": 0.6666666666666666,
+              "micro_precision": 0.625,
+              "micro_recall": 0.7142857142857143,
+              "tp": 10,
+              "valid_targets": 8
+            }
+          }
+        },
+        "h0": {
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 8
+          },
+          "tasks": {
+            "instrument": {
+              "exact_matches": 3,
+              "exact_set_accuracy": 0.375,
+              "failed_predictions": 0,
+              "fn": 5,
+              "fp": 4,
+              "micro_f1": 0.6666666666666666,
+              "micro_precision": 0.6923076923076923,
+              "micro_recall": 0.6428571428571429,
+              "tp": 9,
+              "valid_targets": 8
+            },
+            "ivt": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 11,
+              "fp": 8,
+              "micro_f1": 0.2962962962962963,
+              "micro_precision": 0.3333333333333333,
+              "micro_recall": 0.26666666666666666,
+              "tp": 4,
+              "valid_targets": 8
+            },
+            "phase": {
+              "exact_matches": 5,
+              "exact_set_accuracy": 0.625,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 3,
+              "micro_f1": 0.625,
+              "micro_precision": 0.625,
+              "micro_recall": 0.625,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "target": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 8,
+              "fp": 5,
+              "micro_f1": 0.5185185185185185,
+              "micro_precision": 0.5833333333333334,
+              "micro_recall": 0.4666666666666667,
+              "tp": 7,
+              "valid_targets": 8
+            },
+            "verb": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 6,
+              "fp": 4,
+              "micro_f1": 0.6153846153846154,
+              "micro_precision": 0.6666666666666666,
+              "micro_recall": 0.5714285714285714,
+              "tp": 8,
+              "valid_targets": 8
+            }
+          }
+        },
+        "prior_graph": {
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 8
+          },
+          "tasks": {
+            "instrument": {
+              "exact_matches": 3,
+              "exact_set_accuracy": 0.375,
+              "failed_predictions": 0,
+              "fn": 5,
+              "fp": 3,
+              "micro_f1": 0.6923076923076923,
+              "micro_precision": 0.75,
+              "micro_recall": 0.6428571428571429,
+              "tp": 9,
+              "valid_targets": 8
+            },
+            "ivt": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 9,
+              "fp": 9,
+              "micro_f1": 0.4,
+              "micro_precision": 0.4,
+              "micro_recall": 0.4,
+              "tp": 6,
+              "valid_targets": 8
+            },
+            "phase": {
+              "exact_matches": 5,
+              "exact_set_accuracy": 0.625,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 3,
+              "micro_f1": 0.625,
+              "micro_precision": 0.625,
+              "micro_recall": 0.625,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "target": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 7,
+              "fp": 5,
+              "micro_f1": 0.5714285714285714,
+              "micro_precision": 0.6153846153846154,
+              "micro_recall": 0.5333333333333333,
+              "tp": 8,
+              "valid_targets": 8
+            },
+            "verb": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 4,
+              "fp": 6,
+              "micro_f1": 0.6666666666666666,
+              "micro_precision": 0.625,
+              "micro_recall": 0.7142857142857143,
+              "tp": 10,
+              "valid_targets": 8
+            }
+          }
+        }
+      },
+      "profile": "lovo_prior_guided_visual_proposer_v1",
+      "runtime": {
+        "arms": {
+          "control": {
+            "max_panel_seconds": 24.186547899997095,
+            "measured_panels": 6,
+            "median_panel_seconds": 18.832059450000088,
+            "shared_panels": 2,
+            "statuses": {
+              "MODEL_PASS": 1,
+              "UNRESOLVED": 7
+            }
+          },
+          "prior_graph": {
+            "max_panel_seconds": 29.105281800002558,
+            "measured_panels": 6,
+            "median_panel_seconds": 19.842337100002624,
+            "shared_panels": 2,
+            "statuses": {
+              "MODEL_PASS": 1,
+              "UNRESOLVED": 7
+            }
+          }
+        },
+        "cost_note": "Shared exact-wire panels counted once; native USD and estimated CNY separate. Per-arm observed expenses exclude shared work; never present them as equal-work causal savings.",
+        "costs": {
+          "all": {
+            "calls": 84,
+            "charge_kinds": {
+              "conservative_estimate": 12,
+              "native": 72
+            },
+            "charges": {
+              "aliyun_cny": "0.112322",
+              "openrouter_usd": "0.14428604",
+              "xai_usd": "0.211768"
+            },
+            "completion_tokens": 30672,
+            "prompt_tokens": 363315
+          },
+          "control": {
+            "calls": 38,
+            "charge_kinds": {
+              "conservative_estimate": 6,
+              "native": 32
+            },
+            "charges": {
+              "aliyun_cny": "0.054972",
+              "openrouter_usd": "0.05736297",
+              "xai_usd": "0.108240"
+            },
+            "completion_tokens": 14740,
+            "prompt_tokens": 166156
+          },
+          "prior_graph": {
+            "calls": 38,
+            "charge_kinds": {
+              "conservative_estimate": 6,
+              "native": 32
+            },
+            "charges": {
+              "aliyun_cny": "0.057350",
+              "openrouter_usd": "0.05915132",
+              "xai_usd": "0.103528"
+            },
+            "completion_tokens": 15045,
+            "prompt_tokens": 164565
+          },
+          "shared_h0": {
+            "calls": 8,
+            "charge_kinds": {
+              "native": 8
+            },
+            "charges": {
+              "openrouter_usd": "0.02777175"
+            },
+            "completion_tokens": 887,
+            "prompt_tokens": 32594
+          }
+        },
+        "median_paired_percent_added": 14.31967741645439,
+        "median_paired_seconds_added": 2.473790949999966,
+        "paired_panel": [
+          {
+            "key": "VID103_18326",
+            "percent_added": 8.30270356567253,
+            "seconds_added": 1.514672100005555
+          },
+          {
+            "key": "VID103_33576",
+            "percent_added": 20.55734627803858,
+            "seconds_added": 3.432909799994377
+          },
+          {
+            "key": "VID23_13176",
+            "percent_added": 0.36629188905199506,
+            "seconds_added": 0.067092599994794
+          },
+          {
+            "key": "VID23_28876",
+            "percent_added": 20.33665126723625,
+            "seconds_added": 4.9187339000054635
+          }
+        ]
+      },
+      "source_sha256": {
+        "budget": "b8cab2975901216538231b0949b31319f9a1f7853bf804176985598a5a93962f",
+        "completion": "c7c68184e40f2fd10a26ac7638c09b43d1476f251ccc123742c215ca3e4bd55f",
+        "metrics": "273d38705818810d92c87888e9c2d1493a52408e9dee95010f9ef7d4329ebbca",
+        "plan": "bc715c9c38c10852781334b1a3874594610bbf998ef100566d426ce17245bb82",
+        "predictions": "d47600f0ecdc6b5b9d5d65b1258ceaaf1a022b6483b535fcf90ee18a6d520aba"
+      },
+      "targets": 8
+    },
+    "prior_graph_second_round_20260908_v1": {
+      "audit": {
+        "actual_complete_requests_verified": 44,
+        "feedback_packets_rebuilt": 7,
+        "first_round_panels_replayed": 16,
+        "gt_used_only_after_closed_validation": true,
+        "immutable_snapshots_verified": true,
+        "review_requests_reconstructed_including_shared": 30,
+        "second_round_panels_replayed": 6,
+        "second_round_pools_rebuilt": 14,
+        "unchanged_pools_stopped": 8
+      },
+      "candidate_coverage": {
+        "control_r1": {
+          "instrument": {
+            "gt_positive": 14,
+            "in_pool_not_selected": 0,
+            "missing_from_pool": 5,
+            "pool_false": 4,
+            "pool_recall": 0.6428571428571429,
+            "pool_size": 13,
+            "pool_true": 9,
+            "selected_true": 9,
+            "valid_targets": 8
+          },
+          "ivt": {
+            "gt_positive": 15,
+            "in_pool_not_selected": 1,
+            "missing_from_pool": 9,
+            "pool_false": 15,
+            "pool_recall": 0.4,
+            "pool_size": 21,
+            "pool_true": 6,
+            "selected_true": 5,
+            "valid_targets": 8
+          },
+          "target": {
+            "gt_positive": 15,
+            "in_pool_not_selected": 1,
+            "missing_from_pool": 6,
+            "pool_false": 7,
+            "pool_recall": 0.6,
+            "pool_size": 16,
+            "pool_true": 9,
+            "selected_true": 8,
+            "valid_targets": 8
+          },
+          "verb": {
+            "gt_positive": 14,
+            "in_pool_not_selected": 0,
+            "missing_from_pool": 4,
+            "pool_false": 7,
+            "pool_recall": 0.7142857142857143,
+            "pool_size": 17,
+            "pool_true": 10,
+            "selected_true": 10,
+            "valid_targets": 8
+          }
+        },
+        "evidence_feedback": {
+          "instrument": {
+            "gt_positive": 14,
+            "in_pool_not_selected": 0,
+            "missing_from_pool": 5,
+            "pool_false": 4,
+            "pool_recall": 0.6428571428571429,
+            "pool_size": 13,
+            "pool_true": 9,
+            "selected_true": 9,
+            "valid_targets": 8
+          },
+          "ivt": {
+            "gt_positive": 15,
+            "in_pool_not_selected": 1,
+            "missing_from_pool": 8,
+            "pool_false": 19,
+            "pool_recall": 0.4666666666666667,
+            "pool_size": 26,
+            "pool_true": 7,
+            "selected_true": 6,
+            "valid_targets": 8
+          },
+          "target": {
+            "gt_positive": 15,
+            "in_pool_not_selected": 3,
+            "missing_from_pool": 4,
+            "pool_false": 8,
+            "pool_recall": 0.7333333333333333,
+            "pool_size": 19,
+            "pool_true": 11,
+            "selected_true": 8,
+            "valid_targets": 8
+          },
+          "verb": {
+            "gt_positive": 14,
+            "in_pool_not_selected": 0,
+            "missing_from_pool": 4,
+            "pool_false": 10,
+            "pool_recall": 0.7142857142857143,
+            "pool_size": 20,
+            "pool_true": 10,
+            "selected_true": 10,
+            "valid_targets": 8
+          }
+        },
+        "graph_r1": {
+          "instrument": {
+            "gt_positive": 14,
+            "in_pool_not_selected": 0,
+            "missing_from_pool": 5,
+            "pool_false": 4,
+            "pool_recall": 0.6428571428571429,
+            "pool_size": 13,
+            "pool_true": 9,
+            "selected_true": 9,
+            "valid_targets": 8
+          },
+          "ivt": {
+            "gt_positive": 15,
+            "in_pool_not_selected": 1,
+            "missing_from_pool": 8,
+            "pool_false": 15,
+            "pool_recall": 0.4666666666666667,
+            "pool_size": 22,
+            "pool_true": 7,
+            "selected_true": 6,
+            "valid_targets": 8
+          },
+          "target": {
+            "gt_positive": 15,
+            "in_pool_not_selected": 2,
+            "missing_from_pool": 5,
+            "pool_false": 6,
+            "pool_recall": 0.6666666666666666,
+            "pool_size": 16,
+            "pool_true": 10,
+            "selected_true": 8,
+            "valid_targets": 8
+          },
+          "verb": {
+            "gt_positive": 14,
+            "in_pool_not_selected": 0,
+            "missing_from_pool": 4,
+            "pool_false": 8,
+            "pool_recall": 0.7142857142857143,
+            "pool_size": 18,
+            "pool_true": 10,
+            "selected_true": 10,
+            "valid_targets": 8
+          }
+        },
+        "issues_only": {
+          "instrument": {
+            "gt_positive": 14,
+            "in_pool_not_selected": 0,
+            "missing_from_pool": 5,
+            "pool_false": 4,
+            "pool_recall": 0.6428571428571429,
+            "pool_size": 13,
+            "pool_true": 9,
+            "selected_true": 9,
+            "valid_targets": 8
+          },
+          "ivt": {
+            "gt_positive": 15,
+            "in_pool_not_selected": 1,
+            "missing_from_pool": 8,
+            "pool_false": 19,
+            "pool_recall": 0.4666666666666667,
+            "pool_size": 26,
+            "pool_true": 7,
+            "selected_true": 6,
+            "valid_targets": 8
+          },
+          "target": {
+            "gt_positive": 15,
+            "in_pool_not_selected": 3,
+            "missing_from_pool": 4,
+            "pool_false": 7,
+            "pool_recall": 0.7333333333333333,
+            "pool_size": 18,
+            "pool_true": 11,
+            "selected_true": 8,
+            "valid_targets": 8
+          },
+          "verb": {
+            "gt_positive": 14,
+            "in_pool_not_selected": 1,
+            "missing_from_pool": 3,
+            "pool_false": 9,
+            "pool_recall": 0.7857142857142857,
+            "pool_size": 20,
+            "pool_true": 11,
+            "selected_true": 10,
+            "valid_targets": 8
+          }
+        }
+      },
+      "comparisons": {
+        "control_r1_to_graph_r1": {
+          "categories": {
+            "partial_improvement": 2,
+            "unchanged": 6
+          },
+          "correct_additions": 1,
+          "correct_deletions": 1,
+          "error_count_after": 54,
+          "error_count_before": 56,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 2,
+          "introduced_label_errors": 0,
+          "net_errors_removed": 2,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 1,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 0,
+              "correct_deletions": 1,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 0,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        },
+        "graph_r1_to_evidence_feedback": {
+          "categories": {
+            "unchanged": 8
+          },
+          "correct_additions": 0,
+          "correct_deletions": 0,
+          "error_count_after": 54,
+          "error_count_before": 54,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 0,
+          "introduced_label_errors": 0,
+          "net_errors_removed": 0,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 0,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        },
+        "graph_r1_to_issues_only": {
+          "categories": {
+            "harm": 1,
+            "unchanged": 7
+          },
+          "correct_additions": 0,
+          "correct_deletions": 0,
+          "error_count_after": 55,
+          "error_count_before": 54,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 0,
+          "introduced_label_errors": 1,
+          "net_errors_removed": -1,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 1,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        },
+        "h0_to_control_r1": {
+          "categories": {
+            "harm": 3,
+            "partial_improvement": 4,
+            "unchanged": 1
+          },
+          "correct_additions": 4,
+          "correct_deletions": 1,
+          "error_count_after": 56,
+          "error_count_before": 57,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 5,
+          "introduced_label_errors": 4,
+          "net_errors_removed": 1,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 1,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 1,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 1,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 2,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 2,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 4,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        },
+        "h0_to_evidence_feedback": {
+          "categories": {
+            "harm": 2,
+            "partial_improvement": 4,
+            "unchanged": 2
+          },
+          "correct_additions": 5,
+          "correct_deletions": 1,
+          "error_count_after": 54,
+          "error_count_before": 57,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 6,
+          "introduced_label_errors": 3,
+          "net_errors_removed": 3,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 1,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 2,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 1,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 2,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 2,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 3,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        },
+        "h0_to_graph_r1": {
+          "categories": {
+            "harm": 2,
+            "partial_improvement": 4,
+            "unchanged": 2
+          },
+          "correct_additions": 5,
+          "correct_deletions": 1,
+          "error_count_after": 54,
+          "error_count_before": 57,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 6,
+          "introduced_label_errors": 3,
+          "net_errors_removed": 3,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 1,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 2,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 1,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 2,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 2,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 3,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        },
+        "h0_to_issues_only": {
+          "categories": {
+            "harm": 2,
+            "mixed": 1,
+            "partial_improvement": 3,
+            "unchanged": 2
+          },
+          "correct_additions": 5,
+          "correct_deletions": 1,
+          "error_count_after": 55,
+          "error_count_before": 57,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 6,
+          "introduced_label_errors": 4,
+          "net_errors_removed": 2,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 1,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 2,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 1,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 2,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 2,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 4,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        },
+        "issues_only_to_evidence_feedback": {
+          "categories": {
+            "partial_improvement": 1,
+            "unchanged": 7
+          },
+          "correct_additions": 0,
+          "correct_deletions": 1,
+          "error_count_after": 54,
+          "error_count_before": 55,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 1,
+          "introduced_label_errors": 0,
+          "net_errors_removed": 1,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 0,
+              "correct_deletions": 1,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 0,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        }
+      },
+      "limitations": [
+        "Eight previously inspected Training targets; this is a paired mechanism diagnostic, not held-out validation.",
+        "No new H0 or first-round calls. Unattempted and fallback targets remain scored with task masks.",
+        "A model pass is not GT correctness. Second round only triggers after an unresolved first round.",
+        "Identical candidate pools stop without another review; this policy cannot reconsider a high-scoring existing error without a new candidate.",
+        "All feedback requests precede issues-only requests; API variability and order are not isolated.",
+        "No complete Tracker/Gate runtime is measured."
+      ],
+      "local_source": "artifacts/preflight/prior_graph_second_round_20260908_v1",
+      "metrics": {
+        "control_r1": {
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 8
+          },
+          "tasks": {
+            "instrument": {
+              "exact_matches": 3,
+              "exact_set_accuracy": 0.375,
+              "failed_predictions": 0,
+              "fn": 5,
+              "fp": 3,
+              "micro_f1": 0.6923076923076923,
+              "micro_precision": 0.75,
+              "micro_recall": 0.6428571428571429,
+              "tp": 9,
+              "valid_targets": 8
+            },
+            "ivt": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 10,
+              "fp": 9,
+              "micro_f1": 0.3448275862068966,
+              "micro_precision": 0.35714285714285715,
+              "micro_recall": 0.3333333333333333,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "phase": {
+              "exact_matches": 5,
+              "exact_set_accuracy": 0.625,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 3,
+              "micro_f1": 0.625,
+              "micro_precision": 0.625,
+              "micro_recall": 0.625,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "target": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 7,
+              "fp": 6,
+              "micro_f1": 0.5517241379310345,
+              "micro_precision": 0.5714285714285714,
+              "micro_recall": 0.5333333333333333,
+              "tp": 8,
+              "valid_targets": 8
+            },
+            "verb": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 4,
+              "fp": 6,
+              "micro_f1": 0.6666666666666666,
+              "micro_precision": 0.625,
+              "micro_recall": 0.7142857142857143,
+              "tp": 10,
+              "valid_targets": 8
+            }
+          }
+        },
+        "evidence_feedback": {
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 8
+          },
+          "tasks": {
+            "instrument": {
+              "exact_matches": 3,
+              "exact_set_accuracy": 0.375,
+              "failed_predictions": 0,
+              "fn": 5,
+              "fp": 3,
+              "micro_f1": 0.6923076923076923,
+              "micro_precision": 0.75,
+              "micro_recall": 0.6428571428571429,
+              "tp": 9,
+              "valid_targets": 8
+            },
+            "ivt": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 9,
+              "fp": 9,
+              "micro_f1": 0.4,
+              "micro_precision": 0.4,
+              "micro_recall": 0.4,
+              "tp": 6,
+              "valid_targets": 8
+            },
+            "phase": {
+              "exact_matches": 5,
+              "exact_set_accuracy": 0.625,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 3,
+              "micro_f1": 0.625,
+              "micro_precision": 0.625,
+              "micro_recall": 0.625,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "target": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 7,
+              "fp": 5,
+              "micro_f1": 0.5714285714285714,
+              "micro_precision": 0.6153846153846154,
+              "micro_recall": 0.5333333333333333,
+              "tp": 8,
+              "valid_targets": 8
+            },
+            "verb": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 4,
+              "fp": 6,
+              "micro_f1": 0.6666666666666666,
+              "micro_precision": 0.625,
+              "micro_recall": 0.7142857142857143,
+              "tp": 10,
+              "valid_targets": 8
+            }
+          }
+        },
+        "graph_r1": {
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 8
+          },
+          "tasks": {
+            "instrument": {
+              "exact_matches": 3,
+              "exact_set_accuracy": 0.375,
+              "failed_predictions": 0,
+              "fn": 5,
+              "fp": 3,
+              "micro_f1": 0.6923076923076923,
+              "micro_precision": 0.75,
+              "micro_recall": 0.6428571428571429,
+              "tp": 9,
+              "valid_targets": 8
+            },
+            "ivt": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 9,
+              "fp": 9,
+              "micro_f1": 0.4,
+              "micro_precision": 0.4,
+              "micro_recall": 0.4,
+              "tp": 6,
+              "valid_targets": 8
+            },
+            "phase": {
+              "exact_matches": 5,
+              "exact_set_accuracy": 0.625,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 3,
+              "micro_f1": 0.625,
+              "micro_precision": 0.625,
+              "micro_recall": 0.625,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "target": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 7,
+              "fp": 5,
+              "micro_f1": 0.5714285714285714,
+              "micro_precision": 0.6153846153846154,
+              "micro_recall": 0.5333333333333333,
+              "tp": 8,
+              "valid_targets": 8
+            },
+            "verb": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 4,
+              "fp": 6,
+              "micro_f1": 0.6666666666666666,
+              "micro_precision": 0.625,
+              "micro_recall": 0.7142857142857143,
+              "tp": 10,
+              "valid_targets": 8
+            }
+          }
+        },
+        "h0": {
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 8
+          },
+          "tasks": {
+            "instrument": {
+              "exact_matches": 3,
+              "exact_set_accuracy": 0.375,
+              "failed_predictions": 0,
+              "fn": 5,
+              "fp": 4,
+              "micro_f1": 0.6666666666666666,
+              "micro_precision": 0.6923076923076923,
+              "micro_recall": 0.6428571428571429,
+              "tp": 9,
+              "valid_targets": 8
+            },
+            "ivt": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 11,
+              "fp": 8,
+              "micro_f1": 0.2962962962962963,
+              "micro_precision": 0.3333333333333333,
+              "micro_recall": 0.26666666666666666,
+              "tp": 4,
+              "valid_targets": 8
+            },
+            "phase": {
+              "exact_matches": 5,
+              "exact_set_accuracy": 0.625,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 3,
+              "micro_f1": 0.625,
+              "micro_precision": 0.625,
+              "micro_recall": 0.625,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "target": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 8,
+              "fp": 5,
+              "micro_f1": 0.5185185185185185,
+              "micro_precision": 0.5833333333333334,
+              "micro_recall": 0.4666666666666667,
+              "tp": 7,
+              "valid_targets": 8
+            },
+            "verb": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 6,
+              "fp": 4,
+              "micro_f1": 0.6153846153846154,
+              "micro_precision": 0.6666666666666666,
+              "micro_recall": 0.5714285714285714,
+              "tp": 8,
+              "valid_targets": 8
+            }
+          }
+        },
+        "issues_only": {
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 8
+          },
+          "tasks": {
+            "instrument": {
+              "exact_matches": 3,
+              "exact_set_accuracy": 0.375,
+              "failed_predictions": 0,
+              "fn": 5,
+              "fp": 3,
+              "micro_f1": 0.6923076923076923,
+              "micro_precision": 0.75,
+              "micro_recall": 0.6428571428571429,
+              "tp": 9,
+              "valid_targets": 8
+            },
+            "ivt": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 9,
+              "fp": 9,
+              "micro_f1": 0.4,
+              "micro_precision": 0.4,
+              "micro_recall": 0.4,
+              "tp": 6,
+              "valid_targets": 8
+            },
+            "phase": {
+              "exact_matches": 5,
+              "exact_set_accuracy": 0.625,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 3,
+              "micro_f1": 0.625,
+              "micro_precision": 0.625,
+              "micro_recall": 0.625,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "target": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 7,
+              "fp": 6,
+              "micro_f1": 0.5517241379310345,
+              "micro_precision": 0.5714285714285714,
+              "micro_recall": 0.5333333333333333,
+              "tp": 8,
+              "valid_targets": 8
+            },
+            "verb": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 4,
+              "fp": 6,
+              "micro_f1": 0.6666666666666666,
+              "micro_precision": 0.625,
+              "micro_recall": 0.7142857142857143,
+              "tp": 10,
+              "valid_targets": 8
+            }
+          }
+        }
+      },
+      "profile": "prior_graph_feedback_continuation_v1",
+      "runtime": {
+        "arms": {
+          "evidence_feedback": {
+            "actual_review_rounds": {
+              "1": 5,
+              "2": 3
+            },
+            "independent_panel_seconds": {
+              "max": 25.51029109999945,
+              "mean": 23.455949033334036,
+              "median": 23.06852400000207,
+              "n": 3,
+              "sum": 70.36784710000211
+            },
+            "observed_incremental_seconds": {
+              "max": 31.72845600000437,
+              "mean": 14.002538224999626,
+              "median": 7.727349550001236,
+              "n": 8,
+              "sum": 112.020305799997
+            },
+            "proposal_seconds": {
+              "max": 10.401865200001339,
+              "mean": 5.1812063749994195,
+              "median": 4.9379368999980215,
+              "n": 8,
+              "sum": 41.449650999995356
+            },
+            "round2_attempted": 7,
+            "round2_reviewed": 3,
+            "shared_panels": 0,
+            "statuses": {
+              "INHERITED_MODEL_PASS": 1,
+              "NO_NEW_CANDIDATES": 4,
+              "UNRESOLVED": 3
+            }
+          },
+          "issues_only": {
+            "actual_review_rounds": {
+              "1": 5,
+              "2": 3
+            },
+            "independent_panel_seconds": {
+              "max": 28.57286490000115,
+              "mean": 24.561630899998516,
+              "median": 24.59699890000047,
+              "n": 3,
+              "sum": 73.68489269999554
+            },
+            "observed_incremental_seconds": {
+              "max": 32.306763300002785,
+              "mean": 12.59004677500161,
+              "median": 5.1647861000019475,
+              "n": 8,
+              "sum": 100.72037420001288
+            },
+            "proposal_seconds": {
+              "max": 6.491625100003148,
+              "mean": 3.355014312500316,
+              "median": 3.307969499997853,
+              "n": 8,
+              "sum": 26.840114500002528
+            },
+            "round2_attempted": 7,
+            "round2_reviewed": 3,
+            "shared_panels": 0,
+            "statuses": {
+              "INHERITED_MODEL_PASS": 1,
+              "NO_NEW_CANDIDATES": 4,
+              "UNRESOLVED": 3
+            }
+          }
+        },
+        "incremental_costs": {
+          "all": {
+            "calls": 44,
+            "charge_kinds": {
+              "conservative_estimate": 6,
+              "native": 36,
+              "unknown_reserved": 2
+            },
+            "charges": {
+              "aliyun_cny": "0.070571",
+              "openrouter_usd": "0.18144939",
+              "xai_usd": "0.135736"
+            },
+            "completion_tokens": 21137,
+            "prompt_tokens": 228026,
+            "statuses": {
+              "API_FAILED": 2,
+              "JSON_PARSED": 42
+            }
+          },
+          "evidence_feedback": {
+            "calls": 22,
+            "charge_kinds": {
+              "conservative_estimate": 3,
+              "native": 18,
+              "unknown_reserved": 1
+            },
+            "charges": {
+              "aliyun_cny": "0.035296",
+              "openrouter_usd": "0.09691184",
+              "xai_usd": "0.067068"
+            },
+            "completion_tokens": 10987,
+            "prompt_tokens": 121254,
+            "statuses": {
+              "API_FAILED": 1,
+              "JSON_PARSED": 21
+            }
+          },
+          "issues_only": {
+            "calls": 22,
+            "charge_kinds": {
+              "conservative_estimate": 3,
+              "native": 18,
+              "unknown_reserved": 1
+            },
+            "charges": {
+              "aliyun_cny": "0.035275",
+              "openrouter_usd": "0.08453755",
+              "xai_usd": "0.068668"
+            },
+            "completion_tokens": 10150,
+            "prompt_tokens": 106772,
+            "statuses": {
+              "API_FAILED": 1,
+              "JSON_PARSED": 21
+            }
+          }
+        },
+        "note": "Only new calls charged; inherited H0/R1 cost is excluded. Shared panels have no independent latency. All feedback requests precede issues-only requests, so timing and model variability are order-confounded."
+      },
+      "source_sha256": {
+        "budget": "c2225d89c878e86651f3761f6d6c525f8b3ba18f7c2c263383d39c8ca2ffd183",
+        "completion": "5fe8f69444860eb6ce5f531c3fa44d9280b543a5b060f83df82e3e554cf25b30",
+        "metrics": "bfe1041bee42093bed088e9a38d71bdfa564f24359b4a226f3e2876bd16af13f",
+        "plan": "68e6dd42aace3783522158eff22967428b09a23222713545d75b67b2641ea01a",
+        "predictions": "a278caf8affa49c82b3ae18ee54e9879c45135e0428add094a9a5bfd3e0cfdd5"
+      },
+      "targets": 8
+    },
+    "quorum_direct_recheck_20260909_v2": {
+      "audit": {
+        "actual_complete_requests_verified": 35,
+        "archived_feedback_policies_replayed": 8,
+        "direct_policy_states_replayed": 16,
+        "gt_opened_only_after_closed_inference": true,
+        "immutable_snapshots_verified": true,
+        "initial_policy_states_replayed": 16,
+        "new_proposer_or_h0_calls": 0,
+        "original_archive_replay": {
+          "feedback_packets_rebuilt": 7,
+          "first_round_panels_replayed": 16,
+          "second_round_panels_replayed": 6,
+          "second_round_pools_rebuilt": 14,
+          "unchanged_pools_stopped": 8
+        },
+        "valid_evidence_means_independently_checked": true
+      },
+      "candidate_coverage": {
+        "archived_feedback_quorum4": {
+          "instrument": {
+            "gt_positive": 14,
+            "in_pool_not_selected": 0,
+            "missing_from_pool": 5,
+            "pool_false": 4,
+            "pool_recall": 0.6428571428571429,
+            "pool_size": 13,
+            "pool_true": 9,
+            "selected_true": 9,
+            "valid_targets": 8
+          },
+          "ivt": {
+            "gt_positive": 15,
+            "in_pool_not_selected": 1,
+            "missing_from_pool": 8,
+            "pool_false": 19,
+            "pool_recall": 0.4666666666666667,
+            "pool_size": 26,
+            "pool_true": 7,
+            "selected_true": 6,
+            "valid_targets": 8
+          },
+          "target": {
+            "gt_positive": 15,
+            "in_pool_not_selected": 3,
+            "missing_from_pool": 4,
+            "pool_false": 8,
+            "pool_recall": 0.7333333333333333,
+            "pool_size": 19,
+            "pool_true": 11,
+            "selected_true": 8,
+            "valid_targets": 8
+          },
+          "verb": {
+            "gt_positive": 14,
+            "in_pool_not_selected": 0,
+            "missing_from_pool": 4,
+            "pool_false": 10,
+            "pool_recall": 0.7142857142857143,
+            "pool_size": 20,
+            "pool_true": 10,
+            "selected_true": 10,
+            "valid_targets": 8
+          }
+        },
+        "direct_recheck_4": {
+          "instrument": {
+            "gt_positive": 14,
+            "in_pool_not_selected": 0,
+            "missing_from_pool": 5,
+            "pool_false": 4,
+            "pool_recall": 0.6428571428571429,
+            "pool_size": 13,
+            "pool_true": 9,
+            "selected_true": 9,
+            "valid_targets": 8
+          },
+          "ivt": {
+            "gt_positive": 15,
+            "in_pool_not_selected": 1,
+            "missing_from_pool": 8,
+            "pool_false": 15,
+            "pool_recall": 0.4666666666666667,
+            "pool_size": 22,
+            "pool_true": 7,
+            "selected_true": 6,
+            "valid_targets": 8
+          },
+          "target": {
+            "gt_positive": 15,
+            "in_pool_not_selected": 2,
+            "missing_from_pool": 5,
+            "pool_false": 6,
+            "pool_recall": 0.6666666666666666,
+            "pool_size": 16,
+            "pool_true": 10,
+            "selected_true": 8,
+            "valid_targets": 8
+          },
+          "verb": {
+            "gt_positive": 14,
+            "in_pool_not_selected": 0,
+            "missing_from_pool": 4,
+            "pool_false": 8,
+            "pool_recall": 0.7142857142857143,
+            "pool_size": 18,
+            "pool_true": 10,
+            "selected_true": 10,
+            "valid_targets": 8
+          }
+        },
+        "direct_recheck_5": {
+          "instrument": {
+            "gt_positive": 14,
+            "in_pool_not_selected": 0,
+            "missing_from_pool": 5,
+            "pool_false": 4,
+            "pool_recall": 0.6428571428571429,
+            "pool_size": 13,
+            "pool_true": 9,
+            "selected_true": 9,
+            "valid_targets": 8
+          },
+          "ivt": {
+            "gt_positive": 15,
+            "in_pool_not_selected": 1,
+            "missing_from_pool": 8,
+            "pool_false": 15,
+            "pool_recall": 0.4666666666666667,
+            "pool_size": 22,
+            "pool_true": 7,
+            "selected_true": 6,
+            "valid_targets": 8
+          },
+          "target": {
+            "gt_positive": 15,
+            "in_pool_not_selected": 2,
+            "missing_from_pool": 5,
+            "pool_false": 6,
+            "pool_recall": 0.6666666666666666,
+            "pool_size": 16,
+            "pool_true": 10,
+            "selected_true": 8,
+            "valid_targets": 8
+          },
+          "verb": {
+            "gt_positive": 14,
+            "in_pool_not_selected": 0,
+            "missing_from_pool": 4,
+            "pool_false": 8,
+            "pool_recall": 0.7142857142857143,
+            "pool_size": 18,
+            "pool_true": 10,
+            "selected_true": 10,
+            "valid_targets": 8
+          }
+        },
+        "graph_feedback_r2": {
+          "instrument": {
+            "gt_positive": 14,
+            "in_pool_not_selected": 0,
+            "missing_from_pool": 5,
+            "pool_false": 4,
+            "pool_recall": 0.6428571428571429,
+            "pool_size": 13,
+            "pool_true": 9,
+            "selected_true": 9,
+            "valid_targets": 8
+          },
+          "ivt": {
+            "gt_positive": 15,
+            "in_pool_not_selected": 1,
+            "missing_from_pool": 8,
+            "pool_false": 19,
+            "pool_recall": 0.4666666666666667,
+            "pool_size": 26,
+            "pool_true": 7,
+            "selected_true": 6,
+            "valid_targets": 8
+          },
+          "target": {
+            "gt_positive": 15,
+            "in_pool_not_selected": 3,
+            "missing_from_pool": 4,
+            "pool_false": 8,
+            "pool_recall": 0.7333333333333333,
+            "pool_size": 19,
+            "pool_true": 11,
+            "selected_true": 8,
+            "valid_targets": 8
+          },
+          "verb": {
+            "gt_positive": 14,
+            "in_pool_not_selected": 0,
+            "missing_from_pool": 4,
+            "pool_false": 10,
+            "pool_recall": 0.7142857142857143,
+            "pool_size": 20,
+            "pool_true": 10,
+            "selected_true": 10,
+            "valid_targets": 8
+          }
+        },
+        "graph_r1": {
+          "instrument": {
+            "gt_positive": 14,
+            "in_pool_not_selected": 0,
+            "missing_from_pool": 5,
+            "pool_false": 4,
+            "pool_recall": 0.6428571428571429,
+            "pool_size": 13,
+            "pool_true": 9,
+            "selected_true": 9,
+            "valid_targets": 8
+          },
+          "ivt": {
+            "gt_positive": 15,
+            "in_pool_not_selected": 1,
+            "missing_from_pool": 8,
+            "pool_false": 15,
+            "pool_recall": 0.4666666666666667,
+            "pool_size": 22,
+            "pool_true": 7,
+            "selected_true": 6,
+            "valid_targets": 8
+          },
+          "target": {
+            "gt_positive": 15,
+            "in_pool_not_selected": 2,
+            "missing_from_pool": 5,
+            "pool_false": 6,
+            "pool_recall": 0.6666666666666666,
+            "pool_size": 16,
+            "pool_true": 10,
+            "selected_true": 8,
+            "valid_targets": 8
+          },
+          "verb": {
+            "gt_positive": 14,
+            "in_pool_not_selected": 0,
+            "missing_from_pool": 4,
+            "pool_false": 8,
+            "pool_recall": 0.7142857142857143,
+            "pool_size": 18,
+            "pool_true": 10,
+            "selected_true": 10,
+            "valid_targets": 8
+          }
+        },
+        "quorum4_r1": {
+          "instrument": {
+            "gt_positive": 14,
+            "in_pool_not_selected": 0,
+            "missing_from_pool": 5,
+            "pool_false": 4,
+            "pool_recall": 0.6428571428571429,
+            "pool_size": 13,
+            "pool_true": 9,
+            "selected_true": 9,
+            "valid_targets": 8
+          },
+          "ivt": {
+            "gt_positive": 15,
+            "in_pool_not_selected": 1,
+            "missing_from_pool": 8,
+            "pool_false": 15,
+            "pool_recall": 0.4666666666666667,
+            "pool_size": 22,
+            "pool_true": 7,
+            "selected_true": 6,
+            "valid_targets": 8
+          },
+          "target": {
+            "gt_positive": 15,
+            "in_pool_not_selected": 2,
+            "missing_from_pool": 5,
+            "pool_false": 6,
+            "pool_recall": 0.6666666666666666,
+            "pool_size": 16,
+            "pool_true": 10,
+            "selected_true": 8,
+            "valid_targets": 8
+          },
+          "verb": {
+            "gt_positive": 14,
+            "in_pool_not_selected": 0,
+            "missing_from_pool": 4,
+            "pool_false": 8,
+            "pool_recall": 0.7142857142857143,
+            "pool_size": 18,
+            "pool_true": 10,
+            "selected_true": 10,
+            "valid_targets": 8
+          }
+        }
+      },
+      "comparisons": {
+        "archived_feedback_quorum4_to_direct_recheck_4": {
+          "categories": {
+            "harm": 2,
+            "unchanged": 6
+          },
+          "correct_additions": 0,
+          "correct_deletions": 0,
+          "error_count_after": 56,
+          "error_count_before": 54,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 0,
+          "introduced_label_errors": 2,
+          "net_errors_removed": -2,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 2,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        },
+        "direct_recheck_5_to_direct_recheck_4": {
+          "categories": {
+            "harm": 1,
+            "unchanged": 7
+          },
+          "correct_additions": 0,
+          "correct_deletions": 0,
+          "error_count_after": 56,
+          "error_count_before": 55,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 0,
+          "introduced_label_errors": 1,
+          "net_errors_removed": -1,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 1,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        },
+        "graph_feedback_r2_to_archived_feedback_quorum4": {
+          "categories": {
+            "unchanged": 8
+          },
+          "correct_additions": 0,
+          "correct_deletions": 0,
+          "error_count_after": 54,
+          "error_count_before": 54,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 0,
+          "introduced_label_errors": 0,
+          "net_errors_removed": 0,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 0,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        },
+        "graph_feedback_r2_to_direct_recheck_4": {
+          "categories": {
+            "harm": 2,
+            "unchanged": 6
+          },
+          "correct_additions": 0,
+          "correct_deletions": 0,
+          "error_count_after": 56,
+          "error_count_before": 54,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 0,
+          "introduced_label_errors": 2,
+          "net_errors_removed": -2,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 2,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        },
+        "graph_feedback_r2_to_direct_recheck_5": {
+          "categories": {
+            "harm": 1,
+            "unchanged": 7
+          },
+          "correct_additions": 0,
+          "correct_deletions": 0,
+          "error_count_after": 55,
+          "error_count_before": 54,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 0,
+          "introduced_label_errors": 1,
+          "net_errors_removed": -1,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 1,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        },
+        "graph_r1_to_archived_feedback_quorum4": {
+          "categories": {
+            "unchanged": 8
+          },
+          "correct_additions": 0,
+          "correct_deletions": 0,
+          "error_count_after": 54,
+          "error_count_before": 54,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 0,
+          "introduced_label_errors": 0,
+          "net_errors_removed": 0,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 0,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        },
+        "graph_r1_to_direct_recheck_4": {
+          "categories": {
+            "harm": 2,
+            "unchanged": 6
+          },
+          "correct_additions": 0,
+          "correct_deletions": 0,
+          "error_count_after": 56,
+          "error_count_before": 54,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 0,
+          "introduced_label_errors": 2,
+          "net_errors_removed": -2,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 2,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        },
+        "graph_r1_to_direct_recheck_5": {
+          "categories": {
+            "harm": 1,
+            "unchanged": 7
+          },
+          "correct_additions": 0,
+          "correct_deletions": 0,
+          "error_count_after": 55,
+          "error_count_before": 54,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 0,
+          "introduced_label_errors": 1,
+          "net_errors_removed": -1,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 1,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        },
+        "graph_r1_to_quorum4_r1": {
+          "categories": {
+            "harm": 1,
+            "unchanged": 7
+          },
+          "correct_additions": 0,
+          "correct_deletions": 0,
+          "error_count_after": 55,
+          "error_count_before": 54,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 0,
+          "introduced_label_errors": 1,
+          "net_errors_removed": -1,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 1,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        },
+        "h0_to_archived_feedback_quorum4": {
+          "categories": {
+            "harm": 2,
+            "partial_improvement": 4,
+            "unchanged": 2
+          },
+          "correct_additions": 5,
+          "correct_deletions": 1,
+          "error_count_after": 54,
+          "error_count_before": 57,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 6,
+          "introduced_label_errors": 3,
+          "net_errors_removed": 3,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 1,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 2,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 1,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 2,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 2,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 3,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        },
+        "h0_to_direct_recheck_4": {
+          "categories": {
+            "harm": 2,
+            "mixed": 1,
+            "partial_improvement": 3,
+            "unchanged": 2
+          },
+          "correct_additions": 5,
+          "correct_deletions": 1,
+          "error_count_after": 56,
+          "error_count_before": 57,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 6,
+          "introduced_label_errors": 5,
+          "net_errors_removed": 1,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 1,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 2,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 2,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 1,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 2,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 3,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 5,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        },
+        "h0_to_direct_recheck_5": {
+          "categories": {
+            "harm": 2,
+            "partial_improvement": 4,
+            "unchanged": 2
+          },
+          "correct_additions": 5,
+          "correct_deletions": 1,
+          "error_count_after": 55,
+          "error_count_before": 57,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 6,
+          "introduced_label_errors": 4,
+          "net_errors_removed": 2,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 1,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 2,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 2,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 1,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 2,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 2,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 4,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        },
+        "h0_to_graph_feedback_r2": {
+          "categories": {
+            "harm": 2,
+            "partial_improvement": 4,
+            "unchanged": 2
+          },
+          "correct_additions": 5,
+          "correct_deletions": 1,
+          "error_count_after": 54,
+          "error_count_before": 57,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 6,
+          "introduced_label_errors": 3,
+          "net_errors_removed": 3,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 1,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 2,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 1,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 2,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 2,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 3,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        },
+        "h0_to_graph_r1": {
+          "categories": {
+            "harm": 2,
+            "partial_improvement": 4,
+            "unchanged": 2
+          },
+          "correct_additions": 5,
+          "correct_deletions": 1,
+          "error_count_after": 54,
+          "error_count_before": 57,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 6,
+          "introduced_label_errors": 3,
+          "net_errors_removed": 3,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 1,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 2,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 1,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 2,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 2,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 3,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        },
+        "h0_to_quorum4_r1": {
+          "categories": {
+            "harm": 2,
+            "partial_improvement": 4,
+            "unchanged": 2
+          },
+          "correct_additions": 5,
+          "correct_deletions": 1,
+          "error_count_after": 55,
+          "error_count_before": 57,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 6,
+          "introduced_label_errors": 4,
+          "net_errors_removed": 2,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 1,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 2,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 2,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 1,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 2,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 2,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 4,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        },
+        "quorum4_r1_to_direct_recheck_4": {
+          "categories": {
+            "harm": 1,
+            "unchanged": 7
+          },
+          "correct_additions": 0,
+          "correct_deletions": 0,
+          "error_count_after": 56,
+          "error_count_before": 55,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 0,
+          "introduced_label_errors": 1,
+          "net_errors_removed": -1,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 1,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        }
+      },
+      "limitations": [
+        "Same eight previously inspected Training targets; development diagnosis, not independent validation.",
+        "Direct recheck uses the original fixed graph R1 pool and fresh five-seat reviews; no new visual frames or candidate proposals.",
+        "Four valid reviews can admit a mean while the fifth is missing/invalid; invalid and missing evidence never receive fabricated scores.",
+        "Archived feedback q4 is an offline replay starting from the original q5 graph R1, not a q4-adaptive candidate rollout.",
+        "Policies may have different initial labels and eligible queues; final q5-vs-q4 differences combine these effects.",
+        "No pending recheck is a policy stop condition, not verified GT correctness; full Tracker/Gate integration is not measured."
+      ],
+      "local_source": "artifacts/preflight/quorum_direct_recheck_20260909_v2",
+      "metrics": {
+        "archived_feedback_quorum4": {
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 8
+          },
+          "tasks": {
+            "instrument": {
+              "exact_matches": 3,
+              "exact_set_accuracy": 0.375,
+              "failed_predictions": 0,
+              "fn": 5,
+              "fp": 3,
+              "micro_f1": 0.6923076923076923,
+              "micro_precision": 0.75,
+              "micro_recall": 0.6428571428571429,
+              "tp": 9,
+              "valid_targets": 8
+            },
+            "ivt": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 9,
+              "fp": 9,
+              "micro_f1": 0.4,
+              "micro_precision": 0.4,
+              "micro_recall": 0.4,
+              "tp": 6,
+              "valid_targets": 8
+            },
+            "phase": {
+              "exact_matches": 5,
+              "exact_set_accuracy": 0.625,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 3,
+              "micro_f1": 0.625,
+              "micro_precision": 0.625,
+              "micro_recall": 0.625,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "target": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 7,
+              "fp": 5,
+              "micro_f1": 0.5714285714285714,
+              "micro_precision": 0.6153846153846154,
+              "micro_recall": 0.5333333333333333,
+              "tp": 8,
+              "valid_targets": 8
+            },
+            "verb": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 4,
+              "fp": 6,
+              "micro_f1": 0.6666666666666666,
+              "micro_precision": 0.625,
+              "micro_recall": 0.7142857142857143,
+              "tp": 10,
+              "valid_targets": 8
+            }
+          }
+        },
+        "direct_recheck_4": {
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 8
+          },
+          "tasks": {
+            "instrument": {
+              "exact_matches": 3,
+              "exact_set_accuracy": 0.375,
+              "failed_predictions": 0,
+              "fn": 5,
+              "fp": 3,
+              "micro_f1": 0.6923076923076923,
+              "micro_precision": 0.75,
+              "micro_recall": 0.6428571428571429,
+              "tp": 9,
+              "valid_targets": 8
+            },
+            "ivt": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 9,
+              "fp": 10,
+              "micro_f1": 0.3870967741935484,
+              "micro_precision": 0.375,
+              "micro_recall": 0.4,
+              "tp": 6,
+              "valid_targets": 8
+            },
+            "phase": {
+              "exact_matches": 5,
+              "exact_set_accuracy": 0.625,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 3,
+              "micro_f1": 0.625,
+              "micro_precision": 0.625,
+              "micro_recall": 0.625,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "target": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 7,
+              "fp": 5,
+              "micro_f1": 0.5714285714285714,
+              "micro_precision": 0.6153846153846154,
+              "micro_recall": 0.5333333333333333,
+              "tp": 8,
+              "valid_targets": 8
+            },
+            "verb": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 4,
+              "fp": 7,
+              "micro_f1": 0.6451612903225806,
+              "micro_precision": 0.5882352941176471,
+              "micro_recall": 0.7142857142857143,
+              "tp": 10,
+              "valid_targets": 8
+            }
+          }
+        },
+        "direct_recheck_5": {
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 8
+          },
+          "tasks": {
+            "instrument": {
+              "exact_matches": 3,
+              "exact_set_accuracy": 0.375,
+              "failed_predictions": 0,
+              "fn": 5,
+              "fp": 3,
+              "micro_f1": 0.6923076923076923,
+              "micro_precision": 0.75,
+              "micro_recall": 0.6428571428571429,
+              "tp": 9,
+              "valid_targets": 8
+            },
+            "ivt": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 9,
+              "fp": 10,
+              "micro_f1": 0.3870967741935484,
+              "micro_precision": 0.375,
+              "micro_recall": 0.4,
+              "tp": 6,
+              "valid_targets": 8
+            },
+            "phase": {
+              "exact_matches": 5,
+              "exact_set_accuracy": 0.625,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 3,
+              "micro_f1": 0.625,
+              "micro_precision": 0.625,
+              "micro_recall": 0.625,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "target": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 7,
+              "fp": 5,
+              "micro_f1": 0.5714285714285714,
+              "micro_precision": 0.6153846153846154,
+              "micro_recall": 0.5333333333333333,
+              "tp": 8,
+              "valid_targets": 8
+            },
+            "verb": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 4,
+              "fp": 6,
+              "micro_f1": 0.6666666666666666,
+              "micro_precision": 0.625,
+              "micro_recall": 0.7142857142857143,
+              "tp": 10,
+              "valid_targets": 8
+            }
+          }
+        },
+        "graph_feedback_r2": {
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 8
+          },
+          "tasks": {
+            "instrument": {
+              "exact_matches": 3,
+              "exact_set_accuracy": 0.375,
+              "failed_predictions": 0,
+              "fn": 5,
+              "fp": 3,
+              "micro_f1": 0.6923076923076923,
+              "micro_precision": 0.75,
+              "micro_recall": 0.6428571428571429,
+              "tp": 9,
+              "valid_targets": 8
+            },
+            "ivt": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 9,
+              "fp": 9,
+              "micro_f1": 0.4,
+              "micro_precision": 0.4,
+              "micro_recall": 0.4,
+              "tp": 6,
+              "valid_targets": 8
+            },
+            "phase": {
+              "exact_matches": 5,
+              "exact_set_accuracy": 0.625,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 3,
+              "micro_f1": 0.625,
+              "micro_precision": 0.625,
+              "micro_recall": 0.625,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "target": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 7,
+              "fp": 5,
+              "micro_f1": 0.5714285714285714,
+              "micro_precision": 0.6153846153846154,
+              "micro_recall": 0.5333333333333333,
+              "tp": 8,
+              "valid_targets": 8
+            },
+            "verb": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 4,
+              "fp": 6,
+              "micro_f1": 0.6666666666666666,
+              "micro_precision": 0.625,
+              "micro_recall": 0.7142857142857143,
+              "tp": 10,
+              "valid_targets": 8
+            }
+          }
+        },
+        "graph_r1": {
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 8
+          },
+          "tasks": {
+            "instrument": {
+              "exact_matches": 3,
+              "exact_set_accuracy": 0.375,
+              "failed_predictions": 0,
+              "fn": 5,
+              "fp": 3,
+              "micro_f1": 0.6923076923076923,
+              "micro_precision": 0.75,
+              "micro_recall": 0.6428571428571429,
+              "tp": 9,
+              "valid_targets": 8
+            },
+            "ivt": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 9,
+              "fp": 9,
+              "micro_f1": 0.4,
+              "micro_precision": 0.4,
+              "micro_recall": 0.4,
+              "tp": 6,
+              "valid_targets": 8
+            },
+            "phase": {
+              "exact_matches": 5,
+              "exact_set_accuracy": 0.625,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 3,
+              "micro_f1": 0.625,
+              "micro_precision": 0.625,
+              "micro_recall": 0.625,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "target": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 7,
+              "fp": 5,
+              "micro_f1": 0.5714285714285714,
+              "micro_precision": 0.6153846153846154,
+              "micro_recall": 0.5333333333333333,
+              "tp": 8,
+              "valid_targets": 8
+            },
+            "verb": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 4,
+              "fp": 6,
+              "micro_f1": 0.6666666666666666,
+              "micro_precision": 0.625,
+              "micro_recall": 0.7142857142857143,
+              "tp": 10,
+              "valid_targets": 8
+            }
+          }
+        },
+        "h0": {
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 8
+          },
+          "tasks": {
+            "instrument": {
+              "exact_matches": 3,
+              "exact_set_accuracy": 0.375,
+              "failed_predictions": 0,
+              "fn": 5,
+              "fp": 4,
+              "micro_f1": 0.6666666666666666,
+              "micro_precision": 0.6923076923076923,
+              "micro_recall": 0.6428571428571429,
+              "tp": 9,
+              "valid_targets": 8
+            },
+            "ivt": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 11,
+              "fp": 8,
+              "micro_f1": 0.2962962962962963,
+              "micro_precision": 0.3333333333333333,
+              "micro_recall": 0.26666666666666666,
+              "tp": 4,
+              "valid_targets": 8
+            },
+            "phase": {
+              "exact_matches": 5,
+              "exact_set_accuracy": 0.625,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 3,
+              "micro_f1": 0.625,
+              "micro_precision": 0.625,
+              "micro_recall": 0.625,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "target": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 8,
+              "fp": 5,
+              "micro_f1": 0.5185185185185185,
+              "micro_precision": 0.5833333333333334,
+              "micro_recall": 0.4666666666666667,
+              "tp": 7,
+              "valid_targets": 8
+            },
+            "verb": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 6,
+              "fp": 4,
+              "micro_f1": 0.6153846153846154,
+              "micro_precision": 0.6666666666666666,
+              "micro_recall": 0.5714285714285714,
+              "tp": 8,
+              "valid_targets": 8
+            }
+          }
+        },
+        "quorum4_r1": {
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 8
+          },
+          "tasks": {
+            "instrument": {
+              "exact_matches": 3,
+              "exact_set_accuracy": 0.375,
+              "failed_predictions": 0,
+              "fn": 5,
+              "fp": 3,
+              "micro_f1": 0.6923076923076923,
+              "micro_precision": 0.75,
+              "micro_recall": 0.6428571428571429,
+              "tp": 9,
+              "valid_targets": 8
+            },
+            "ivt": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 9,
+              "fp": 10,
+              "micro_f1": 0.3870967741935484,
+              "micro_precision": 0.375,
+              "micro_recall": 0.4,
+              "tp": 6,
+              "valid_targets": 8
+            },
+            "phase": {
+              "exact_matches": 5,
+              "exact_set_accuracy": 0.625,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 3,
+              "micro_f1": 0.625,
+              "micro_precision": 0.625,
+              "micro_recall": 0.625,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "target": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 7,
+              "fp": 5,
+              "micro_f1": 0.5714285714285714,
+              "micro_precision": 0.6153846153846154,
+              "micro_recall": 0.5333333333333333,
+              "tp": 8,
+              "valid_targets": 8
+            },
+            "verb": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 4,
+              "fp": 6,
+              "micro_f1": 0.6666666666666666,
+              "micro_precision": 0.625,
+              "micro_recall": 0.7142857142857143,
+              "tp": 10,
+              "valid_targets": 8
+            }
+          }
+        }
+      },
+      "profile": "quorum_direct_recheck_v1",
+      "runtime": {
+        "accounts": {
+          "aliyun_cny": {
+            "by_charge_kind": {
+              "conservative_estimate": "0.067684"
+            },
+            "calls": 7,
+            "completion_tokens": 3693,
+            "prompt_tokens": 30754,
+            "statuses": {
+              "JSON_PARSED": 7
+            },
+            "total_including_unknown_reserved": "0.067684"
+          },
+          "openrouter_usd": {
+            "by_charge_kind": {
+              "native": "0.03965663"
+            },
+            "calls": 21,
+            "completion_tokens": 11167,
+            "prompt_tokens": 86072,
+            "statuses": {
+              "JSON_PARSED": 20,
+              "JSON_PARSED_FENCE_NORMALIZED": 1
+            },
+            "total_including_unknown_reserved": "0.03965663"
+          },
+          "xai_usd": {
+            "by_charge_kind": {
+              "native": "0.123708"
+            },
+            "calls": 7,
+            "completion_tokens": 3039,
+            "prompt_tokens": 42684,
+            "statuses": {
+              "JSON_PARSED": 7
+            },
+            "total_including_unknown_reserved": "0.123708"
+          }
+        },
+        "inference_seconds": 127.30734110000049,
+        "new_calls": 35,
+        "note": "Both policies reuse each actual panel, including failures, counted once. Native provider charges, conservative estimates, and unknown reserved upper bounds are separate; reserves are not confirmed spending.",
+        "panel_seconds": {
+          "max": 22.519377299999178,
+          "mean": 17.93484399999787,
+          "median": 18.305778399997507,
+          "n": 7,
+          "sum": 125.5439079999851
+        },
+        "per_policy_eligible_targets": {
+          "q4": 7,
+          "q5": 7
+        },
+        "policy_statuses": {
+          "q4": {
+            "NO_RECHECK_NEEDED": 1,
+            "REVIEWED_NO_PENDING": 1,
+            "REVIEWED_PENDING": 6
+          },
+          "q5": {
+            "NO_RECHECK_NEEDED": 1,
+            "REVIEWED_NO_PENDING": 1,
+            "REVIEWED_PENDING": 6
+          }
+        },
+        "valid_review_count_distribution": {
+          "q4_valid_2": 4,
+          "q4_valid_3": 5,
+          "q4_valid_4": 9,
+          "q4_valid_5": 51,
+          "q5_valid_2": 4,
+          "q5_valid_3": 5,
+          "q5_valid_4": 9,
+          "q5_valid_5": 51
+        }
+      },
+      "source_sha256": {
+        "budget": "c5c6b97a5e6a591389bc88c163e278a861abaceda0ea3502bfa260e1da91071a",
+        "completion": "3177e7a012c1ba532a373bb3f0e904641bf4bbfa4fc17126dfdb480478fd8d34",
+        "metrics": "fad377c4dcf938738a6d186013042bf19fc2ac6cad49cdf89a9f1bbe2f147060",
+        "plan": "c52247b71d6e3844442b6c474a4d2464ef029e5c4d88cd17d13264d226b57bb6",
+        "predictions": "0722576bcecad10c9649a06e2e0bb8c1eb1f4fe4833e0832b5ef1b91bc0cd79f"
+      },
+      "targets": 8
+    },
+    "visual_repair_eight_20260909_v1": {
+      "audit": {
+        "actual_requests_verified": 43,
+        "gt_loaded_after_closed_inference": true,
+        "means_and_metric_counts_independently_checked": true,
+        "raw_outputs_replayed": true
+      },
+      "candidate_coverage": {
+        "original_pool": {
+          "instrument": {
+            "gt_positive": 14,
+            "missing_from_pool": 5,
+            "pool_false": 4,
+            "pool_true": 9,
+            "valid_targets": 8
+          },
+          "ivt": {
+            "gt_positive": 15,
+            "missing_from_pool": 8,
+            "pool_false": 15,
+            "pool_true": 7,
+            "valid_targets": 8
+          },
+          "target": {
+            "gt_positive": 15,
+            "missing_from_pool": 5,
+            "pool_false": 6,
+            "pool_true": 10,
+            "valid_targets": 8
+          },
+          "verb": {
+            "gt_positive": 14,
+            "missing_from_pool": 4,
+            "pool_false": 8,
+            "pool_true": 10,
+            "valid_targets": 8
+          }
+        },
+        "repair_pool": {
+          "instrument": {
+            "gt_positive": 14,
+            "missing_from_pool": 5,
+            "pool_false": 4,
+            "pool_true": 9,
+            "valid_targets": 8
+          },
+          "ivt": {
+            "gt_positive": 15,
+            "missing_from_pool": 8,
+            "pool_false": 15,
+            "pool_true": 7,
+            "valid_targets": 8
+          },
+          "target": {
+            "gt_positive": 15,
+            "missing_from_pool": 5,
+            "pool_false": 6,
+            "pool_true": 10,
+            "valid_targets": 8
+          },
+          "verb": {
+            "gt_positive": 14,
+            "missing_from_pool": 4,
+            "pool_false": 8,
+            "pool_true": 10,
+            "valid_targets": 8
+          }
+        }
+      },
+      "comparisons": {
+        "graph_r1_to_final": {
+          "categories": {
+            "harm": 1,
+            "unchanged": 7
+          },
+          "correct_additions": 0,
+          "correct_deletions": 0,
+          "error_count_after": 55,
+          "error_count_before": 54,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 0,
+          "introduced_label_errors": 1,
+          "net_errors_removed": -1,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 1,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        },
+        "graph_r1_to_temporary": {
+          "categories": {
+            "harm": 4,
+            "partial_improvement": 1,
+            "unchanged": 3
+          },
+          "correct_additions": 0,
+          "correct_deletions": 1,
+          "error_count_after": 60,
+          "error_count_before": 54,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 1,
+          "introduced_label_errors": 7,
+          "net_errors_removed": -6,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 3,
+              "wrong_deletions": 1
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 0,
+              "correct_deletions": 1,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 1
+            },
+            "verb": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 5,
+          "wrong_deletions": 2,
+          "wrong_to_exact": 0
+        },
+        "h0_to_graph_r1": {
+          "categories": {
+            "harm": 2,
+            "partial_improvement": 4,
+            "unchanged": 2
+          },
+          "correct_additions": 5,
+          "correct_deletions": 1,
+          "error_count_after": 54,
+          "error_count_before": 57,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 6,
+          "introduced_label_errors": 3,
+          "net_errors_removed": 3,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 1,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 2,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 1,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 2,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 2,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 3,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        },
+        "temporary_to_final": {
+          "categories": {
+            "harm": 1,
+            "partial_improvement": 4,
+            "unchanged": 3
+          },
+          "correct_additions": 2,
+          "correct_deletions": 4,
+          "error_count_after": 55,
+          "error_count_before": 60,
+          "exact_to_wrong": 0,
+          "fixed_label_errors": 6,
+          "introduced_label_errors": 1,
+          "net_errors_removed": 5,
+          "tasks": {
+            "instrument": {
+              "correct_additions": 0,
+              "correct_deletions": 1,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "ivt": {
+              "correct_additions": 1,
+              "correct_deletions": 2,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "phase": {
+              "correct_additions": 0,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            },
+            "target": {
+              "correct_additions": 1,
+              "correct_deletions": 0,
+              "valid_targets": 8,
+              "wrong_additions": 1,
+              "wrong_deletions": 0
+            },
+            "verb": {
+              "correct_additions": 0,
+              "correct_deletions": 1,
+              "valid_targets": 8,
+              "wrong_additions": 0,
+              "wrong_deletions": 0
+            }
+          },
+          "wrong_additions": 1,
+          "wrong_deletions": 0,
+          "wrong_to_exact": 0
+        }
+      },
+      "limitations": [
+        "Previously inspected development data, not independent confirmation.",
+        "Combined feedback-diagnostics, proposal-role and review-queue change; not a one-factor efficacy ablation.",
+        "Same original causal images. No new external visual evidence, tracker or gate.",
+        "Repair may introduce full-ontology labels; unapproved temporary outputs are scored separately, not production answers."
+      ],
+      "local_source": "artifacts/preflight/visual_repair_eight_20260909_v1",
+      "metrics": {
+        "final": {
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 8
+          },
+          "tasks": {
+            "instrument": {
+              "exact_matches": 3,
+              "exact_set_accuracy": 0.375,
+              "failed_predictions": 0,
+              "fn": 5,
+              "fp": 3,
+              "micro_f1": 0.6923076923076923,
+              "micro_precision": 0.75,
+              "micro_recall": 0.6428571428571429,
+              "tp": 9,
+              "valid_targets": 8
+            },
+            "ivt": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 9,
+              "fp": 10,
+              "micro_f1": 0.3870967741935484,
+              "micro_precision": 0.375,
+              "micro_recall": 0.4,
+              "tp": 6,
+              "valid_targets": 8
+            },
+            "phase": {
+              "exact_matches": 5,
+              "exact_set_accuracy": 0.625,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 3,
+              "micro_f1": 0.625,
+              "micro_precision": 0.625,
+              "micro_recall": 0.625,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "target": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 7,
+              "fp": 5,
+              "micro_f1": 0.5714285714285714,
+              "micro_precision": 0.6153846153846154,
+              "micro_recall": 0.5333333333333333,
+              "tp": 8,
+              "valid_targets": 8
+            },
+            "verb": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 4,
+              "fp": 6,
+              "micro_f1": 0.6666666666666666,
+              "micro_precision": 0.625,
+              "micro_recall": 0.7142857142857143,
+              "tp": 10,
+              "valid_targets": 8
+            }
+          }
+        },
+        "graph_r1": {
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 8
+          },
+          "tasks": {
+            "instrument": {
+              "exact_matches": 3,
+              "exact_set_accuracy": 0.375,
+              "failed_predictions": 0,
+              "fn": 5,
+              "fp": 3,
+              "micro_f1": 0.6923076923076923,
+              "micro_precision": 0.75,
+              "micro_recall": 0.6428571428571429,
+              "tp": 9,
+              "valid_targets": 8
+            },
+            "ivt": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 9,
+              "fp": 9,
+              "micro_f1": 0.4,
+              "micro_precision": 0.4,
+              "micro_recall": 0.4,
+              "tp": 6,
+              "valid_targets": 8
+            },
+            "phase": {
+              "exact_matches": 5,
+              "exact_set_accuracy": 0.625,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 3,
+              "micro_f1": 0.625,
+              "micro_precision": 0.625,
+              "micro_recall": 0.625,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "target": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 7,
+              "fp": 5,
+              "micro_f1": 0.5714285714285714,
+              "micro_precision": 0.6153846153846154,
+              "micro_recall": 0.5333333333333333,
+              "tp": 8,
+              "valid_targets": 8
+            },
+            "verb": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 4,
+              "fp": 6,
+              "micro_f1": 0.6666666666666666,
+              "micro_precision": 0.625,
+              "micro_recall": 0.7142857142857143,
+              "tp": 10,
+              "valid_targets": 8
+            }
+          }
+        },
+        "h0": {
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 8
+          },
+          "tasks": {
+            "instrument": {
+              "exact_matches": 3,
+              "exact_set_accuracy": 0.375,
+              "failed_predictions": 0,
+              "fn": 5,
+              "fp": 4,
+              "micro_f1": 0.6666666666666666,
+              "micro_precision": 0.6923076923076923,
+              "micro_recall": 0.6428571428571429,
+              "tp": 9,
+              "valid_targets": 8
+            },
+            "ivt": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 11,
+              "fp": 8,
+              "micro_f1": 0.2962962962962963,
+              "micro_precision": 0.3333333333333333,
+              "micro_recall": 0.26666666666666666,
+              "tp": 4,
+              "valid_targets": 8
+            },
+            "phase": {
+              "exact_matches": 5,
+              "exact_set_accuracy": 0.625,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 3,
+              "micro_f1": 0.625,
+              "micro_precision": 0.625,
+              "micro_recall": 0.625,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "target": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 8,
+              "fp": 5,
+              "micro_f1": 0.5185185185185185,
+              "micro_precision": 0.5833333333333334,
+              "micro_recall": 0.4666666666666667,
+              "tp": 7,
+              "valid_targets": 8
+            },
+            "verb": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 6,
+              "fp": 4,
+              "micro_f1": 0.6153846153846154,
+              "micro_precision": 0.6666666666666666,
+              "micro_recall": 0.5714285714285714,
+              "tp": 8,
+              "valid_targets": 8
+            }
+          }
+        },
+        "temporary": {
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 8
+          },
+          "tasks": {
+            "instrument": {
+              "exact_matches": 3,
+              "exact_set_accuracy": 0.375,
+              "failed_predictions": 0,
+              "fn": 5,
+              "fp": 4,
+              "micro_f1": 0.6666666666666666,
+              "micro_precision": 0.6923076923076923,
+              "micro_recall": 0.6428571428571429,
+              "tp": 9,
+              "valid_targets": 8
+            },
+            "ivt": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 10,
+              "fp": 12,
+              "micro_f1": 0.3125,
+              "micro_precision": 0.29411764705882354,
+              "micro_recall": 0.3333333333333333,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "phase": {
+              "exact_matches": 5,
+              "exact_set_accuracy": 0.625,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 3,
+              "micro_f1": 0.625,
+              "micro_precision": 0.625,
+              "micro_recall": 0.625,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "target": {
+              "exact_matches": 1,
+              "exact_set_accuracy": 0.125,
+              "failed_predictions": 0,
+              "fn": 8,
+              "fp": 4,
+              "micro_f1": 0.5384615384615384,
+              "micro_precision": 0.6363636363636364,
+              "micro_recall": 0.4666666666666667,
+              "tp": 7,
+              "valid_targets": 8
+            },
+            "verb": {
+              "exact_matches": 1,
+              "exact_set_accuracy": 0.125,
+              "failed_predictions": 0,
+              "fn": 4,
+              "fp": 7,
+              "micro_f1": 0.6451612903225806,
+              "micro_precision": 0.5882352941176471,
+              "micro_recall": 0.7142857142857143,
+              "tp": 10,
+              "valid_targets": 8
+            }
+          }
+        }
+      },
+      "profile": "visual_repair_unscored_hypotheses_v1",
+      "runtime": {
+        "calls": 43,
+        "charges": {
+          "aliyun_cny": {
+            "conservative_estimate": "0.063160"
+          },
+          "openrouter_usd": {
+            "native": "0.129320866"
+          },
+          "xai_usd": {
+            "native": "0.122100"
+          }
+        },
+        "inference_seconds": 220.69054300000425,
+        "statuses": {
+          "JSON_PARSED": 41,
+          "SAFE_JSON_REJECTED": 2
+        },
+        "target_statuses": {
+          "NO_REPAIR_OR_RECHECK": 1,
+          "REVIEWED": 7
+        }
+      },
+      "source_sha256": {
+        "budget": "8d6099802edc6eb4c62dafd7f79f91a04f16716d1bbd633b49c6a69fe5bb8613",
+        "completion": "6c6cc1b4462e3f8682da4f8df24f1bdf78710413eb1fadcfd6e0943e7aaef581",
+        "metrics": "c09206bc37ff9090b7034e89dfc4fb090a1d202778cfe82c4b20ea585c74a58b",
+        "plan": "0edc54e7be1c2f44a459aa6674b5775041bdb78770d117f62a816ed249d0ec33",
+        "predictions": "1ee05426427867c575ff061963e2d033a51a07bd689150b64ad109f888b24e38"
+      },
+      "targets": 8
+    }
+  },
+  "schema_version": "paired_repair_record_summary_v1",
+  "scope": "Same eight previously inspected Training targets, same cached Gemini H0; not independent confirmation or full Tracker/Gate Pipeline results.",
+  "target_keys": [
+    "VID103_18326",
+    "VID103_33576",
+    "VID23_13176",
+    "VID23_28876",
+    "VID31_40701",
+    "VID31_73701",
+    "VID96_15051",
+    "VID96_26051"
+  ],
+  "task_mask_policy": "Missing GT excluded per task; failures kept in denominators. All five heads have eight valid targets in this cohort."
+}

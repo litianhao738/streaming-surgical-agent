@@ -1,14 +1,9 @@
 # Streaming SurgicalAgent V3.1
 
-> **2026-09-08 修复研究更新：[当前保留方案与离线重放](docs/VERIFIED_REPAIR_CANDIDATE_2026-09-08.md)。**
-> 已补齐开发 8／确认 8／反馈 4 目标的真实结果；开发收益未在确认批复现，不能称为稳定最优。
-> [完整评分](docs/REPAIR_REVISION_RESULTS_2026-09-08.md) · [GraphRAG 位置、输入输出与结构设计（尚未实现）](docs/GRAPH_RAG_VERIFIER_DESIGN_2026-09-08.md)
-
-> **先看实验结果：[当前实验数据与可量化指标](EXPERIMENT_RESULTS.md)（2026-09-08）**
->
-> 按 H0、Tracker、Verifier/Repair、Gate 汇总已完成数据，包含 Precision、Recall、F1、集合 Accuracy、修复收益和费用。
-> **目前尚无最新完整 Pipeline 的四组消融结果；模块小测试不等于完整系统成绩。**
-> [可下载指标快照](docs/experiments/current_quantitative_results_20260908.json) · [历史修复实验汇总](docs/VERIFIER_REPAIR_EXPERIMENT_SUMMARY_2026-09-08.md)
+> **2026-09-09：[精简实验记录与同批评分](EXPERIMENT_RESULTS.md)。**
+> 当前保留图谱一轮版；同八个 Training 目标的 IVT F1 为 H0 **29.63% → 40.00%**，IVT 集合 Accuracy 仍为 0%。第二轮、四席审核及五头 LLM 修复未超过它。
+> [最佳版本与固定提交](BEST_REPAIR_VERSION.json) · [最佳版代码与离线重放](https://github.com/litianhao738/streaming-surgical-agent/tree/best-repair-2026-09-09) · [完整指标 JSON](docs/experiments/repair_comparison_20260909.json)
+> 这是小样本研究版本；最新完整 Tracker/Gate Pipeline 与四组消融尚未完成。历史实验、默认 H0 和本地训练输出保留。
 
 CholecTrack20-only research code for strict-causal surgical video inference,
 predicted tracking, selective structured verification, and reliability-aware

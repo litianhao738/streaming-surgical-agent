@@ -1,0 +1,177 @@
+{
+  "aggregate_sha256": "2dc6ce96e4eafc249a3b4528d25388cf1a0acf7066a9b97226785be004904ef7",
+  "aggregate_source": "docs/experiments/repair_comparison_20260909.json",
+  "as_of": "2026-09-09",
+  "best_task_metrics": {
+    "instrument": {
+      "exact_matches": 3,
+      "exact_set_accuracy": 0.375,
+      "failed_predictions": 0,
+      "fn": 5,
+      "fp": 3,
+      "micro_f1": 0.6923076923076923,
+      "micro_precision": 0.75,
+      "micro_recall": 0.6428571428571429,
+      "tp": 9,
+      "valid_targets": 8
+    },
+    "ivt": {
+      "exact_matches": 0,
+      "exact_set_accuracy": 0.0,
+      "failed_predictions": 0,
+      "fn": 9,
+      "fp": 9,
+      "micro_f1": 0.4,
+      "micro_precision": 0.4,
+      "micro_recall": 0.4,
+      "tp": 6,
+      "valid_targets": 8
+    },
+    "phase": {
+      "exact_matches": 5,
+      "exact_set_accuracy": 0.625,
+      "failed_predictions": 0,
+      "fn": 3,
+      "fp": 3,
+      "micro_f1": 0.625,
+      "micro_precision": 0.625,
+      "micro_recall": 0.625,
+      "tp": 5,
+      "valid_targets": 8
+    },
+    "target": {
+      "exact_matches": 2,
+      "exact_set_accuracy": 0.25,
+      "failed_predictions": 0,
+      "fn": 7,
+      "fp": 5,
+      "micro_f1": 0.5714285714285714,
+      "micro_precision": 0.6153846153846154,
+      "micro_recall": 0.5333333333333333,
+      "tp": 8,
+      "valid_targets": 8
+    },
+    "verb": {
+      "exact_matches": 2,
+      "exact_set_accuracy": 0.25,
+      "failed_predictions": 0,
+      "fn": 4,
+      "fp": 6,
+      "micro_f1": 0.6666666666666666,
+      "micro_precision": 0.625,
+      "micro_recall": 0.7142857142857143,
+      "tp": 10,
+      "valid_targets": 8
+    }
+  },
+  "branch": "research/prior-graph-repair-v1",
+  "commit": "a0406baa7e5aeb8313403e792a8e609e2fceccef",
+  "entrypoint": "scripts/run_prior_candidate_trial.py",
+  "gate_integrated": false,
+  "h0_task_metrics": {
+    "instrument": {
+      "exact_matches": 3,
+      "exact_set_accuracy": 0.375,
+      "failed_predictions": 0,
+      "fn": 5,
+      "fp": 4,
+      "micro_f1": 0.6666666666666666,
+      "micro_precision": 0.6923076923076923,
+      "micro_recall": 0.6428571428571429,
+      "tp": 9,
+      "valid_targets": 8
+    },
+    "ivt": {
+      "exact_matches": 0,
+      "exact_set_accuracy": 0.0,
+      "failed_predictions": 0,
+      "fn": 11,
+      "fp": 8,
+      "micro_f1": 0.2962962962962963,
+      "micro_precision": 0.3333333333333333,
+      "micro_recall": 0.26666666666666666,
+      "tp": 4,
+      "valid_targets": 8
+    },
+    "phase": {
+      "exact_matches": 5,
+      "exact_set_accuracy": 0.625,
+      "failed_predictions": 0,
+      "fn": 3,
+      "fp": 3,
+      "micro_f1": 0.625,
+      "micro_precision": 0.625,
+      "micro_recall": 0.625,
+      "tp": 5,
+      "valid_targets": 8
+    },
+    "target": {
+      "exact_matches": 2,
+      "exact_set_accuracy": 0.25,
+      "failed_predictions": 0,
+      "fn": 8,
+      "fp": 5,
+      "micro_f1": 0.5185185185185185,
+      "micro_precision": 0.5833333333333334,
+      "micro_recall": 0.4666666666666667,
+      "tp": 7,
+      "valid_targets": 8
+    },
+    "verb": {
+      "exact_matches": 2,
+      "exact_set_accuracy": 0.25,
+      "failed_predictions": 0,
+      "fn": 6,
+      "fp": 4,
+      "micro_f1": 0.6153846153846154,
+      "micro_precision": 0.6666666666666666,
+      "micro_recall": 0.5714285714285714,
+      "tp": 8,
+      "valid_targets": 8
+    }
+  },
+  "mechanism": [
+    "fixed Gemini H0",
+    "leave-video-out Training graph hints",
+    "single visual proposer",
+    "five-family visual review",
+    "Python local admission"
+  ],
+  "offline_replay": "scripts/replay_prior_graph_candidate.py",
+  "phase_repair_enabled": false,
+  "policy": {
+    "arms": [
+      "control",
+      "prior_graph"
+    ],
+    "max_hints": 2,
+    "max_new_ivts": 4,
+    "max_rounds": 1,
+    "phase_unchanged": true,
+    "reviewer_seats": [
+      "grok",
+      "qwen",
+      "gpt",
+      "gemini",
+      "deepseek"
+    ],
+    "threshold": 4.0
+  },
+  "portable_replay_bundle_sha256_lf": "a371b955e8ce214a4ae8897d7e2fc24bb4e6fb98b38429896d94b0cc448de8e1",
+  "pure_api_default_changed": false,
+  "recheck": {
+    "api_calls": 0,
+    "date": "2026-09-09",
+    "gt_independently_rescored": false,
+    "panels_replayed": 16,
+    "priors_rebuilt": 4,
+    "targets": 8,
+    "verified": true
+  },
+  "schema_version": "retained_repair_version_v1",
+  "selection_scope": "Best retained IVT-F1 result among these same-eight Training repair comparisons, not a globally best model or validated full pipeline.",
+  "selection_tag": "best-repair-2026-09-09",
+  "tracker_integrated": false,
+  "version": "prior-graph-repair-v1.0.0-experimental",
+  "version_manifest_at_release": "PIPELINE_VERSION.json"
+}
