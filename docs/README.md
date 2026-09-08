@@ -1,5 +1,38 @@
 # Documentation Authority and Live Checkpoint
 
+Start with the [Verifier / Repair mechanisms and measured results summary](VERIFIER_REPAIR_EXPERIMENT_SUMMARY_2026-09-08.md)
+for the tested alternatives, paired gains and harms, task masks, actual rounds,
+costs and publication boundaries. Its [machine-readable metric excerpts](experiments/verifier_repair_results_20260908.json)
+retain source hashes; this documentation update does not publish recent local research code or raw experiments.
+
+The [recent five-family panel, 12-target three-round trial](RECENT_FIVE_PANEL_THREE_ROUNDS_2026-09-08.md)
+compares mean thresholds 4 and 3.5 on shared candidates. IVT F1 improved slightly,
+but errors increased and third-round IVT exact-set accuracy fell to zero. The
+Grok seat is explicitly a flagship exception; an empty-pool false-pass bug was
+fixed after the paid run, with original outputs preserved. This remains research-only.
+
+The [second-round continuation and sparse LLM Repair test](SECOND_ROUND_LLM_DELTA_REPAIR_2026-09-08.md)
+reuse cached Gemini H0/R1. Eighteen new calls yielded one correct Target addition
+in the original continuation, with no IVT gain. The sparse LLM arm returned four
+empty patches; its new nonempty patch-review path has offline tests only.
+
+The [OpenRouter Gemini H0 panel test](OPENROUTER_GEMINI_H0_PANEL_2026-09-08.md)
+records the new research entrypoint with Gemini 3.8 Flash for both H0 and candidate
+generation through the Google route. Twenty-eight calls on four Training targets
+completed; the panel kept every new H0. Target F1 increased versus cached Qwen,
+while Verb, IVT and Phase decreased. The historical published H0 remains available.
+
+The [follow-up cause audit and repair ablations](VERIFIER_REPAIR_CAUSE_AND_ABLATIONS_2026-09-08.md)
+test ontology candidate completion, valid-evidence quorum, one-call joint reflection
+and cross-video labeled references. Twenty-six additional calls improved candidate
+coverage but did not improve aggregate IVT; harmful variants remain research-only.
+
+The [2026-09-08 semantic Verifier/Repair fixes and API comparison](VERIFIER_REPAIR_SEMANTIC_FIX_2026-09-08.md)
+record candidate-bound evidence checks, the Gemini reviewer row-format fix,
+mask-checked Training evaluation and blind-proposal ablation. The four fully
+annotated targets show a small Verb gain but no Target/IVT gain; the frozen H0
+remains the default. Failed contracts, one 403 fallback and all costs are retained.
+
 ## Main API H0 checkpoint — 2026-09-06
 
 [Main API Pipeline](MAIN_API_PIPELINE.md) is the current run guide for the
