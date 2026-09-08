@@ -1,5 +1,9 @@
 # 当前实验数据与可量化指标
 
+> **后续修复研究结果已补齐：[开发 8／确认 8／反馈 4 目标报告](docs/REPAIR_REVISION_RESULTS_2026-09-08.md)。**
+> 单提案 IVT F1 在开发批为 16.67%→24.00%，确认批为 41.67%→33.33%；新四目标为 37.50%→47.06%，但提升全部发生在共享首轮，反馈仅避免一次对照组错误新增。
+> [当前保留候选与离线重放](docs/VERIFIED_REPAIR_CANDIDATE_2026-09-08.md) · [对应聚合指标 JSON](docs/experiments/repair_revision_aggregate_results_20260908.json)。下文 12 目标等记录保留为各自历史批次，不代表本次新结果。
+
 核查日期：**2026-09-08**。本次核查起始提交：`f34fbeafecf6827dd3d269a9c0254ad16914fe76`。
 
 **已有 H0、Tracker、Verifier/Repair 的模块实测数据；Gate 只有训练准备数据，最新完整 Pipeline 的四组消融尚无结果。**

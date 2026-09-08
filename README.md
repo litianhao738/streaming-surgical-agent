@@ -1,5 +1,9 @@
 # Streaming SurgicalAgent V3.1
 
+> **2026-09-08 修复研究更新：[当前保留方案与离线重放](docs/VERIFIED_REPAIR_CANDIDATE_2026-09-08.md)。**
+> 已补齐开发 8／确认 8／反馈 4 目标的真实结果；开发收益未在确认批复现，不能称为稳定最优。
+> [完整评分](docs/REPAIR_REVISION_RESULTS_2026-09-08.md) · [GraphRAG 位置、输入输出与结构设计（尚未实现）](docs/GRAPH_RAG_VERIFIER_DESIGN_2026-09-08.md)
+
 > **先看实验结果：[当前实验数据与可量化指标](EXPERIMENT_RESULTS.md)（2026-09-08）**
 >
 > 按 H0、Tracker、Verifier/Repair、Gate 汇总已完成数据，包含 Precision、Recall、F1、集合 Accuracy、修复收益和费用。

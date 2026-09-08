@@ -1,9 +1,18 @@
 # Documentation Authority and Live Checkpoint
 
+Published repair research candidate: [current mechanism, results and offline replay](VERIFIED_REPAIR_CANDIDATE_2026-09-08.md).
+The [20-target report](REPAIR_REVISION_RESULTS_2026-09-08.md) separates development,
+confirmation and feedback cohorts. Development gains did not persist in confirmation;
+feedback avoided one control-arm instrument error but added no second-round IVT gain.
+The [portable four-target replay](experiments/verified_repair_candidate_20260908.json)
+replays recorded model answers and deterministic repair; it does not contain images or
+per-frame GT. The default H0 is unchanged. [GraphRAG placement and interfaces](GRAPH_RAG_VERIFIER_DESIGN_2026-09-08.md)
+are a proposed design, not an implemented or evaluated module.
+
 Start with the [Verifier / Repair mechanisms and measured results summary](VERIFIER_REPAIR_EXPERIMENT_SUMMARY_2026-09-08.md)
 for the tested alternatives, paired gains and harms, task masks, actual rounds,
 costs and publication boundaries. Its [machine-readable metric excerpts](experiments/verifier_repair_results_20260908.json)
-retain source hashes; this documentation update does not publish recent local research code or raw experiments.
+retain source hashes; that earlier summary was documentation-only. The current code release and its limits are linked above.
 
 The [recent five-family panel, 12-target three-round trial](RECENT_FIVE_PANEL_THREE_ROUNDS_2026-09-08.md)
 compares mean thresholds 4 and 3.5 on shared candidates. IVT F1 improved slightly,

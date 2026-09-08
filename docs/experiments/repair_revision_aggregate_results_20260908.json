@@ -1,0 +1,811 @@
+{
+  "schema_version": "repair_revision_aggregate_release_v1",
+  "date": "2026-09-08",
+  "scope": "Three separate Training cohorts; no Tracker/Gate; no Testing; not a stable best-policy claim.",
+  "metrics_source": "Existing completed offline GT scores, aggregated per task with validity masks. No new paid calls.",
+  "gt_publication": "No per-frame GT values are included. Aggregate counts do not independently prove original GT correctness.",
+  "batches": {
+    "repair_revision_development_20260908_v2": {
+      "round": 3,
+      "source_artifact": "artifacts/preflight/repair_revision_development_20260908_v2/scores/round_3.json",
+      "source_sha256": "cf1ccda35ab0280f19e2d4270c8e4ce8a208d8de280284a9aa26ebb0c5332fc4",
+      "coverage": {
+        "h0_available": 8,
+        "paired_with_both_reviewed": 8,
+        "selected": 8,
+        "statuses": {
+          "distributed_ivt_tolerant": {
+            "MODEL_PASS": 2,
+            "UNRESOLVED": 6
+          },
+          "single_proposer_tolerant": {
+            "MODEL_PASS": 1,
+            "UNRESOLVED": 7
+          }
+        },
+        "unfinished_observations_are_not_gate_negative_labels": true
+      },
+      "groups": {
+        "h0": {
+          "tasks": {
+            "instrument": {
+              "exact_matches": 5,
+              "exact_set_accuracy": 0.625,
+              "failed_predictions": 0,
+              "fn": 4,
+              "fp": 2,
+              "micro_f1": 0.75,
+              "micro_precision": 0.8181818181818182,
+              "micro_recall": 0.6923076923076923,
+              "tp": 9,
+              "valid_targets": 8
+            },
+            "ivt": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 11,
+              "fp": 9,
+              "micro_f1": 0.16666666666666666,
+              "micro_precision": 0.18181818181818182,
+              "micro_recall": 0.15384615384615385,
+              "tp": 2,
+              "valid_targets": 8
+            },
+            "phase": {
+              "exact_matches": 5,
+              "exact_set_accuracy": 0.625,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 3,
+              "micro_f1": 0.625,
+              "micro_precision": 0.625,
+              "micro_recall": 0.625,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "target": {
+              "exact_matches": 1,
+              "exact_set_accuracy": 0.125,
+              "failed_predictions": 0,
+              "fn": 7,
+              "fp": 7,
+              "micro_f1": 0.36363636363636365,
+              "micro_precision": 0.36363636363636365,
+              "micro_recall": 0.36363636363636365,
+              "tp": 4,
+              "valid_targets": 8
+            },
+            "verb": {
+              "exact_matches": 3,
+              "exact_set_accuracy": 0.375,
+              "failed_predictions": 0,
+              "fn": 7,
+              "fp": 5,
+              "micro_f1": 0.5,
+              "micro_precision": 0.5454545454545454,
+              "micro_recall": 0.46153846153846156,
+              "tp": 6,
+              "valid_targets": 8
+            }
+          },
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 8
+          },
+          "total_label_errors": 58
+        },
+        "distributed_ivt_tolerant": {
+          "tasks": {
+            "instrument": {
+              "exact_matches": 6,
+              "exact_set_accuracy": 0.75,
+              "failed_predictions": 0,
+              "fn": 2,
+              "fp": 2,
+              "micro_f1": 0.8461538461538461,
+              "micro_precision": 0.8461538461538461,
+              "micro_recall": 0.8461538461538461,
+              "tp": 11,
+              "valid_targets": 8
+            },
+            "ivt": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 11,
+              "fp": 9,
+              "micro_f1": 0.16666666666666666,
+              "micro_precision": 0.18181818181818182,
+              "micro_recall": 0.15384615384615385,
+              "tp": 2,
+              "valid_targets": 8
+            },
+            "phase": {
+              "exact_matches": 5,
+              "exact_set_accuracy": 0.625,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 3,
+              "micro_f1": 0.625,
+              "micro_precision": 0.625,
+              "micro_recall": 0.625,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "target": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 5,
+              "fp": 7,
+              "micro_f1": 0.5,
+              "micro_precision": 0.46153846153846156,
+              "micro_recall": 0.5454545454545454,
+              "tp": 6,
+              "valid_targets": 8
+            },
+            "verb": {
+              "exact_matches": 3,
+              "exact_set_accuracy": 0.375,
+              "failed_predictions": 0,
+              "fn": 7,
+              "fp": 5,
+              "micro_f1": 0.5,
+              "micro_precision": 0.5454545454545454,
+              "micro_recall": 0.46153846153846156,
+              "tp": 6,
+              "valid_targets": 8
+            }
+          },
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 8
+          },
+          "total_label_errors": 54
+        },
+        "single_proposer_tolerant": {
+          "tasks": {
+            "instrument": {
+              "exact_matches": 5,
+              "exact_set_accuracy": 0.625,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 2,
+              "micro_f1": 0.8,
+              "micro_precision": 0.8333333333333334,
+              "micro_recall": 0.7692307692307693,
+              "tp": 10,
+              "valid_targets": 8
+            },
+            "ivt": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 10,
+              "fp": 9,
+              "micro_f1": 0.24,
+              "micro_precision": 0.25,
+              "micro_recall": 0.23076923076923078,
+              "tp": 3,
+              "valid_targets": 8
+            },
+            "phase": {
+              "exact_matches": 5,
+              "exact_set_accuracy": 0.625,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 3,
+              "micro_f1": 0.625,
+              "micro_precision": 0.625,
+              "micro_recall": 0.625,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "target": {
+              "exact_matches": 1,
+              "exact_set_accuracy": 0.125,
+              "failed_predictions": 0,
+              "fn": 6,
+              "fp": 7,
+              "micro_f1": 0.43478260869565216,
+              "micro_precision": 0.4166666666666667,
+              "micro_recall": 0.45454545454545453,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "verb": {
+              "exact_matches": 3,
+              "exact_set_accuracy": 0.375,
+              "failed_predictions": 0,
+              "fn": 5,
+              "fp": 5,
+              "micro_f1": 0.6153846153846154,
+              "micro_precision": 0.6153846153846154,
+              "micro_recall": 0.6153846153846154,
+              "tp": 8,
+              "valid_targets": 8
+            }
+          },
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 8
+          },
+          "total_label_errors": 53
+        }
+      },
+      "independent_audit": {
+        "verified": true,
+        "completed": true,
+        "source_artifact": "artifacts/preflight/repair_revision_development_20260908_v2/independent_audit.json",
+        "source_sha256": "1f58d0f2df1990a2962231f2553313aad7b6b325e9574a9601cdf6826b892622"
+      }
+    },
+    "repair_revision_confirmation_20260908_v1": {
+      "round": 3,
+      "source_artifact": "artifacts/preflight/repair_revision_confirmation_20260908_v1/scores/round_3.json",
+      "source_sha256": "ef06f6a687a051d35b6122b1ebeab1180b06796342f5de0b2376950e1a62e27d",
+      "coverage": {
+        "h0_available": 8,
+        "paired_with_both_reviewed": 8,
+        "selected": 8,
+        "statuses": {
+          "distributed_ivt_tolerant": {
+            "MODEL_PASS": 3,
+            "UNRESOLVED": 5
+          },
+          "single_proposer_tolerant": {
+            "UNRESOLVED": 8
+          }
+        },
+        "unfinished_observations_are_not_gate_negative_labels": true
+      },
+      "groups": {
+        "h0": {
+          "tasks": {
+            "instrument": {
+              "exact_matches": 4,
+              "exact_set_accuracy": 0.5,
+              "failed_predictions": 0,
+              "fn": 4,
+              "fp": 1,
+              "micro_f1": 0.782608695652174,
+              "micro_precision": 0.9,
+              "micro_recall": 0.6923076923076923,
+              "tp": 9,
+              "valid_targets": 8
+            },
+            "ivt": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 8,
+              "fp": 6,
+              "micro_f1": 0.4166666666666667,
+              "micro_precision": 0.45454545454545453,
+              "micro_recall": 0.38461538461538464,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "phase": {
+              "exact_matches": 6,
+              "exact_set_accuracy": 0.75,
+              "failed_predictions": 0,
+              "fn": 2,
+              "fp": 2,
+              "micro_f1": 0.75,
+              "micro_precision": 0.75,
+              "micro_recall": 0.75,
+              "tp": 6,
+              "valid_targets": 8
+            },
+            "target": {
+              "exact_matches": 3,
+              "exact_set_accuracy": 0.375,
+              "failed_predictions": 0,
+              "fn": 5,
+              "fp": 4,
+              "micro_f1": 0.6086956521739131,
+              "micro_precision": 0.6363636363636364,
+              "micro_recall": 0.5833333333333334,
+              "tp": 7,
+              "valid_targets": 8
+            },
+            "verb": {
+              "exact_matches": 5,
+              "exact_set_accuracy": 0.625,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 1,
+              "micro_f1": 0.8333333333333334,
+              "micro_precision": 0.9090909090909091,
+              "micro_recall": 0.7692307692307693,
+              "tp": 10,
+              "valid_targets": 8
+            }
+          },
+          "all_valid_heads_exact": {
+            "accuracy": 0.125,
+            "exact_matches": 1,
+            "valid_targets": 8
+          },
+          "total_label_errors": 36
+        },
+        "distributed_ivt_tolerant": {
+          "tasks": {
+            "instrument": {
+              "exact_matches": 4,
+              "exact_set_accuracy": 0.5,
+              "failed_predictions": 0,
+              "fn": 4,
+              "fp": 1,
+              "micro_f1": 0.782608695652174,
+              "micro_precision": 0.9,
+              "micro_recall": 0.6923076923076923,
+              "tp": 9,
+              "valid_targets": 8
+            },
+            "ivt": {
+              "exact_matches": 1,
+              "exact_set_accuracy": 0.125,
+              "failed_predictions": 0,
+              "fn": 9,
+              "fp": 7,
+              "micro_f1": 0.3333333333333333,
+              "micro_precision": 0.36363636363636365,
+              "micro_recall": 0.3076923076923077,
+              "tp": 4,
+              "valid_targets": 8
+            },
+            "phase": {
+              "exact_matches": 6,
+              "exact_set_accuracy": 0.75,
+              "failed_predictions": 0,
+              "fn": 2,
+              "fp": 2,
+              "micro_f1": 0.75,
+              "micro_precision": 0.75,
+              "micro_recall": 0.75,
+              "tp": 6,
+              "valid_targets": 8
+            },
+            "target": {
+              "exact_matches": 1,
+              "exact_set_accuracy": 0.125,
+              "failed_predictions": 0,
+              "fn": 7,
+              "fp": 5,
+              "micro_f1": 0.45454545454545453,
+              "micro_precision": 0.5,
+              "micro_recall": 0.4166666666666667,
+              "tp": 5,
+              "valid_targets": 8
+            },
+            "verb": {
+              "exact_matches": 3,
+              "exact_set_accuracy": 0.375,
+              "failed_predictions": 0,
+              "fn": 5,
+              "fp": 3,
+              "micro_f1": 0.6666666666666666,
+              "micro_precision": 0.7272727272727273,
+              "micro_recall": 0.6153846153846154,
+              "tp": 8,
+              "valid_targets": 8
+            }
+          },
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 8
+          },
+          "total_label_errors": 45
+        },
+        "single_proposer_tolerant": {
+          "tasks": {
+            "instrument": {
+              "exact_matches": 4,
+              "exact_set_accuracy": 0.5,
+              "failed_predictions": 0,
+              "fn": 4,
+              "fp": 1,
+              "micro_f1": 0.782608695652174,
+              "micro_precision": 0.9,
+              "micro_recall": 0.6923076923076923,
+              "tp": 9,
+              "valid_targets": 8
+            },
+            "ivt": {
+              "exact_matches": 1,
+              "exact_set_accuracy": 0.125,
+              "failed_predictions": 0,
+              "fn": 9,
+              "fp": 7,
+              "micro_f1": 0.3333333333333333,
+              "micro_precision": 0.36363636363636365,
+              "micro_recall": 0.3076923076923077,
+              "tp": 4,
+              "valid_targets": 8
+            },
+            "phase": {
+              "exact_matches": 6,
+              "exact_set_accuracy": 0.75,
+              "failed_predictions": 0,
+              "fn": 2,
+              "fp": 2,
+              "micro_f1": 0.75,
+              "micro_precision": 0.75,
+              "micro_recall": 0.75,
+              "tp": 6,
+              "valid_targets": 8
+            },
+            "target": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 5,
+              "fp": 5,
+              "micro_f1": 0.5833333333333334,
+              "micro_precision": 0.5833333333333334,
+              "micro_recall": 0.5833333333333334,
+              "tp": 7,
+              "valid_targets": 8
+            },
+            "verb": {
+              "exact_matches": 3,
+              "exact_set_accuracy": 0.375,
+              "failed_predictions": 0,
+              "fn": 4,
+              "fp": 2,
+              "micro_f1": 0.75,
+              "micro_precision": 0.8181818181818182,
+              "micro_recall": 0.6923076923076923,
+              "tp": 9,
+              "valid_targets": 8
+            }
+          },
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 8
+          },
+          "total_label_errors": 41
+        }
+      },
+      "independent_audit": {
+        "verified": true,
+        "completed": true,
+        "source_artifact": "artifacts/preflight/repair_revision_confirmation_20260908_v1/independent_audit.json",
+        "source_sha256": "6cb8e863093ce16e2644017b77abe6f623a1626fec868e787c87808488efe03b"
+      }
+    },
+    "evidence_feedback_four_20260908_v1": {
+      "round": 2,
+      "source_artifact": "artifacts/preflight/evidence_feedback_four_20260908_v1/scores/round_2.json",
+      "source_sha256": "df98fe501403e3443e6e1655b348c32edd42cff8045c8c66050d4afb5dd57ae1",
+      "coverage": {
+        "all_selected_targets_retained": true,
+        "h0_available": 4,
+        "missing_GT_excluded_per_task_mask": true,
+        "round2_attempted": {
+          "evidence_feedback": 2,
+          "issues_only": 2
+        },
+        "round2_reviewed": {
+          "evidence_feedback": 2,
+          "issues_only": 2
+        },
+        "selected": 4,
+        "shared_first_round_reviewed": 4,
+        "statuses": {
+          "evidence_feedback": {
+            "SHARED_MODEL_PASS": 2,
+            "UNRESOLVED": 2
+          },
+          "issues_only": {
+            "SHARED_MODEL_PASS": 2,
+            "UNRESOLVED": 2
+          }
+        },
+        "unattempted_repairs_are_not_negative_gate_labels": true
+      },
+      "groups": {
+        "h0": {
+          "tasks": {
+            "instrument": {
+              "exact_matches": 4,
+              "exact_set_accuracy": 1.0,
+              "failed_predictions": 0,
+              "fn": 0,
+              "fp": 0,
+              "micro_f1": 1.0,
+              "micro_precision": 1.0,
+              "micro_recall": 1.0,
+              "tp": 7,
+              "valid_targets": 4
+            },
+            "ivt": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 5,
+              "fp": 5,
+              "micro_f1": 0.375,
+              "micro_precision": 0.375,
+              "micro_recall": 0.375,
+              "tp": 3,
+              "valid_targets": 4
+            },
+            "phase": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.5,
+              "failed_predictions": 0,
+              "fn": 2,
+              "fp": 2,
+              "micro_f1": 0.5,
+              "micro_precision": 0.5,
+              "micro_recall": 0.5,
+              "tp": 2,
+              "valid_targets": 4
+            },
+            "target": {
+              "exact_matches": 1,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 3,
+              "micro_f1": 0.5714285714285714,
+              "micro_precision": 0.5714285714285714,
+              "micro_recall": 0.5714285714285714,
+              "tp": 4,
+              "valid_targets": 4
+            },
+            "verb": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 5,
+              "fp": 5,
+              "micro_f1": 0.375,
+              "micro_precision": 0.375,
+              "micro_recall": 0.375,
+              "tp": 3,
+              "valid_targets": 4
+            }
+          },
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 4
+          },
+          "total_label_errors": 30
+        },
+        "evidence_feedback": {
+          "tasks": {
+            "instrument": {
+              "exact_matches": 4,
+              "exact_set_accuracy": 1.0,
+              "failed_predictions": 0,
+              "fn": 0,
+              "fp": 0,
+              "micro_f1": 1.0,
+              "micro_precision": 1.0,
+              "micro_recall": 1.0,
+              "tp": 7,
+              "valid_targets": 4
+            },
+            "ivt": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 4,
+              "fp": 5,
+              "micro_f1": 0.47058823529411764,
+              "micro_precision": 0.4444444444444444,
+              "micro_recall": 0.5,
+              "tp": 4,
+              "valid_targets": 4
+            },
+            "phase": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.5,
+              "failed_predictions": 0,
+              "fn": 2,
+              "fp": 2,
+              "micro_f1": 0.5,
+              "micro_precision": 0.5,
+              "micro_recall": 0.5,
+              "tp": 2,
+              "valid_targets": 4
+            },
+            "target": {
+              "exact_matches": 1,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 3,
+              "micro_f1": 0.5714285714285714,
+              "micro_precision": 0.5714285714285714,
+              "micro_recall": 0.5714285714285714,
+              "tp": 4,
+              "valid_targets": 4
+            },
+            "verb": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 4,
+              "fp": 5,
+              "micro_f1": 0.47058823529411764,
+              "micro_precision": 0.4444444444444444,
+              "micro_recall": 0.5,
+              "tp": 4,
+              "valid_targets": 4
+            }
+          },
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 4
+          },
+          "total_label_errors": 28
+        },
+        "issues_only": {
+          "tasks": {
+            "instrument": {
+              "exact_matches": 3,
+              "exact_set_accuracy": 0.75,
+              "failed_predictions": 0,
+              "fn": 0,
+              "fp": 1,
+              "micro_f1": 0.9333333333333333,
+              "micro_precision": 0.875,
+              "micro_recall": 1.0,
+              "tp": 7,
+              "valid_targets": 4
+            },
+            "ivt": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 4,
+              "fp": 5,
+              "micro_f1": 0.47058823529411764,
+              "micro_precision": 0.4444444444444444,
+              "micro_recall": 0.5,
+              "tp": 4,
+              "valid_targets": 4
+            },
+            "phase": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.5,
+              "failed_predictions": 0,
+              "fn": 2,
+              "fp": 2,
+              "micro_f1": 0.5,
+              "micro_precision": 0.5,
+              "micro_recall": 0.5,
+              "tp": 2,
+              "valid_targets": 4
+            },
+            "target": {
+              "exact_matches": 1,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 3,
+              "micro_f1": 0.5714285714285714,
+              "micro_precision": 0.5714285714285714,
+              "micro_recall": 0.5714285714285714,
+              "tp": 4,
+              "valid_targets": 4
+            },
+            "verb": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 4,
+              "fp": 5,
+              "micro_f1": 0.47058823529411764,
+              "micro_precision": 0.4444444444444444,
+              "micro_recall": 0.5,
+              "tp": 4,
+              "valid_targets": 4
+            }
+          },
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 4
+          },
+          "total_label_errors": 29
+        },
+        "shared_first_round": {
+          "tasks": {
+            "instrument": {
+              "exact_matches": 4,
+              "exact_set_accuracy": 1.0,
+              "failed_predictions": 0,
+              "fn": 0,
+              "fp": 0,
+              "micro_f1": 1.0,
+              "micro_precision": 1.0,
+              "micro_recall": 1.0,
+              "tp": 7,
+              "valid_targets": 4
+            },
+            "ivt": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 4,
+              "fp": 5,
+              "micro_f1": 0.47058823529411764,
+              "micro_precision": 0.4444444444444444,
+              "micro_recall": 0.5,
+              "tp": 4,
+              "valid_targets": 4
+            },
+            "phase": {
+              "exact_matches": 2,
+              "exact_set_accuracy": 0.5,
+              "failed_predictions": 0,
+              "fn": 2,
+              "fp": 2,
+              "micro_f1": 0.5,
+              "micro_precision": 0.5,
+              "micro_recall": 0.5,
+              "tp": 2,
+              "valid_targets": 4
+            },
+            "target": {
+              "exact_matches": 1,
+              "exact_set_accuracy": 0.25,
+              "failed_predictions": 0,
+              "fn": 3,
+              "fp": 3,
+              "micro_f1": 0.5714285714285714,
+              "micro_precision": 0.5714285714285714,
+              "micro_recall": 0.5714285714285714,
+              "tp": 4,
+              "valid_targets": 4
+            },
+            "verb": {
+              "exact_matches": 0,
+              "exact_set_accuracy": 0.0,
+              "failed_predictions": 0,
+              "fn": 4,
+              "fp": 5,
+              "micro_f1": 0.47058823529411764,
+              "micro_precision": 0.4444444444444444,
+              "micro_recall": 0.5,
+              "tp": 4,
+              "valid_targets": 4
+            }
+          },
+          "all_valid_heads_exact": {
+            "accuracy": 0.0,
+            "exact_matches": 0,
+            "valid_targets": 4
+          },
+          "total_label_errors": 28
+        }
+      },
+      "independent_audit": {
+        "verified": true,
+        "completed": true,
+        "source_artifact": "artifacts/preflight/evidence_feedback_four_20260908_v1/independent_audit.json",
+        "source_sha256": "5e03f9c3f7416a5367203d7d41ca015b5c742d5751fa1874a06fdb25203dfa6f"
+      }
+    }
+  },
+  "interpretation": [
+    "Development eight: H0/single/distributed total label errors 58/53/54; confirmation eight: 36/41/45. Improvement did not replicate.",
+    "Four-target feedback: H0/shared-first/issues-only/evidence-feedback errors 30/28/29/28; feedback final equals shared first round for all four targets.",
+    "Only two targets received second-round feedback; one control-only wrong instrument addition was avoided. No extra Target/IVT semantic improvement attributable to feedback.",
+    "All samples are Training, from the same four videos; not independent surgery or Test generalization."
+  ]
+}
