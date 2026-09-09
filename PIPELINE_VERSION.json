@@ -1,0 +1,405 @@
+{
+  "based_on_main": "ad9c90e989152bdc4b3991371ef67df8a86618b5",
+  "branch": "research/parallel-phase-repair-v1",
+  "entrypoint": "scripts/run_parallel_phase_trial.py",
+  "flow_document": "LATEST_PIPELINE.md",
+  "gate_integrated": false,
+  "h0_mode": "cached_fixed_Gemini_final_only",
+  "h0_model": "google/gemini-3.8-flash",
+  "observed_metrics": {
+    "final": {
+      "all_valid_heads_exact": {
+        "accuracy": 0.0,
+        "exact_matches": 0,
+        "valid_targets": 8
+      },
+      "tasks": {
+        "instrument": {
+          "exact_matches": 3,
+          "exact_set_accuracy": 0.375,
+          "failed_predictions": 0,
+          "fn": 5,
+          "fp": 3,
+          "micro_f1": 0.6923076923076923,
+          "micro_precision": 0.75,
+          "micro_recall": 0.6428571428571429,
+          "tp": 9,
+          "valid_targets": 8
+        },
+        "ivt": {
+          "exact_matches": 0,
+          "exact_set_accuracy": 0.0,
+          "failed_predictions": 0,
+          "fn": 9,
+          "fp": 10,
+          "micro_f1": 0.3870967741935484,
+          "micro_precision": 0.375,
+          "micro_recall": 0.4,
+          "tp": 6,
+          "valid_targets": 8
+        },
+        "phase": {
+          "exact_matches": 6,
+          "exact_set_accuracy": 0.75,
+          "failed_predictions": 0,
+          "fn": 2,
+          "fp": 2,
+          "micro_f1": 0.75,
+          "micro_precision": 0.75,
+          "micro_recall": 0.75,
+          "tp": 6,
+          "valid_targets": 8
+        },
+        "target": {
+          "exact_matches": 2,
+          "exact_set_accuracy": 0.25,
+          "failed_predictions": 0,
+          "fn": 7,
+          "fp": 5,
+          "micro_f1": 0.5714285714285714,
+          "micro_precision": 0.6153846153846154,
+          "micro_recall": 0.5333333333333333,
+          "tp": 8,
+          "valid_targets": 8
+        },
+        "verb": {
+          "exact_matches": 2,
+          "exact_set_accuracy": 0.25,
+          "failed_predictions": 0,
+          "fn": 4,
+          "fp": 6,
+          "micro_f1": 0.6666666666666666,
+          "micro_precision": 0.625,
+          "micro_recall": 0.7142857142857143,
+          "tp": 10,
+          "valid_targets": 8
+        }
+      }
+    },
+    "graph_only": {
+      "all_valid_heads_exact": {
+        "accuracy": 0.0,
+        "exact_matches": 0,
+        "valid_targets": 8
+      },
+      "tasks": {
+        "instrument": {
+          "exact_matches": 3,
+          "exact_set_accuracy": 0.375,
+          "failed_predictions": 0,
+          "fn": 5,
+          "fp": 3,
+          "micro_f1": 0.6923076923076923,
+          "micro_precision": 0.75,
+          "micro_recall": 0.6428571428571429,
+          "tp": 9,
+          "valid_targets": 8
+        },
+        "ivt": {
+          "exact_matches": 0,
+          "exact_set_accuracy": 0.0,
+          "failed_predictions": 0,
+          "fn": 9,
+          "fp": 10,
+          "micro_f1": 0.3870967741935484,
+          "micro_precision": 0.375,
+          "micro_recall": 0.4,
+          "tp": 6,
+          "valid_targets": 8
+        },
+        "phase": {
+          "exact_matches": 5,
+          "exact_set_accuracy": 0.625,
+          "failed_predictions": 0,
+          "fn": 3,
+          "fp": 3,
+          "micro_f1": 0.625,
+          "micro_precision": 0.625,
+          "micro_recall": 0.625,
+          "tp": 5,
+          "valid_targets": 8
+        },
+        "target": {
+          "exact_matches": 2,
+          "exact_set_accuracy": 0.25,
+          "failed_predictions": 0,
+          "fn": 7,
+          "fp": 5,
+          "micro_f1": 0.5714285714285714,
+          "micro_precision": 0.6153846153846154,
+          "micro_recall": 0.5333333333333333,
+          "tp": 8,
+          "valid_targets": 8
+        },
+        "verb": {
+          "exact_matches": 2,
+          "exact_set_accuracy": 0.25,
+          "failed_predictions": 0,
+          "fn": 4,
+          "fp": 6,
+          "micro_f1": 0.6666666666666666,
+          "micro_precision": 0.625,
+          "micro_recall": 0.7142857142857143,
+          "tp": 10,
+          "valid_targets": 8
+        }
+      }
+    },
+    "h0": {
+      "all_valid_heads_exact": {
+        "accuracy": 0.0,
+        "exact_matches": 0,
+        "valid_targets": 8
+      },
+      "tasks": {
+        "instrument": {
+          "exact_matches": 3,
+          "exact_set_accuracy": 0.375,
+          "failed_predictions": 0,
+          "fn": 5,
+          "fp": 4,
+          "micro_f1": 0.6666666666666666,
+          "micro_precision": 0.6923076923076923,
+          "micro_recall": 0.6428571428571429,
+          "tp": 9,
+          "valid_targets": 8
+        },
+        "ivt": {
+          "exact_matches": 0,
+          "exact_set_accuracy": 0.0,
+          "failed_predictions": 0,
+          "fn": 11,
+          "fp": 8,
+          "micro_f1": 0.2962962962962963,
+          "micro_precision": 0.3333333333333333,
+          "micro_recall": 0.26666666666666666,
+          "tp": 4,
+          "valid_targets": 8
+        },
+        "phase": {
+          "exact_matches": 5,
+          "exact_set_accuracy": 0.625,
+          "failed_predictions": 0,
+          "fn": 3,
+          "fp": 3,
+          "micro_f1": 0.625,
+          "micro_precision": 0.625,
+          "micro_recall": 0.625,
+          "tp": 5,
+          "valid_targets": 8
+        },
+        "target": {
+          "exact_matches": 2,
+          "exact_set_accuracy": 0.25,
+          "failed_predictions": 0,
+          "fn": 8,
+          "fp": 5,
+          "micro_f1": 0.5185185185185185,
+          "micro_precision": 0.5833333333333334,
+          "micro_recall": 0.4666666666666667,
+          "tp": 7,
+          "valid_targets": 8
+        },
+        "verb": {
+          "exact_matches": 2,
+          "exact_set_accuracy": 0.25,
+          "failed_predictions": 0,
+          "fn": 6,
+          "fp": 4,
+          "micro_f1": 0.6153846153846154,
+          "micro_precision": 0.6666666666666666,
+          "micro_recall": 0.5714285714285714,
+          "tp": 8,
+          "valid_targets": 8
+        }
+      }
+    },
+    "previous_final": {
+      "all_valid_heads_exact": {
+        "accuracy": 0.0,
+        "exact_matches": 0,
+        "valid_targets": 8
+      },
+      "tasks": {
+        "instrument": {
+          "exact_matches": 3,
+          "exact_set_accuracy": 0.375,
+          "failed_predictions": 0,
+          "fn": 5,
+          "fp": 3,
+          "micro_f1": 0.6923076923076923,
+          "micro_precision": 0.75,
+          "micro_recall": 0.6428571428571429,
+          "tp": 9,
+          "valid_targets": 8
+        },
+        "ivt": {
+          "exact_matches": 0,
+          "exact_set_accuracy": 0.0,
+          "failed_predictions": 0,
+          "fn": 9,
+          "fp": 9,
+          "micro_f1": 0.4,
+          "micro_precision": 0.4,
+          "micro_recall": 0.4,
+          "tp": 6,
+          "valid_targets": 8
+        },
+        "phase": {
+          "exact_matches": 6,
+          "exact_set_accuracy": 0.75,
+          "failed_predictions": 0,
+          "fn": 2,
+          "fp": 2,
+          "micro_f1": 0.75,
+          "micro_precision": 0.75,
+          "micro_recall": 0.75,
+          "tp": 6,
+          "valid_targets": 8
+        },
+        "target": {
+          "exact_matches": 2,
+          "exact_set_accuracy": 0.25,
+          "failed_predictions": 0,
+          "fn": 7,
+          "fp": 5,
+          "micro_f1": 0.5714285714285714,
+          "micro_precision": 0.6153846153846154,
+          "micro_recall": 0.5333333333333333,
+          "tp": 8,
+          "valid_targets": 8
+        },
+        "verb": {
+          "exact_matches": 2,
+          "exact_set_accuracy": 0.25,
+          "failed_predictions": 0,
+          "fn": 4,
+          "fp": 6,
+          "micro_f1": 0.6666666666666666,
+          "micro_precision": 0.625,
+          "micro_recall": 0.7142857142857143,
+          "tp": 10,
+          "valid_targets": 8
+        }
+      }
+    },
+    "previous_graph": {
+      "all_valid_heads_exact": {
+        "accuracy": 0.0,
+        "exact_matches": 0,
+        "valid_targets": 8
+      },
+      "tasks": {
+        "instrument": {
+          "exact_matches": 3,
+          "exact_set_accuracy": 0.375,
+          "failed_predictions": 0,
+          "fn": 5,
+          "fp": 3,
+          "micro_f1": 0.6923076923076923,
+          "micro_precision": 0.75,
+          "micro_recall": 0.6428571428571429,
+          "tp": 9,
+          "valid_targets": 8
+        },
+        "ivt": {
+          "exact_matches": 0,
+          "exact_set_accuracy": 0.0,
+          "failed_predictions": 0,
+          "fn": 9,
+          "fp": 9,
+          "micro_f1": 0.4,
+          "micro_precision": 0.4,
+          "micro_recall": 0.4,
+          "tp": 6,
+          "valid_targets": 8
+        },
+        "phase": {
+          "exact_matches": 5,
+          "exact_set_accuracy": 0.625,
+          "failed_predictions": 0,
+          "fn": 3,
+          "fp": 3,
+          "micro_f1": 0.625,
+          "micro_precision": 0.625,
+          "micro_recall": 0.625,
+          "tp": 5,
+          "valid_targets": 8
+        },
+        "target": {
+          "exact_matches": 2,
+          "exact_set_accuracy": 0.25,
+          "failed_predictions": 0,
+          "fn": 7,
+          "fp": 5,
+          "micro_f1": 0.5714285714285714,
+          "micro_precision": 0.6153846153846154,
+          "micro_recall": 0.5333333333333333,
+          "tp": 8,
+          "valid_targets": 8
+        },
+        "verb": {
+          "exact_matches": 2,
+          "exact_set_accuracy": 0.25,
+          "failed_predictions": 0,
+          "fn": 4,
+          "fp": 6,
+          "micro_f1": 0.6666666666666666,
+          "micro_precision": 0.625,
+          "micro_recall": 0.7142857142857143,
+          "tp": 10,
+          "valid_targets": 8
+        }
+      }
+    }
+  },
+  "observed_targets": 8,
+  "offline_replay": "scripts/replay_parallel_phase_repair.py",
+  "online_entry_requires_local_historical_archives": true,
+  "original_graph_tag_unchanged": "best-repair-2026-09-09",
+  "policy": {
+    "automatic_retries": 0,
+    "graph_requires_all_five_valid_per_item": true,
+    "graph_threshold_add": 4,
+    "graph_threshold_delete": 2,
+    "max_calls_per_target_after_h0": 11,
+    "max_rounds": 1,
+    "parallel_branches": 2,
+    "phase_history_seconds": [
+      -2,
+      -1,
+      0
+    ],
+    "phase_majority_votes": 3,
+    "phase_only_merge": true,
+    "phase_requires_five_valid_responses": true,
+    "phase_sees_h0": false,
+    "reviewer_workers_per_branch": 5,
+    "targets_concurrent": 1
+  },
+  "previous_best_result_manifest": "BEST_PHASE_RESULT.json",
+  "profile": "fixed_h0_parallel_graph_and_phase_v1",
+  "proposer": "google/gemini-3.8-flash",
+  "pure_api_default_changed": false,
+  "reviewer_models": {
+    "deepseek": "deepseek/deepseek-v4-flash-vision-exp",
+    "gemini": "google/gemini-3.5-flash-lite",
+    "gpt": "openai/gpt-5.6-luna",
+    "grok": "grok-4.6",
+    "qwen": "qwen3.8-flash"
+  },
+  "reviewer_providers": {
+    "base": "Google AI Studio",
+    "deepseek": "Fireworks",
+    "gemini": "Google AI Studio",
+    "gpt": "OpenAI"
+  },
+  "schema_version": "experimental_parallel_phase_release_v1",
+  "source_plan_sha256": "6ed30f6f679eb819387984bb483a73bfdaa0b408a4d44197aac613ce73edc737",
+  "source_predictions_sha256": "35a2f7809b77852c59707889bca5d230eee2d47bda748dfa00e2d993c198bacd",
+  "status": "parallel_execution_validated_not_new_accuracy_best",
+  "summary_sha256_lf": "aec222435194491bf92b6c8bab71266b361ded08ad39d557fe62e2b66d15f313",
+  "tag": "parallel-phase-repair-v1.0.0-experimental",
+  "tracker_integrated": false,
+  "version": "parallel-phase-repair-v1.0.0-experimental"
+}

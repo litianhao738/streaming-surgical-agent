@@ -1,0 +1,2017 @@
+{
+  "billing_reconciliation": {
+    "latest": {
+      "aliyun_estimated_cny": "0.096176",
+      "native_usd": "0.26604873",
+      "note": "Original conservative ledger retained; reservations are not actual billed expense.",
+      "provider_declared_no_charge_responses": [
+        {
+          "branch": "phase",
+          "call_index": 7,
+          "ledger_reserved_usd": "0.0156202",
+          "provider_declared_charge_usd": "0",
+          "response_path": "branches/phase/calls/007_VID103_33576_phase_review_gpt/response.json",
+          "response_sha256": "88cdcdd5c5e22ea62fcf1b74752c6cc99555107e8c48c18836eebeb2b842630f"
+        },
+        {
+          "branch": "phase",
+          "call_index": 12,
+          "ledger_reserved_usd": "0.0156202",
+          "provider_declared_charge_usd": "0",
+          "response_path": "branches/phase/calls/012_VID23_13176_phase_review_gpt/response.json",
+          "response_sha256": "88cdcdd5c5e22ea62fcf1b74752c6cc99555107e8c48c18836eebeb2b842630f"
+        },
+        {
+          "branch": "phase",
+          "call_index": 27,
+          "ledger_reserved_usd": "0.0156202",
+          "provider_declared_charge_usd": "0",
+          "response_path": "branches/phase/calls/027_VID31_73701_phase_review_gpt/response.json",
+          "response_sha256": "88cdcdd5c5e22ea62fcf1b74752c6cc99555107e8c48c18836eebeb2b842630f"
+        }
+      ]
+    },
+    "phase_extension": {
+      "no_charge_responses": [
+        {
+          "call_index": 22,
+          "ledger_reserved_usd": "0.0156202",
+          "provider_declared_charge_usd": "0",
+          "response_path": "calls/022_VID23_13176_phase_short_gpt/response.json",
+          "response_sha256": "88cdcdd5c5e22ea62fcf1b74752c6cc99555107e8c48c18836eebeb2b842630f"
+        },
+        {
+          "call_index": 43,
+          "ledger_reserved_usd": "0.0156202",
+          "provider_declared_charge_usd": "0",
+          "response_path": "calls/043_VID31_40701_phase_short_gpt/response.json",
+          "response_sha256": "88cdcdd5c5e22ea62fcf1b74752c6cc99555107e8c48c18836eebeb2b842630f"
+        },
+        {
+          "call_index": 47,
+          "ledger_reserved_usd": "0.0156206",
+          "provider_declared_charge_usd": "0",
+          "response_path": "calls/047_VID31_40701_phase_context_gpt/response.json",
+          "response_sha256": "88cdcdd5c5e22ea62fcf1b74752c6cc99555107e8c48c18836eebeb2b842630f"
+        },
+        {
+          "call_index": 72,
+          "ledger_reserved_usd": "0.0156206",
+          "provider_declared_charge_usd": "0",
+          "response_path": "calls/072_VID96_26051_phase_context_gpt/response.json",
+          "response_sha256": "88cdcdd5c5e22ea62fcf1b74752c6cc99555107e8c48c18836eebeb2b842630f"
+        }
+      ],
+      "note": "Do not treat conservative reservation as provider-billed spend; source budget remains unchanged."
+    }
+  },
+  "date": "2026-09-09",
+  "latest": {
+    "audit": {
+      "actual_requests_verified": 88,
+      "final_four_heads_equal_fresh_graph": true,
+      "fresh_graph_phase_equals_cached_h0": true,
+      "gt_loaded_after_closed_inference": true,
+      "metric_counts_independently_checked": true,
+      "phase_votes_independently_checked": true,
+      "raw_outputs_replayed": true,
+      "training_only_lovo_priors_checked": true
+    },
+    "candidate_coverage": {
+      "instrument": {
+        "gt_positive": 14,
+        "missing_from_pool": 5,
+        "pool_false": 4,
+        "pool_true": 9,
+        "valid_targets": 8
+      },
+      "ivt": {
+        "gt_positive": 15,
+        "missing_from_pool": 8,
+        "pool_false": 13,
+        "pool_true": 7,
+        "valid_targets": 8
+      },
+      "target": {
+        "gt_positive": 15,
+        "missing_from_pool": 5,
+        "pool_false": 5,
+        "pool_true": 10,
+        "valid_targets": 8
+      },
+      "verb": {
+        "gt_positive": 14,
+        "missing_from_pool": 4,
+        "pool_false": 7,
+        "pool_true": 10,
+        "valid_targets": 8
+      }
+    },
+    "comparisons": {
+      "graph_only_to_final": {
+        "categories": {
+          "no_benefit_replacement": 1,
+          "partial_improvement": 1,
+          "unchanged": 6
+        },
+        "correct_additions": 1,
+        "correct_deletions": 2,
+        "error_count_after": 53,
+        "error_count_before": 55,
+        "exact_to_wrong": 0,
+        "fixed_label_errors": 3,
+        "introduced_label_errors": 1,
+        "net_errors_removed": 2,
+        "tasks": {
+          "instrument": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "ivt": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "phase": {
+            "correct_additions": 1,
+            "correct_deletions": 2,
+            "valid_targets": 8,
+            "wrong_additions": 1,
+            "wrong_deletions": 0
+          },
+          "target": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "verb": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          }
+        },
+        "wrong_additions": 1,
+        "wrong_deletions": 0,
+        "wrong_to_exact": 0
+      },
+      "h0_to_final": {
+        "categories": {
+          "harm": 1,
+          "mixed": 1,
+          "partial_improvement": 4,
+          "unchanged": 2
+        },
+        "correct_additions": 6,
+        "correct_deletions": 3,
+        "error_count_after": 53,
+        "error_count_before": 57,
+        "exact_to_wrong": 0,
+        "fixed_label_errors": 9,
+        "introduced_label_errors": 5,
+        "net_errors_removed": 4,
+        "tasks": {
+          "instrument": {
+            "correct_additions": 0,
+            "correct_deletions": 1,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "ivt": {
+            "correct_additions": 2,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 2,
+            "wrong_deletions": 0
+          },
+          "phase": {
+            "correct_additions": 1,
+            "correct_deletions": 2,
+            "valid_targets": 8,
+            "wrong_additions": 1,
+            "wrong_deletions": 0
+          },
+          "target": {
+            "correct_additions": 1,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "verb": {
+            "correct_additions": 2,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 2,
+            "wrong_deletions": 0
+          }
+        },
+        "wrong_additions": 5,
+        "wrong_deletions": 0,
+        "wrong_to_exact": 0
+      },
+      "h0_to_graph_only": {
+        "categories": {
+          "harm": 2,
+          "partial_improvement": 4,
+          "unchanged": 2
+        },
+        "correct_additions": 5,
+        "correct_deletions": 1,
+        "error_count_after": 55,
+        "error_count_before": 57,
+        "exact_to_wrong": 0,
+        "fixed_label_errors": 6,
+        "introduced_label_errors": 4,
+        "net_errors_removed": 2,
+        "tasks": {
+          "instrument": {
+            "correct_additions": 0,
+            "correct_deletions": 1,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "ivt": {
+            "correct_additions": 2,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 2,
+            "wrong_deletions": 0
+          },
+          "phase": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "target": {
+            "correct_additions": 1,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "verb": {
+            "correct_additions": 2,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 2,
+            "wrong_deletions": 0
+          }
+        },
+        "wrong_additions": 4,
+        "wrong_deletions": 0,
+        "wrong_to_exact": 0
+      },
+      "h0_to_previous_graph": {
+        "categories": {
+          "harm": 2,
+          "partial_improvement": 4,
+          "unchanged": 2
+        },
+        "correct_additions": 5,
+        "correct_deletions": 1,
+        "error_count_after": 54,
+        "error_count_before": 57,
+        "exact_to_wrong": 0,
+        "fixed_label_errors": 6,
+        "introduced_label_errors": 3,
+        "net_errors_removed": 3,
+        "tasks": {
+          "instrument": {
+            "correct_additions": 0,
+            "correct_deletions": 1,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "ivt": {
+            "correct_additions": 2,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 1,
+            "wrong_deletions": 0
+          },
+          "phase": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "target": {
+            "correct_additions": 1,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "verb": {
+            "correct_additions": 2,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 2,
+            "wrong_deletions": 0
+          }
+        },
+        "wrong_additions": 3,
+        "wrong_deletions": 0,
+        "wrong_to_exact": 0
+      },
+      "previous_final_to_final": {
+        "categories": {
+          "harm": 2,
+          "partial_improvement": 1,
+          "unchanged": 5
+        },
+        "correct_additions": 0,
+        "correct_deletions": 1,
+        "error_count_after": 53,
+        "error_count_before": 52,
+        "exact_to_wrong": 0,
+        "fixed_label_errors": 1,
+        "introduced_label_errors": 2,
+        "net_errors_removed": -1,
+        "tasks": {
+          "instrument": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "ivt": {
+            "correct_additions": 0,
+            "correct_deletions": 1,
+            "valid_targets": 8,
+            "wrong_additions": 2,
+            "wrong_deletions": 0
+          },
+          "phase": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "target": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "verb": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          }
+        },
+        "wrong_additions": 2,
+        "wrong_deletions": 0,
+        "wrong_to_exact": 0
+      },
+      "previous_graph_to_graph_only": {
+        "categories": {
+          "harm": 2,
+          "partial_improvement": 1,
+          "unchanged": 5
+        },
+        "correct_additions": 0,
+        "correct_deletions": 1,
+        "error_count_after": 55,
+        "error_count_before": 54,
+        "exact_to_wrong": 0,
+        "fixed_label_errors": 1,
+        "introduced_label_errors": 2,
+        "net_errors_removed": -1,
+        "tasks": {
+          "instrument": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "ivt": {
+            "correct_additions": 0,
+            "correct_deletions": 1,
+            "valid_targets": 8,
+            "wrong_additions": 2,
+            "wrong_deletions": 0
+          },
+          "phase": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "target": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "verb": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          }
+        },
+        "wrong_additions": 2,
+        "wrong_deletions": 0,
+        "wrong_to_exact": 0
+      },
+      "previous_graph_to_previous_final": {
+        "categories": {
+          "no_benefit_replacement": 1,
+          "partial_improvement": 1,
+          "unchanged": 6
+        },
+        "correct_additions": 1,
+        "correct_deletions": 2,
+        "error_count_after": 52,
+        "error_count_before": 54,
+        "exact_to_wrong": 0,
+        "fixed_label_errors": 3,
+        "introduced_label_errors": 1,
+        "net_errors_removed": 2,
+        "tasks": {
+          "instrument": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "ivt": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "phase": {
+            "correct_additions": 1,
+            "correct_deletions": 2,
+            "valid_targets": 8,
+            "wrong_additions": 1,
+            "wrong_deletions": 0
+          },
+          "target": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "verb": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          }
+        },
+        "wrong_additions": 1,
+        "wrong_deletions": 0,
+        "wrong_to_exact": 0
+      }
+    },
+    "limitations": [
+      "Eight previously inspected Training targets, not independent validation.",
+      "Fresh graph/Phase API responses may vary despite identical requests; old cached predictions are historical references.",
+      "H0 is reused, so actual measured latency and charges cover post-H0 repair only.",
+      "Per-target branches overlap; target processing remains sequential. No Tracker or Gate.",
+      "Serial-equivalent timing is arithmetic from this concurrent run, not a randomized serial control."
+    ],
+    "metrics": {
+      "final": {
+        "all_valid_heads_exact": {
+          "accuracy": 0.0,
+          "exact_matches": 0,
+          "valid_targets": 8
+        },
+        "tasks": {
+          "instrument": {
+            "exact_matches": 3,
+            "exact_set_accuracy": 0.375,
+            "failed_predictions": 0,
+            "fn": 5,
+            "fp": 3,
+            "micro_f1": 0.6923076923076923,
+            "micro_precision": 0.75,
+            "micro_recall": 0.6428571428571429,
+            "tp": 9,
+            "valid_targets": 8
+          },
+          "ivt": {
+            "exact_matches": 0,
+            "exact_set_accuracy": 0.0,
+            "failed_predictions": 0,
+            "fn": 9,
+            "fp": 10,
+            "micro_f1": 0.3870967741935484,
+            "micro_precision": 0.375,
+            "micro_recall": 0.4,
+            "tp": 6,
+            "valid_targets": 8
+          },
+          "phase": {
+            "exact_matches": 6,
+            "exact_set_accuracy": 0.75,
+            "failed_predictions": 0,
+            "fn": 2,
+            "fp": 2,
+            "micro_f1": 0.75,
+            "micro_precision": 0.75,
+            "micro_recall": 0.75,
+            "tp": 6,
+            "valid_targets": 8
+          },
+          "target": {
+            "exact_matches": 2,
+            "exact_set_accuracy": 0.25,
+            "failed_predictions": 0,
+            "fn": 7,
+            "fp": 5,
+            "micro_f1": 0.5714285714285714,
+            "micro_precision": 0.6153846153846154,
+            "micro_recall": 0.5333333333333333,
+            "tp": 8,
+            "valid_targets": 8
+          },
+          "verb": {
+            "exact_matches": 2,
+            "exact_set_accuracy": 0.25,
+            "failed_predictions": 0,
+            "fn": 4,
+            "fp": 6,
+            "micro_f1": 0.6666666666666666,
+            "micro_precision": 0.625,
+            "micro_recall": 0.7142857142857143,
+            "tp": 10,
+            "valid_targets": 8
+          }
+        }
+      },
+      "graph_only": {
+        "all_valid_heads_exact": {
+          "accuracy": 0.0,
+          "exact_matches": 0,
+          "valid_targets": 8
+        },
+        "tasks": {
+          "instrument": {
+            "exact_matches": 3,
+            "exact_set_accuracy": 0.375,
+            "failed_predictions": 0,
+            "fn": 5,
+            "fp": 3,
+            "micro_f1": 0.6923076923076923,
+            "micro_precision": 0.75,
+            "micro_recall": 0.6428571428571429,
+            "tp": 9,
+            "valid_targets": 8
+          },
+          "ivt": {
+            "exact_matches": 0,
+            "exact_set_accuracy": 0.0,
+            "failed_predictions": 0,
+            "fn": 9,
+            "fp": 10,
+            "micro_f1": 0.3870967741935484,
+            "micro_precision": 0.375,
+            "micro_recall": 0.4,
+            "tp": 6,
+            "valid_targets": 8
+          },
+          "phase": {
+            "exact_matches": 5,
+            "exact_set_accuracy": 0.625,
+            "failed_predictions": 0,
+            "fn": 3,
+            "fp": 3,
+            "micro_f1": 0.625,
+            "micro_precision": 0.625,
+            "micro_recall": 0.625,
+            "tp": 5,
+            "valid_targets": 8
+          },
+          "target": {
+            "exact_matches": 2,
+            "exact_set_accuracy": 0.25,
+            "failed_predictions": 0,
+            "fn": 7,
+            "fp": 5,
+            "micro_f1": 0.5714285714285714,
+            "micro_precision": 0.6153846153846154,
+            "micro_recall": 0.5333333333333333,
+            "tp": 8,
+            "valid_targets": 8
+          },
+          "verb": {
+            "exact_matches": 2,
+            "exact_set_accuracy": 0.25,
+            "failed_predictions": 0,
+            "fn": 4,
+            "fp": 6,
+            "micro_f1": 0.6666666666666666,
+            "micro_precision": 0.625,
+            "micro_recall": 0.7142857142857143,
+            "tp": 10,
+            "valid_targets": 8
+          }
+        }
+      },
+      "h0": {
+        "all_valid_heads_exact": {
+          "accuracy": 0.0,
+          "exact_matches": 0,
+          "valid_targets": 8
+        },
+        "tasks": {
+          "instrument": {
+            "exact_matches": 3,
+            "exact_set_accuracy": 0.375,
+            "failed_predictions": 0,
+            "fn": 5,
+            "fp": 4,
+            "micro_f1": 0.6666666666666666,
+            "micro_precision": 0.6923076923076923,
+            "micro_recall": 0.6428571428571429,
+            "tp": 9,
+            "valid_targets": 8
+          },
+          "ivt": {
+            "exact_matches": 0,
+            "exact_set_accuracy": 0.0,
+            "failed_predictions": 0,
+            "fn": 11,
+            "fp": 8,
+            "micro_f1": 0.2962962962962963,
+            "micro_precision": 0.3333333333333333,
+            "micro_recall": 0.26666666666666666,
+            "tp": 4,
+            "valid_targets": 8
+          },
+          "phase": {
+            "exact_matches": 5,
+            "exact_set_accuracy": 0.625,
+            "failed_predictions": 0,
+            "fn": 3,
+            "fp": 3,
+            "micro_f1": 0.625,
+            "micro_precision": 0.625,
+            "micro_recall": 0.625,
+            "tp": 5,
+            "valid_targets": 8
+          },
+          "target": {
+            "exact_matches": 2,
+            "exact_set_accuracy": 0.25,
+            "failed_predictions": 0,
+            "fn": 8,
+            "fp": 5,
+            "micro_f1": 0.5185185185185185,
+            "micro_precision": 0.5833333333333334,
+            "micro_recall": 0.4666666666666667,
+            "tp": 7,
+            "valid_targets": 8
+          },
+          "verb": {
+            "exact_matches": 2,
+            "exact_set_accuracy": 0.25,
+            "failed_predictions": 0,
+            "fn": 6,
+            "fp": 4,
+            "micro_f1": 0.6153846153846154,
+            "micro_precision": 0.6666666666666666,
+            "micro_recall": 0.5714285714285714,
+            "tp": 8,
+            "valid_targets": 8
+          }
+        }
+      },
+      "previous_final": {
+        "all_valid_heads_exact": {
+          "accuracy": 0.0,
+          "exact_matches": 0,
+          "valid_targets": 8
+        },
+        "tasks": {
+          "instrument": {
+            "exact_matches": 3,
+            "exact_set_accuracy": 0.375,
+            "failed_predictions": 0,
+            "fn": 5,
+            "fp": 3,
+            "micro_f1": 0.6923076923076923,
+            "micro_precision": 0.75,
+            "micro_recall": 0.6428571428571429,
+            "tp": 9,
+            "valid_targets": 8
+          },
+          "ivt": {
+            "exact_matches": 0,
+            "exact_set_accuracy": 0.0,
+            "failed_predictions": 0,
+            "fn": 9,
+            "fp": 9,
+            "micro_f1": 0.4,
+            "micro_precision": 0.4,
+            "micro_recall": 0.4,
+            "tp": 6,
+            "valid_targets": 8
+          },
+          "phase": {
+            "exact_matches": 6,
+            "exact_set_accuracy": 0.75,
+            "failed_predictions": 0,
+            "fn": 2,
+            "fp": 2,
+            "micro_f1": 0.75,
+            "micro_precision": 0.75,
+            "micro_recall": 0.75,
+            "tp": 6,
+            "valid_targets": 8
+          },
+          "target": {
+            "exact_matches": 2,
+            "exact_set_accuracy": 0.25,
+            "failed_predictions": 0,
+            "fn": 7,
+            "fp": 5,
+            "micro_f1": 0.5714285714285714,
+            "micro_precision": 0.6153846153846154,
+            "micro_recall": 0.5333333333333333,
+            "tp": 8,
+            "valid_targets": 8
+          },
+          "verb": {
+            "exact_matches": 2,
+            "exact_set_accuracy": 0.25,
+            "failed_predictions": 0,
+            "fn": 4,
+            "fp": 6,
+            "micro_f1": 0.6666666666666666,
+            "micro_precision": 0.625,
+            "micro_recall": 0.7142857142857143,
+            "tp": 10,
+            "valid_targets": 8
+          }
+        }
+      },
+      "previous_graph": {
+        "all_valid_heads_exact": {
+          "accuracy": 0.0,
+          "exact_matches": 0,
+          "valid_targets": 8
+        },
+        "tasks": {
+          "instrument": {
+            "exact_matches": 3,
+            "exact_set_accuracy": 0.375,
+            "failed_predictions": 0,
+            "fn": 5,
+            "fp": 3,
+            "micro_f1": 0.6923076923076923,
+            "micro_precision": 0.75,
+            "micro_recall": 0.6428571428571429,
+            "tp": 9,
+            "valid_targets": 8
+          },
+          "ivt": {
+            "exact_matches": 0,
+            "exact_set_accuracy": 0.0,
+            "failed_predictions": 0,
+            "fn": 9,
+            "fp": 9,
+            "micro_f1": 0.4,
+            "micro_precision": 0.4,
+            "micro_recall": 0.4,
+            "tp": 6,
+            "valid_targets": 8
+          },
+          "phase": {
+            "exact_matches": 5,
+            "exact_set_accuracy": 0.625,
+            "failed_predictions": 0,
+            "fn": 3,
+            "fp": 3,
+            "micro_f1": 0.625,
+            "micro_precision": 0.625,
+            "micro_recall": 0.625,
+            "tp": 5,
+            "valid_targets": 8
+          },
+          "target": {
+            "exact_matches": 2,
+            "exact_set_accuracy": 0.25,
+            "failed_predictions": 0,
+            "fn": 7,
+            "fp": 5,
+            "micro_f1": 0.5714285714285714,
+            "micro_precision": 0.6153846153846154,
+            "micro_recall": 0.5333333333333333,
+            "tp": 8,
+            "valid_targets": 8
+          },
+          "verb": {
+            "exact_matches": 2,
+            "exact_set_accuracy": 0.25,
+            "failed_predictions": 0,
+            "fn": 4,
+            "fp": 6,
+            "micro_f1": 0.6666666666666666,
+            "micro_precision": 0.625,
+            "micro_recall": 0.7142857142857143,
+            "tp": 10,
+            "valid_targets": 8
+          }
+        }
+      }
+    },
+    "phase_transitions": {
+      "graph_only_to_final": {
+        "improved": 1,
+        "no_benefit_replacement": 1,
+        "unchanged": 6
+      },
+      "h0_to_final": {
+        "improved": 1,
+        "no_benefit_replacement": 1,
+        "unchanged": 6
+      },
+      "h0_to_graph_only": {
+        "unchanged": 8
+      },
+      "h0_to_previous_graph": {
+        "unchanged": 8
+      },
+      "previous_final_to_final": {
+        "unchanged": 8
+      },
+      "previous_graph_to_graph_only": {
+        "unchanged": 8
+      },
+      "previous_graph_to_previous_final": {
+        "improved": 1,
+        "no_benefit_replacement": 1,
+        "unchanged": 6
+      }
+    },
+    "profile": "fixed_h0_parallel_graph_and_phase_v1",
+    "runtime": {
+      "branch_calls": {
+        "graph": 48,
+        "phase": 40
+      },
+      "branch_charges": {
+        "graph": {
+          "aliyun_cny": {
+            "conservative_estimate": "0.072170"
+          },
+          "openrouter_usd": {
+            "native": "0.06755990"
+          },
+          "xai_usd": {
+            "native": "0.136692"
+          }
+        },
+        "phase": {
+          "aliyun_cny": {
+            "conservative_estimate": "0.024006"
+          },
+          "openrouter_usd": {
+            "native": "0.01305283",
+            "unknown_reserved": "0.0468606"
+          },
+          "xai_usd": {
+            "native": "0.048744"
+          }
+        }
+      },
+      "branch_semantic_statuses": {
+        "graph": {
+          "MODEL_PASS": 1,
+          "UNRESOLVED": 7
+        },
+        "phase": {
+          "INVALID_PANEL": 4,
+          "REVIEWED": 4
+        }
+      },
+      "branch_stage_seconds": {
+        "graph": {
+          "compile_seconds": 0.004767999984323978,
+          "decision_seconds": 0.046025499992538244,
+          "proposal_seconds": 32.41973139999027,
+          "retrieval_seconds": 0.08272950001992285,
+          "review_prepare_seconds": 0.22189309995155782,
+          "review_seconds": 166.97030580001592
+        },
+        "phase": {
+          "api_seconds": 71.11736220003513,
+          "prepare_seconds": 0.4207821000163676,
+          "validation_seconds": 0.00033310000435449183
+        }
+      },
+      "branch_transport_statuses": {
+        "graph": {
+          "JSON_PARSED": 48
+        },
+        "phase": {
+          "API_FAILED": 3,
+          "JSON_PARSED": 37
+        }
+      },
+      "calls": 88,
+      "charges": {
+        "aliyun_cny": {
+          "conservative_estimate": "0.096176"
+        },
+        "openrouter_usd": {
+          "native": "0.08061273",
+          "unknown_reserved": "0.0468606"
+        },
+        "xai_usd": {
+          "native": "0.185436"
+        }
+      },
+      "inference_seconds": 203.96488739999768,
+      "new_h0_calls": 0,
+      "parallel_increment_over_graph_percent": 0.00633002035897129,
+      "reduction_vs_serial_equivalent_percent": 26.36017695886566,
+      "stage_calls": {
+        "graph_proposal": 8,
+        "graph_review": 40,
+        "phase_review": 40
+      },
+      "stage_charges": {
+        "graph_proposal": {
+          "openrouter_usd": {
+            "native": "0.02568675"
+          }
+        },
+        "graph_review": {
+          "aliyun_cny": {
+            "conservative_estimate": "0.072170"
+          },
+          "openrouter_usd": {
+            "native": "0.04187315"
+          },
+          "xai_usd": {
+            "native": "0.136692"
+          }
+        },
+        "phase_review": {
+          "aliyun_cny": {
+            "conservative_estimate": "0.024006"
+          },
+          "openrouter_usd": {
+            "native": "0.01305283",
+            "unknown_reserved": "0.0468606"
+          },
+          "xai_usd": {
+            "native": "0.048744"
+          }
+        }
+      },
+      "statuses": {
+        "API_FAILED": 3,
+        "JSON_PARSED": 85
+      },
+      "target_timings": [
+        {
+          "graph_end": 25.303906699991785,
+          "graph_seconds": 25.30240679999406,
+          "graph_start": 0.0014998999977251515,
+          "input_seconds": 0.49480069999117404,
+          "join_seconds": 25.304047300000093,
+          "key": "VID103_18326",
+          "merge_seconds": 0.0007444999937433749,
+          "overlap_seconds": 8.661458000002312,
+          "parallel_increment_over_graph_seconds": 0.0023861000081524253,
+          "parallel_seconds": 25.304792900002212,
+          "phase_end": 8.663565800001379,
+          "phase_seconds": 8.661458000002312,
+          "phase_start": 0.0021077999990666285,
+          "serial_equivalent_seconds": 33.964609299990116,
+          "time_saved_vs_serial_equivalent_seconds": 8.659816399987903
+        },
+        {
+          "graph_end": 27.12280230000033,
+          "graph_seconds": 27.122092599995085,
+          "graph_start": 0.000709700005245395,
+          "input_seconds": 0.4429362999944715,
+          "join_seconds": 27.122938800006523,
+          "key": "VID103_33576",
+          "merge_seconds": 0.0007162999972933903,
+          "overlap_seconds": 8.425910199992359,
+          "parallel_increment_over_graph_seconds": 0.0015639000048395246,
+          "parallel_seconds": 27.123656499999925,
+          "phase_end": 8.427363900002092,
+          "phase_seconds": 8.425910199992359,
+          "phase_start": 0.0014537000097334385,
+          "serial_equivalent_seconds": 35.54871909998474,
+          "time_saved_vs_serial_equivalent_seconds": 8.425062599984813
+        },
+        {
+          "graph_end": 22.671654499994474,
+          "graph_seconds": 22.67062689999875,
+          "graph_start": 0.0010275999957229942,
+          "input_seconds": 0.3206438000052003,
+          "join_seconds": 22.67176290000498,
+          "key": "VID23_13176",
+          "merge_seconds": 0.0005356000037863851,
+          "overlap_seconds": 7.847221699994407,
+          "parallel_increment_over_graph_seconds": 0.001673200007644482,
+          "parallel_seconds": 22.672300100006396,
+          "phase_end": 7.8495733000017935,
+          "phase_seconds": 7.847221699994407,
+          "phase_start": 0.002351600007386878,
+          "serial_equivalent_seconds": 30.518384199996945,
+          "time_saved_vs_serial_equivalent_seconds": 7.846084099990549
+        },
+        {
+          "graph_end": 22.647038699986297,
+          "graph_seconds": 22.646257999993395,
+          "graph_start": 0.0007806999929016456,
+          "input_seconds": 0.35164749999239575,
+          "join_seconds": 22.64719669999613,
+          "key": "VID23_28876",
+          "merge_seconds": 0.0006137000018497929,
+          "overlap_seconds": 7.536562699999195,
+          "parallel_increment_over_graph_seconds": 0.0015544000052614138,
+          "parallel_seconds": 22.647812399998656,
+          "phase_end": 7.537812399998074,
+          "phase_seconds": 7.536562699999195,
+          "phase_start": 0.0012496999988798052,
+          "serial_equivalent_seconds": 30.18343439999444,
+          "time_saved_vs_serial_equivalent_seconds": 7.535621999995783
+        },
+        {
+          "graph_end": 28.351170900001307,
+          "graph_seconds": 28.350593299997854,
+          "graph_start": 0.0005776000034529716,
+          "input_seconds": 0.44320009999501053,
+          "join_seconds": 28.35129350000352,
+          "key": "VID31_40701",
+          "merge_seconds": 0.0007196000078693032,
+          "overlap_seconds": 10.062237199992524,
+          "parallel_increment_over_graph_seconds": 0.001421599998138845,
+          "parallel_seconds": 28.352014899995993,
+          "phase_end": 10.063282899995102,
+          "phase_seconds": 10.062237199992524,
+          "phase_start": 0.0010457000025780872,
+          "serial_equivalent_seconds": 38.41355009999825,
+          "time_saved_vs_serial_equivalent_seconds": 10.061535200002254
+        },
+        {
+          "graph_end": 31.37712720000127,
+          "graph_seconds": 31.376484899999923,
+          "graph_start": 0.0006423000013455749,
+          "input_seconds": 0.487975700001698,
+          "join_seconds": 31.377298100007465,
+          "key": "VID31_73701",
+          "merge_seconds": 0.0006305999995674938,
+          "overlap_seconds": 8.434354799988796,
+          "parallel_increment_over_graph_seconds": 0.0014455000055022538,
+          "parallel_seconds": 31.377930400005425,
+          "phase_end": 8.435584499995457,
+          "phase_seconds": 8.434354799988796,
+          "phase_start": 0.0012297000066610053,
+          "serial_equivalent_seconds": 39.81147029998829,
+          "time_saved_vs_serial_equivalent_seconds": 8.433539899982861
+        },
+        {
+          "graph_end": 24.114578000007896,
+          "graph_seconds": 24.113923400000203,
+          "graph_start": 0.0006546000076923519,
+          "input_seconds": 0.6155380999989575,
+          "join_seconds": 24.114731399997254,
+          "key": "VID96_15051",
+          "merge_seconds": 0.0007656999950995669,
+          "overlap_seconds": 9.364104700012831,
+          "parallel_increment_over_graph_seconds": 0.0015756000066176057,
+          "parallel_seconds": 24.11549900000682,
+          "phase_end": 9.365293100010604,
+          "phase_seconds": 9.364104700012831,
+          "phase_start": 0.001188399997772649,
+          "serial_equivalent_seconds": 33.478793800008134,
+          "time_saved_vs_serial_equivalent_seconds": 9.363294800001313
+        },
+        {
+          "graph_end": 18.259523700005957,
+          "graph_seconds": 18.25899400000344,
+          "graph_start": 0.0005297000025166199,
+          "input_seconds": 0.5766885000048205,
+          "join_seconds": 18.259624400001485,
+          "key": "VID96_26051",
+          "merge_seconds": 0.0003983999922638759,
+          "overlap_seconds": 11.215603699994972,
+          "parallel_increment_over_graph_seconds": 0.001029699997161515,
+          "parallel_seconds": 18.260023700000602,
+          "phase_end": 11.216645399996196,
+          "phase_seconds": 11.215603699994972,
+          "phase_start": 0.0010417000012239441,
+          "serial_equivalent_seconds": 29.474996099990676,
+          "time_saved_vs_serial_equivalent_seconds": 11.214972399990074
+        }
+      ],
+      "timing_caveat": "Branch intervals are measured in the same concurrent run. Their sum is only a serial-equivalent arithmetic estimate, not an independently executed serial trial. API provider contention and run-to-run variability remain. End-to-end H0 time is excluded because H0 is cached.",
+      "timing_totals": {
+        "graph_end": 199.84780199998931,
+        "graph_seconds": 199.8413798999827,
+        "graph_start": 0.0064221000066027045,
+        "input_seconds": 3.733430699983728,
+        "join_seconds": 199.84889310001745,
+        "merge_seconds": 0.005124399991473183,
+        "overlap_seconds": 71.5474529999774,
+        "parallel_increment_over_graph_seconds": 0.012650000033318065,
+        "parallel_seconds": 199.85402990001603,
+        "phase_end": 71.5591213000007,
+        "phase_seconds": 71.5474529999774,
+        "phase_start": 0.011668300023302436,
+        "serial_equivalent_seconds": 271.3939572999516,
+        "time_saved_vs_serial_equivalent_seconds": 71.53992739993555
+      }
+    },
+    "targets": 8
+  },
+  "new_api_calls_during_publication": 0,
+  "phase_extension": {
+    "audit": {
+      "actual_requests_verified": 80,
+      "causal_sampling_independently_recreated": true,
+      "four_heads_equal_graph_r1_for_every_target": true,
+      "gt_loaded_after_closed_inference": true,
+      "raw_outputs_replayed": true,
+      "votes_and_metric_counts_independently_checked": true
+    },
+    "comparisons": {
+      "graph_r1_to_phase_context": {
+        "categories": {
+          "no_benefit_replacement": 1,
+          "partial_improvement": 1,
+          "unchanged": 6
+        },
+        "correct_additions": 1,
+        "correct_deletions": 2,
+        "error_count_after": 52,
+        "error_count_before": 54,
+        "exact_to_wrong": 0,
+        "fixed_label_errors": 3,
+        "introduced_label_errors": 1,
+        "net_errors_removed": 2,
+        "tasks": {
+          "instrument": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "ivt": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "phase": {
+            "correct_additions": 1,
+            "correct_deletions": 2,
+            "valid_targets": 8,
+            "wrong_additions": 1,
+            "wrong_deletions": 0
+          },
+          "target": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "verb": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          }
+        },
+        "wrong_additions": 1,
+        "wrong_deletions": 0,
+        "wrong_to_exact": 0
+      },
+      "graph_r1_to_phase_short": {
+        "categories": {
+          "no_benefit_replacement": 1,
+          "partial_improvement": 1,
+          "unchanged": 6
+        },
+        "correct_additions": 1,
+        "correct_deletions": 2,
+        "error_count_after": 52,
+        "error_count_before": 54,
+        "exact_to_wrong": 0,
+        "fixed_label_errors": 3,
+        "introduced_label_errors": 1,
+        "net_errors_removed": 2,
+        "tasks": {
+          "instrument": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "ivt": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "phase": {
+            "correct_additions": 1,
+            "correct_deletions": 2,
+            "valid_targets": 8,
+            "wrong_additions": 1,
+            "wrong_deletions": 0
+          },
+          "target": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "verb": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          }
+        },
+        "wrong_additions": 1,
+        "wrong_deletions": 0,
+        "wrong_to_exact": 0
+      },
+      "graph_r1_to_previous_five": {
+        "categories": {
+          "harm": 2,
+          "unchanged": 6
+        },
+        "correct_additions": 0,
+        "correct_deletions": 1,
+        "error_count_after": 56,
+        "error_count_before": 54,
+        "exact_to_wrong": 0,
+        "fixed_label_errors": 1,
+        "introduced_label_errors": 3,
+        "net_errors_removed": -2,
+        "tasks": {
+          "instrument": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "ivt": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 1,
+            "wrong_deletions": 0
+          },
+          "phase": {
+            "correct_additions": 0,
+            "correct_deletions": 1,
+            "valid_targets": 8,
+            "wrong_additions": 1,
+            "wrong_deletions": 0
+          },
+          "target": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 1,
+            "wrong_deletions": 0
+          },
+          "verb": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          }
+        },
+        "wrong_additions": 3,
+        "wrong_deletions": 0,
+        "wrong_to_exact": 0
+      },
+      "h0_to_graph_r1": {
+        "categories": {
+          "harm": 2,
+          "partial_improvement": 4,
+          "unchanged": 2
+        },
+        "correct_additions": 5,
+        "correct_deletions": 1,
+        "error_count_after": 54,
+        "error_count_before": 57,
+        "exact_to_wrong": 0,
+        "fixed_label_errors": 6,
+        "introduced_label_errors": 3,
+        "net_errors_removed": 3,
+        "tasks": {
+          "instrument": {
+            "correct_additions": 0,
+            "correct_deletions": 1,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "ivt": {
+            "correct_additions": 2,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 1,
+            "wrong_deletions": 0
+          },
+          "phase": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "target": {
+            "correct_additions": 1,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "verb": {
+            "correct_additions": 2,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 2,
+            "wrong_deletions": 0
+          }
+        },
+        "wrong_additions": 3,
+        "wrong_deletions": 0,
+        "wrong_to_exact": 0
+      },
+      "phase_short_to_phase_context": {
+        "categories": {
+          "unchanged": 8
+        },
+        "correct_additions": 0,
+        "correct_deletions": 0,
+        "error_count_after": 52,
+        "error_count_before": 52,
+        "exact_to_wrong": 0,
+        "fixed_label_errors": 0,
+        "introduced_label_errors": 0,
+        "net_errors_removed": 0,
+        "tasks": {
+          "instrument": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "ivt": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "phase": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "target": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "verb": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          }
+        },
+        "wrong_additions": 0,
+        "wrong_deletions": 0,
+        "wrong_to_exact": 0
+      },
+      "previous_five_to_phase_context": {
+        "categories": {
+          "partial_improvement": 2,
+          "unchanged": 6
+        },
+        "correct_additions": 1,
+        "correct_deletions": 3,
+        "error_count_after": 52,
+        "error_count_before": 56,
+        "exact_to_wrong": 0,
+        "fixed_label_errors": 4,
+        "introduced_label_errors": 0,
+        "net_errors_removed": 4,
+        "tasks": {
+          "instrument": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "ivt": {
+            "correct_additions": 0,
+            "correct_deletions": 1,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "phase": {
+            "correct_additions": 1,
+            "correct_deletions": 1,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "target": {
+            "correct_additions": 0,
+            "correct_deletions": 1,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "verb": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          }
+        },
+        "wrong_additions": 0,
+        "wrong_deletions": 0,
+        "wrong_to_exact": 0
+      },
+      "previous_five_to_phase_short": {
+        "categories": {
+          "partial_improvement": 2,
+          "unchanged": 6
+        },
+        "correct_additions": 1,
+        "correct_deletions": 3,
+        "error_count_after": 52,
+        "error_count_before": 56,
+        "exact_to_wrong": 0,
+        "fixed_label_errors": 4,
+        "introduced_label_errors": 0,
+        "net_errors_removed": 4,
+        "tasks": {
+          "instrument": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "ivt": {
+            "correct_additions": 0,
+            "correct_deletions": 1,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "phase": {
+            "correct_additions": 1,
+            "correct_deletions": 1,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "target": {
+            "correct_additions": 0,
+            "correct_deletions": 1,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "verb": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 8,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          }
+        },
+        "wrong_additions": 0,
+        "wrong_deletions": 0,
+        "wrong_to_exact": 0
+      }
+    },
+    "limitations": [
+      "Previously inspected eight Training development targets; not independent validation.",
+      "Four-head invariance is guaranteed by separation, not improved visual recognition.",
+      "All five model calls per target are incremental; temporal arm has at most three images.",
+      "Sparse history stays inside contiguous available 25-frame segment; no future or padded frames.",
+      "Phase rubric is a project adaptation of dataset names, not an official boundary annotation manual."
+    ],
+    "metrics": {
+      "graph_r1": {
+        "all_valid_heads_exact": {
+          "accuracy": 0.0,
+          "exact_matches": 0,
+          "valid_targets": 8
+        },
+        "tasks": {
+          "instrument": {
+            "exact_matches": 3,
+            "exact_set_accuracy": 0.375,
+            "failed_predictions": 0,
+            "fn": 5,
+            "fp": 3,
+            "micro_f1": 0.6923076923076923,
+            "micro_precision": 0.75,
+            "micro_recall": 0.6428571428571429,
+            "tp": 9,
+            "valid_targets": 8
+          },
+          "ivt": {
+            "exact_matches": 0,
+            "exact_set_accuracy": 0.0,
+            "failed_predictions": 0,
+            "fn": 9,
+            "fp": 9,
+            "micro_f1": 0.4,
+            "micro_precision": 0.4,
+            "micro_recall": 0.4,
+            "tp": 6,
+            "valid_targets": 8
+          },
+          "phase": {
+            "exact_matches": 5,
+            "exact_set_accuracy": 0.625,
+            "failed_predictions": 0,
+            "fn": 3,
+            "fp": 3,
+            "micro_f1": 0.625,
+            "micro_precision": 0.625,
+            "micro_recall": 0.625,
+            "tp": 5,
+            "valid_targets": 8
+          },
+          "target": {
+            "exact_matches": 2,
+            "exact_set_accuracy": 0.25,
+            "failed_predictions": 0,
+            "fn": 7,
+            "fp": 5,
+            "micro_f1": 0.5714285714285714,
+            "micro_precision": 0.6153846153846154,
+            "micro_recall": 0.5333333333333333,
+            "tp": 8,
+            "valid_targets": 8
+          },
+          "verb": {
+            "exact_matches": 2,
+            "exact_set_accuracy": 0.25,
+            "failed_predictions": 0,
+            "fn": 4,
+            "fp": 6,
+            "micro_f1": 0.6666666666666666,
+            "micro_precision": 0.625,
+            "micro_recall": 0.7142857142857143,
+            "tp": 10,
+            "valid_targets": 8
+          }
+        }
+      },
+      "h0": {
+        "all_valid_heads_exact": {
+          "accuracy": 0.0,
+          "exact_matches": 0,
+          "valid_targets": 8
+        },
+        "tasks": {
+          "instrument": {
+            "exact_matches": 3,
+            "exact_set_accuracy": 0.375,
+            "failed_predictions": 0,
+            "fn": 5,
+            "fp": 4,
+            "micro_f1": 0.6666666666666666,
+            "micro_precision": 0.6923076923076923,
+            "micro_recall": 0.6428571428571429,
+            "tp": 9,
+            "valid_targets": 8
+          },
+          "ivt": {
+            "exact_matches": 0,
+            "exact_set_accuracy": 0.0,
+            "failed_predictions": 0,
+            "fn": 11,
+            "fp": 8,
+            "micro_f1": 0.2962962962962963,
+            "micro_precision": 0.3333333333333333,
+            "micro_recall": 0.26666666666666666,
+            "tp": 4,
+            "valid_targets": 8
+          },
+          "phase": {
+            "exact_matches": 5,
+            "exact_set_accuracy": 0.625,
+            "failed_predictions": 0,
+            "fn": 3,
+            "fp": 3,
+            "micro_f1": 0.625,
+            "micro_precision": 0.625,
+            "micro_recall": 0.625,
+            "tp": 5,
+            "valid_targets": 8
+          },
+          "target": {
+            "exact_matches": 2,
+            "exact_set_accuracy": 0.25,
+            "failed_predictions": 0,
+            "fn": 8,
+            "fp": 5,
+            "micro_f1": 0.5185185185185185,
+            "micro_precision": 0.5833333333333334,
+            "micro_recall": 0.4666666666666667,
+            "tp": 7,
+            "valid_targets": 8
+          },
+          "verb": {
+            "exact_matches": 2,
+            "exact_set_accuracy": 0.25,
+            "failed_predictions": 0,
+            "fn": 6,
+            "fp": 4,
+            "micro_f1": 0.6153846153846154,
+            "micro_precision": 0.6666666666666666,
+            "micro_recall": 0.5714285714285714,
+            "tp": 8,
+            "valid_targets": 8
+          }
+        }
+      },
+      "phase_context": {
+        "all_valid_heads_exact": {
+          "accuracy": 0.0,
+          "exact_matches": 0,
+          "valid_targets": 8
+        },
+        "tasks": {
+          "instrument": {
+            "exact_matches": 3,
+            "exact_set_accuracy": 0.375,
+            "failed_predictions": 0,
+            "fn": 5,
+            "fp": 3,
+            "micro_f1": 0.6923076923076923,
+            "micro_precision": 0.75,
+            "micro_recall": 0.6428571428571429,
+            "tp": 9,
+            "valid_targets": 8
+          },
+          "ivt": {
+            "exact_matches": 0,
+            "exact_set_accuracy": 0.0,
+            "failed_predictions": 0,
+            "fn": 9,
+            "fp": 9,
+            "micro_f1": 0.4,
+            "micro_precision": 0.4,
+            "micro_recall": 0.4,
+            "tp": 6,
+            "valid_targets": 8
+          },
+          "phase": {
+            "exact_matches": 6,
+            "exact_set_accuracy": 0.75,
+            "failed_predictions": 0,
+            "fn": 2,
+            "fp": 2,
+            "micro_f1": 0.75,
+            "micro_precision": 0.75,
+            "micro_recall": 0.75,
+            "tp": 6,
+            "valid_targets": 8
+          },
+          "target": {
+            "exact_matches": 2,
+            "exact_set_accuracy": 0.25,
+            "failed_predictions": 0,
+            "fn": 7,
+            "fp": 5,
+            "micro_f1": 0.5714285714285714,
+            "micro_precision": 0.6153846153846154,
+            "micro_recall": 0.5333333333333333,
+            "tp": 8,
+            "valid_targets": 8
+          },
+          "verb": {
+            "exact_matches": 2,
+            "exact_set_accuracy": 0.25,
+            "failed_predictions": 0,
+            "fn": 4,
+            "fp": 6,
+            "micro_f1": 0.6666666666666666,
+            "micro_precision": 0.625,
+            "micro_recall": 0.7142857142857143,
+            "tp": 10,
+            "valid_targets": 8
+          }
+        }
+      },
+      "phase_short": {
+        "all_valid_heads_exact": {
+          "accuracy": 0.0,
+          "exact_matches": 0,
+          "valid_targets": 8
+        },
+        "tasks": {
+          "instrument": {
+            "exact_matches": 3,
+            "exact_set_accuracy": 0.375,
+            "failed_predictions": 0,
+            "fn": 5,
+            "fp": 3,
+            "micro_f1": 0.6923076923076923,
+            "micro_precision": 0.75,
+            "micro_recall": 0.6428571428571429,
+            "tp": 9,
+            "valid_targets": 8
+          },
+          "ivt": {
+            "exact_matches": 0,
+            "exact_set_accuracy": 0.0,
+            "failed_predictions": 0,
+            "fn": 9,
+            "fp": 9,
+            "micro_f1": 0.4,
+            "micro_precision": 0.4,
+            "micro_recall": 0.4,
+            "tp": 6,
+            "valid_targets": 8
+          },
+          "phase": {
+            "exact_matches": 6,
+            "exact_set_accuracy": 0.75,
+            "failed_predictions": 0,
+            "fn": 2,
+            "fp": 2,
+            "micro_f1": 0.75,
+            "micro_precision": 0.75,
+            "micro_recall": 0.75,
+            "tp": 6,
+            "valid_targets": 8
+          },
+          "target": {
+            "exact_matches": 2,
+            "exact_set_accuracy": 0.25,
+            "failed_predictions": 0,
+            "fn": 7,
+            "fp": 5,
+            "micro_f1": 0.5714285714285714,
+            "micro_precision": 0.6153846153846154,
+            "micro_recall": 0.5333333333333333,
+            "tp": 8,
+            "valid_targets": 8
+          },
+          "verb": {
+            "exact_matches": 2,
+            "exact_set_accuracy": 0.25,
+            "failed_predictions": 0,
+            "fn": 4,
+            "fp": 6,
+            "micro_f1": 0.6666666666666666,
+            "micro_precision": 0.625,
+            "micro_recall": 0.7142857142857143,
+            "tp": 10,
+            "valid_targets": 8
+          }
+        }
+      },
+      "previous_five": {
+        "all_valid_heads_exact": {
+          "accuracy": 0.0,
+          "exact_matches": 0,
+          "valid_targets": 8
+        },
+        "tasks": {
+          "instrument": {
+            "exact_matches": 3,
+            "exact_set_accuracy": 0.375,
+            "failed_predictions": 0,
+            "fn": 5,
+            "fp": 3,
+            "micro_f1": 0.6923076923076923,
+            "micro_precision": 0.75,
+            "micro_recall": 0.6428571428571429,
+            "tp": 9,
+            "valid_targets": 8
+          },
+          "ivt": {
+            "exact_matches": 0,
+            "exact_set_accuracy": 0.0,
+            "failed_predictions": 0,
+            "fn": 9,
+            "fp": 10,
+            "micro_f1": 0.3870967741935484,
+            "micro_precision": 0.375,
+            "micro_recall": 0.4,
+            "tp": 6,
+            "valid_targets": 8
+          },
+          "phase": {
+            "exact_matches": 5,
+            "exact_set_accuracy": 0.625,
+            "failed_predictions": 0,
+            "fn": 3,
+            "fp": 3,
+            "micro_f1": 0.625,
+            "micro_precision": 0.625,
+            "micro_recall": 0.625,
+            "tp": 5,
+            "valid_targets": 8
+          },
+          "target": {
+            "exact_matches": 2,
+            "exact_set_accuracy": 0.25,
+            "failed_predictions": 0,
+            "fn": 7,
+            "fp": 6,
+            "micro_f1": 0.5517241379310345,
+            "micro_precision": 0.5714285714285714,
+            "micro_recall": 0.5333333333333333,
+            "tp": 8,
+            "valid_targets": 8
+          },
+          "verb": {
+            "exact_matches": 2,
+            "exact_set_accuracy": 0.25,
+            "failed_predictions": 0,
+            "fn": 4,
+            "fp": 6,
+            "micro_f1": 0.6666666666666666,
+            "micro_precision": 0.625,
+            "micro_recall": 0.7142857142857143,
+            "tp": 10,
+            "valid_targets": 8
+          }
+        }
+      }
+    },
+    "phase_transitions": {
+      "graph_r1_to_phase_context": {
+        "improved": 1,
+        "no_benefit_replacement": 1,
+        "unchanged": 6
+      },
+      "graph_r1_to_phase_short": {
+        "improved": 1,
+        "no_benefit_replacement": 1,
+        "unchanged": 6
+      },
+      "graph_r1_to_previous_five": {
+        "no_benefit_replacement": 1,
+        "unchanged": 7
+      },
+      "h0_to_graph_r1": {
+        "unchanged": 8
+      },
+      "phase_short_to_phase_context": {
+        "unchanged": 8
+      },
+      "previous_five_to_phase_context": {
+        "improved": 1,
+        "unchanged": 7
+      },
+      "previous_five_to_phase_short": {
+        "improved": 1,
+        "unchanged": 7
+      }
+    },
+    "profile": "phase_isolated_single_choice_short_vs_context_v1",
+    "runtime": {
+      "arm_calls": {
+        "phase_context": 40,
+        "phase_short": 40
+      },
+      "arm_charges": {
+        "phase_context": {
+          "aliyun_cny": {
+            "conservative_estimate": "0.023233"
+          },
+          "openrouter_usd": {
+            "native": "0.01329171",
+            "unknown_reserved": "0.0312412"
+          },
+          "xai_usd": {
+            "native": "0.050210"
+          }
+        },
+        "phase_short": {
+          "aliyun_cny": {
+            "conservative_estimate": "0.023636"
+          },
+          "openrouter_usd": {
+            "native": "0.01335100",
+            "unknown_reserved": "0.0312404"
+          },
+          "xai_usd": {
+            "native": "0.045780"
+          }
+        }
+      },
+      "arm_seconds": {
+        "phase_context": 75.29248179999558,
+        "phase_short": 65.62540489999083
+      },
+      "arm_statuses": {
+        "phase_context": {
+          "INVALID_PANEL": 2,
+          "REVIEWED": 6
+        },
+        "phase_short": {
+          "INVALID_PANEL": 2,
+          "REVIEWED": 6
+        }
+      },
+      "calls": 80,
+      "charges": {
+        "aliyun_cny": {
+          "conservative_estimate": "0.046869"
+        },
+        "openrouter_usd": {
+          "native": "0.02664271",
+          "unknown_reserved": "0.0624816"
+        },
+        "xai_usd": {
+          "native": "0.095990"
+        }
+      },
+      "inference_seconds": 143.15706079999654,
+      "statuses": {
+        "API_FAILED": 4,
+        "JSON_PARSED": 76
+      }
+    },
+    "targets": 8
+  },
+  "schema_version": "parallel_phase_publication_summary_v1",
+  "scope": "Same eight Training development targets; not independent Testing; no new API calls during publication.",
+  "source_sha256": {
+    "parallel_phase_eight_20260909_v1/billing_reconciliation.json": "c74887ac1571180d7aacfff3f8888aca3d636934702b37560c92a547080f7253",
+    "parallel_phase_eight_20260909_v1/completion.json": "deb3b247812c968a7ae93cd1c0d92bf88cf16e0ff2826f783dcf3ce12e7f6b7d",
+    "parallel_phase_eight_20260909_v1/metrics.json": "ef3a62c6d2e16972d8105571774a6af908d3269e50a056906fb71a804d32f522",
+    "parallel_phase_eight_20260909_v1/plan.json": "6ed30f6f679eb819387984bb483a73bfdaa0b408a4d44197aac613ce73edc737",
+    "parallel_phase_eight_20260909_v1/predictions.json": "35a2f7809b77852c59707889bca5d230eee2d47bda748dfa00e2d993c198bacd",
+    "phase_extension_eight_20260909_v1/billing_reconciliation.json": "165d0e4c9a4cf120e314fb7a9515dcb8c42c24356b76b0fe361950f7e04ac876",
+    "phase_extension_eight_20260909_v1/completion.json": "94071c571edfa43e2241184d2930f2efc4a63e82e5fb78dff16acc5546e1b479",
+    "phase_extension_eight_20260909_v1/metrics.json": "5f4cb598a1eea135647358b73fd530f9b369ed727068726ba94ba8e15eaed927",
+    "phase_extension_eight_20260909_v1/plan.json": "548bea64d1b0677faa1577e6d8ff22da2962a52ae13c106d50097acf4f4627a0",
+    "phase_extension_eight_20260909_v1/predictions.json": "260947785693fe17db37feb24b781b568c39fe290a0469d0b851c81fceda8c9a"
+  }
+}

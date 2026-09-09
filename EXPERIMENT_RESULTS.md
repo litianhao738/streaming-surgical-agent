@@ -1,3 +1,22 @@
+# Latest update: parallel graph repair and independent Phase
+
+2026-09-09. See [the clear end-to-end flow](LATEST_PIPELINE.md), [release and replay guide](docs/releases/PARALLEL_PHASE_REPAIR_V1.md), and [complete new metric snapshot](docs/experiments/parallel_phase_summary_20260909.json).
+
+All rows below share the same eight Training targets and cached H0; each task has eight valid GT targets. Values are micro-F1 (%).
+
+| Version | Instrument | Verb | Target | IVT | Phase |
+|---|---:|---:|---:|---:|---:|
+| H0 | 66.67 | 61.54 | 51.85 | 29.63 | 62.50 |
+| Original graph R1 | 69.23 | 66.67 | 57.14 | 40.00 | 62.50 |
+| Retained graph cache + independent short Phase | 69.23 | 66.67 | 57.14 | 40.00 | 75.00 |
+| Latest concurrent rerun | 69.23 | 66.67 | 57.14 | 38.71 | 75.00 |
+
+The latest rerun used 88 new calls after cached H0, 203.965 seconds, native USD $0.26604873 plus estimated Aliyun CNY 0.096176. Phase changed two targets: one corrected, one wrong-to-wrong. IVT exact-set accuracy remains 0/8. This publication itself makes zero model calls.
+
+The original graph tags remain fixed. New best-observed Phase results and the latest execution version are separate records. The historical comparison below predates isolated Phase repair; its statements about five-head LLM variants concern those earlier variants.
+
+---
+
 # 实验记录：当前保留版本与对照
 
 更新：2026-09-09。本次仅整理、核对和发布记录，**新增模型 API 调用 0 次**。详细本地日志、失败记录、冻结源码及训练输出保留。

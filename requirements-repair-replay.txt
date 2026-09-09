@@ -1,0 +1,4 @@
+# Offline replay on Python 3.11-3.12 using the existing research package.
+# Import-time dependencies include Torch; replay does not use a GPU or weights.
+-e .
+-r requirements-prior-panel.txt

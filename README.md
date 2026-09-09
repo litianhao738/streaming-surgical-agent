@@ -1,9 +1,10 @@
 # Streaming SurgicalAgent V3.1
 
-> **2026-09-09：[精简实验记录与同批评分](EXPERIMENT_RESULTS.md)。**
-> 当前保留图谱一轮版；同八个 Training 目标的 IVT F1 为 H0 **29.63% → 40.00%**，IVT 集合 Accuracy 仍为 0%。第二轮、四席审核及五头 LLM 修复未超过它。
-> [最佳版本与固定提交](BEST_REPAIR_VERSION.json) · [最佳版代码与离线重放](https://github.com/litianhao738/streaming-surgical-agent/tree/best-repair-2026-09-09) · [完整指标 JSON](docs/experiments/repair_comparison_20260909.json)
-> 这是小样本研究版本；最新完整 Tracker/Gate Pipeline 与四组消融尚未完成。历史实验、默认 H0 和本地训练输出保留。
+> **2026-09-09：[最新 Pipeline 流程图与输入输出说明](LATEST_PIPELINE.md)**
+> 固定 H0 → **图谱四头修复**与**独立 Phase 审核**并行 → Python 合并五头。
+> [下载与重放](docs/releases/PARALLEL_PHASE_REPAIR_V1.md) · [版本清单](PIPELINE_VERSION.json) · [离线重放入口](scripts/replay_parallel_phase_repair.py) · [保留的 Phase 结果](BEST_PHASE_RESULT.json)
+> 同八个 Training 目标：最新重跑 IVT F1 **38.71%**、Phase **75.00%**；此前保留结果为 **40.00% / 75.00%**。这不是完整 Tracker/Gate 或 Testing 结果。
+> 原图谱标签、默认纯 API H0 与历史结果保留。[实验记录](EXPERIMENT_RESULTS.md)。
 
 CholecTrack20-only research code for strict-causal surgical video inference,
 predicted tracking, selective structured verification, and reliability-aware

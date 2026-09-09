@@ -1,0 +1,15 @@
+{
+  "api_calls_during_publication": 0,
+  "gt_independently_rescored_by_public_replay": false,
+  "new_navigation_links_resolved": true,
+  "offline_graph_panels": 8,
+  "offline_phase_panels": 16,
+  "offline_replay_targets": 8,
+  "original_worktree_import_leaks": 0,
+  "production_parallel_merges": 8,
+  "python_files_ruff_passed": 38,
+  "sensitive_content_findings": 0,
+  "tests_passed": 233,
+  "tests_skipped_missing_local_archives": 2,
+  "tracked_dependency_imports_from_release": 130
+}

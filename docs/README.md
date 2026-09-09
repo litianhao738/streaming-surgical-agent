@@ -1,6 +1,14 @@
 # Documentation Authority and Live Checkpoint
 
-Current retained repair: [best-version manifest](../BEST_REPAIR_VERSION.json) and
+## Latest final-only repair release (2026-09-09)
+
+Read [LATEST_PIPELINE.md](../LATEST_PIPELINE.md) first for the implemented flow, parallel branches, JSON contracts and model roles. [Release guide](releases/PARALLEL_PHASE_REPAIR_V1.md), [version](../PIPELINE_VERSION.json), and [offline replay](../scripts/replay_parallel_phase_repair.py) are available in this release.
+
+Cached H0 -> graph proposal/five-family four-head review in parallel with independent five-family Phase choices -> Python merge. Same-eight Training results: latest IVT/Phase F1 38.71%/75%; retained observed result 40%/75%. Tracker/Gate and full Testing integration remain incomplete. The default pure H0 entry is separate.
+
+The records below retain earlier checkpoints; they do not override this release's measured scope.
+
+Historical four-head repair snapshot: [best-version manifest](../BEST_REPAIR_VERSION.json) and
 [concise same-eight-target experiment record](../EXPERIMENT_RESULTS.md), updated 2026-09-09.
 The frozen [prior-graph one-round release](https://github.com/litianhao738/streaming-surgical-agent/tree/best-repair-2026-09-09)
 keeps commit `a0406baa7e5aeb8313403e792a8e609e2fceccef` and its portable offline replay.
