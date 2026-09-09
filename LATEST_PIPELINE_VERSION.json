@@ -1,0 +1,15 @@
+{
+  "best_observed_result": "BEST_PHASE_RESULT.json",
+  "branch": "research/parallel-phase-repair-v1",
+  "code_location": "Tagged research branch; main publishes navigation and measured summaries.",
+  "commit": "262cda927771f95d241bc7faa102c095fdbf1aed",
+  "flow_document": "LATEST_PIPELINE.md",
+  "gate_integrated": false,
+  "pure_api_default_changed": false,
+  "release_manifest": "https://github.com/litianhao738/streaming-surgical-agent/blob/parallel-phase-repair-v1.0.0-experimental/PIPELINE_VERSION.json",
+  "schema_version": "latest_pipeline_release_pointer_v1",
+  "status": "parallel_execution_validated_not_new_accuracy_best",
+  "tag": "parallel-phase-repair-v1.0.0-experimental",
+  "tracker_integrated": false,
+  "version": "parallel-phase-repair-v1.0.0-experimental"
+}
