@@ -29,6 +29,7 @@ ROOT = Path(__file__).resolve().parents[2]
 DATASET = Path(r"D:\cholec_dataset")
 RUN = ROOT / "artifacts/preflight/smoke_astra_six_issues_after_v9_20260905"
 CACHE = ROOT / "artifacts/final_pipeline_cache/astra_six_issues_20260905"
+LEGACY_TRACKER = ROOT / "artifacts/training/tracker/predicted_tracks.json"
 
 
 @pytest.mark.local_data
@@ -36,6 +37,10 @@ CACHE = ROOT / "artifacts/final_pipeline_cache/astra_six_issues_20260905"
 @pytest.mark.skipif(
     not DATASET.is_dir() or not (RUN / "manifest.json").is_file(),
     reason="requires the local five-frame Astra smoke artifacts",
+)
+@pytest.mark.skipif(
+    not LEGACY_TRACKER.is_file(),
+    reason="historical Astra replay requires its original legacy Tracker predictions",
 )
 def test_current_v9_replays_real_frames_with_no_network(tmp_path):
     usage = [
@@ -91,7 +96,7 @@ def test_current_v9_replays_real_frames_with_no_network(tmp_path):
         ),
         state_dir=tmp_path,
         track_provider=PrecomputedPredictedTrackProvider.from_json(
-            ROOT / "artifacts/training/tracker/predicted_tracks.json"
+            LEGACY_TRACKER
         ),
         phase_transition_graph=build_phase_transition_graph_from_training_adapter(
             adapter

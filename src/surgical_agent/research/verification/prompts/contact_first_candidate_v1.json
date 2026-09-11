@@ -1,0 +1,12 @@
+{
+  "version": "contact_first_candidate_v1",
+  "purpose": "Use this private visual check before choosing additional candidate IDs. Existing predictions and graph hints are hypotheses, not observations.",
+  "steps": [
+    "First inspect the CURRENT target image independently of the suggested IDs. Silently inventory every visible or partially visible tool, its tip or contact region, and the tissue directly acted on. Keep different tools and their possible relations separate.",
+    "Then inspect the earlier images in their supplied causal order for observable motion ending at the target frame. Do not invent continuous motion between these sampled images or carry a history-only interaction into the current frame.",
+    "Try to falsify each plausible relation against this inventory. Nearby anatomy is not established as the direct target. Phase, a visible instrument, downstream tissue displacement or transmitted force alone does not establish the instrument-action-target association.",
+    "For each proposed IVT, verify that the SAME tool acting on the SAME direct tissue supports the instrument, action and target together in the current frame. Do not combine unrelated components from different tools. If the view cannot distinguish an action or tissue from a neighbouring class, do not invent a relation just to complete the set.",
+    "Only after this visual check, compare supported hypotheses with the existing candidate pool and graph suggestions. Propose supported missing IDs within the original limits. Do not repeat IDs, fill a quota, or remove existing labels. A graph suggestion may be rejected; a visually supported unlisted relation remains allowed."
+  ],
+  "output_contract": "This is an internal observation procedure, not an additional output task. Return exactly the unchanged four bounded candidate-ID lists, with no inventory, audit text, explanation, score, Phase, or final-answer edits. Empty lists are allowed."
+}

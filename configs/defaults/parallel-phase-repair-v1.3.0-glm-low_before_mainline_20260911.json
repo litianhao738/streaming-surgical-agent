@@ -1,0 +1,99 @@
+{
+  "schema_version": "default_repair_pipeline_selection_v1",
+  "selected_on": "2026-09-10",
+  "selected_by": "explicit_user_request",
+  "version": "parallel-phase-repair-v1.3.0-glm-low",
+  "release_commit": null,
+  "base_release_commit": "262cda927771f95d241bc7faa102c095fdbf1aed",
+  "base_version": "parallel-phase-repair-v1.2.0-lightweight-reviewers",
+  "publication_status": "local_workspace_not_tagged",
+  "profile": "fixed_h0_parallel_graph_and_phase_compact_glm_low_v1",
+  "verifier_prompt_profile": "verifier_compact_wording_v2_json_mode_candidate",
+  "default_entrypoint": "scripts/run_pipeline.py",
+  "implementation_entrypoint": "scripts/run_glm_parallel_repair.py",
+  "scoring_entrypoint": "scripts/run_glm_parallel_repair.py",
+  "scoring_requires_command": true,
+  "prompt_trial_report": "docs/VERIFIER_COMPACT_PROMPT_TRIAL_2026-09-09.md",
+  "best_observed_result": "BEST_PHASE_RESULT.json",
+  "best_observed_arm": "phase_short",
+  "scope": "cached_h0_fixed_eight_training_targets",
+  "mechanism": "Fixed H0 -> graph relation hints -> single proposal -> five lightweight-family compact reviewers -> original Python four-head selection; parallel compact blind Phase five-seat majority -> Phase-only merge",
+  "policy": {
+    "graph_rounds": 1,
+    "graph_valid_reviewers_required": 5,
+    "graph_addition_mean_min": 4.0,
+    "graph_deletion_mean_max": 2.0,
+    "phase_valid_reviewers_required": 5,
+    "phase_matching_votes_required": 3,
+    "phase_input": "original_causal_three_frames",
+    "phase_feedback_to_graph": false,
+    "transactional_selector_enabled": false,
+    "transactional_review_enabled": false
+  },
+  "h0_entrypoint": "scripts/run_dataset_api_pipeline.py",
+  "pure_api_h0_changed": false,
+  "tracker_integrated": false,
+  "gate_integrated": false,
+  "full_dataset_repair_supported": false,
+  "historical_results_modified": false,
+  "diagnostic_extension": {
+    "version": "review_rejection_details_v1",
+    "entrypoint": "scripts/write_review_diagnostics.py",
+    "output": "review_diagnostics.json",
+    "automatic_after": [
+      "execute",
+      "score"
+    ],
+    "predictions_changed": false,
+    "additional_api_calls": 0,
+    "trial_report": "docs/DEFAULT_IMPROVEMENT_TRIAL_2026-09-09.md"
+  },
+  "limitations": [
+    "The default selects the mechanism, not cached predictions for new images or guaranteed historical scores.",
+    "The current runner supports the existing eight-target Training archive; it does not repair an arbitrary full H0 dataset.",
+    "BEST_PHASE_RESULT.json records the historical original-prompt best, not a compact-prompt result.",
+    "Compact paired trial: four-head F1 unchanged; Phase gain confounded by provider failures. Native input tokens decreased in all 76 measurable pairs; four pairs lacked usage. No general accuracy, cost or speed guarantee.",
+    "Already prepared original-profile directories retain their frozen original prompt when executed or scored.",
+    "Existing graph mean and Phase majority rules retained. No claim that changing models fixes Phase.",
+    "Legacy grok seat now denotes GLM via OpenRouter/Together, not Mistral or xAI.",
+    "GLM thinking is mandatory, low effort requested; reasoning tokens remain billable even when excluded from returned text.",
+    "No full-pipeline accuracy or speed claim for this roster; smoke only checks interface and contract."
+  ],
+  "roster_trial_report": "docs/DEFAULT_GLM_REPAIR_2026-09-10.md",
+  "previous_default_manifest": "configs/defaults/parallel-phase-repair-v1.2.0-lightweight-reviewers.json",
+  "reviewer_models": {
+    "grok": "z-ai/glm-5.3-flash",
+    "qwen": "qwen3.5-35b-a3b",
+    "gpt": "openai/gpt-5.6-luna",
+    "gemini": "google/gemini-3.5-flash-lite",
+    "deepseek": "deepseek/deepseek-v4-flash-vision-exp"
+  },
+  "reviewer_families": {
+    "grok": "GLM",
+    "qwen": "Qwen",
+    "gpt": "GPT",
+    "gemini": "Gemini",
+    "deepseek": "DeepSeek"
+  },
+  "selection_basis": "Explicit user selection of GLM-5.3-Flash. Mandatory thinking set to low; exclude hides text only. Not selected by measured accuracy.",
+  "reviewer_transports": {
+    "grok": {
+      "endpoint": "https://openrouter.ai/api/v1",
+      "credential_slot": "gpt",
+      "account": "openrouter_usd",
+      "provider": "together",
+      "allow_fallbacks": false,
+      "reasoning": {
+        "effort": "low",
+        "exclude": true
+      },
+      "reasoning_mandatory": true
+    },
+    "qwen": {
+      "endpoint": "https://llm-osbw8dppqg2h8sx0.cn-beijing.maas.aliyuncs.com/compatible-mode/v1",
+      "credential_slot": "qwen",
+      "account": "aliyun_cny",
+      "enable_thinking": false
+    }
+  }
+}

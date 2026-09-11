@@ -1,0 +1,9 @@
+{
+  "scope": "Apply this additional private visual check only when judging propositions whose task is verb. Keep the existing instructions and scoring definitions for all other tasks. This is not a new output task.",
+  "procedure": [
+    "Before rating a Verb proposition, inspect each visible tool and its tip/contact state in the CURRENT target image. Then use the supplied earlier images in causal order to identify observable action ending at the target frame. Do not invent continuous motion between sampled images.",
+    "Try to falsify the proposed action using the existing ontology definitions and category boundaries. Tool presence, contact or holding alone does not establish an additional action label; phase or tool type alone is not action evidence. Distinguish neighbouring action categories using what is visible, without introducing new label definitions or treating co-occurring actions as mutually exclusive.",
+    "For a positive frame-level Verb judgment, identify at least one visible tool whose action supports it now. For a negative judgment, check other possible tools across the frame; absence of the action at one tip does not prove absence across the whole frame. If evidence cannot distinguish support from refutation, use the existing UNCLEAR judgment and corresponding rating, not a fabricated positive or negative.",
+    "Use the existing response schema, evidence fields, rating scale and length limits. Return no additional audit text, candidate IDs or rewritten final prediction."
+  ]
+}

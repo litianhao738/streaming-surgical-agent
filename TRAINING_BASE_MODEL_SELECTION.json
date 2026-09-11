@@ -1,0 +1,73 @@
+{
+  "schema_version": "training_base_model_selection_v1",
+  "selected_on": "2026-09-11",
+  "selected_for_next_collection": true,
+  "mechanism": "prior-gated-joint-mainline-v1.0.0",
+  "model": "google/gemini-3.8-flash",
+  "base_roles": [
+    "h0",
+    "proposal",
+    "phase_recommendation"
+  ],
+  "endpoint": "https://openrouter.ai/api/v1",
+  "provider": "google-ai-studio",
+  "allow_fallbacks": false,
+  "reasoning": {
+    "effort": "low"
+  },
+  "reviewer_models": {
+    "deepseek": "deepseek/deepseek-v4-flash-vision-exp",
+    "gemini": "google/gemini-3.5-flash-lite",
+    "gpt": "openai/gpt-5.6-luna",
+    "grok": "z-ai/glm-5.3-flash",
+    "qwen": "qwen3.5-35b-a3b"
+  },
+  "gate": {
+    "add_rate": 0.7,
+    "prune": [],
+    "veto_rate": 0.01
+  },
+  "phase_threshold": 4,
+  "phase_feedback_to_prior": false,
+  "training_videos": [
+    "VID103",
+    "VID23",
+    "VID31",
+    "VID96"
+  ],
+  "target_counts": {
+    "VID103": 1667,
+    "VID23": 1570,
+    "VID31": 3903,
+    "VID96": 1221
+  },
+  "selection_samples": [
+    "VID103_18501",
+    "VID103_33751",
+    "VID23_13076",
+    "VID23_28551",
+    "VID31_57076",
+    "VID96_20076"
+  ],
+  "selection_scope": "Six paired Training targets; development recommendation, not independent confirmation. Sol 4/6 outputs, Gemini and Qwen 6/6.",
+  "comparison_path": "D:\\PythonProject7\\artifacts\\research\\mainline_backbone_training6_comparison_20260911_v1\\comparison.json",
+  "comparison_sha256": "56030e67536c7451b83313f8607835ab42c67d48d456b53397b7e692a0b58e2c",
+  "report": "docs/MAINLINE_BACKBONE_COMPARISON_2026-09-11.md",
+  "report_sha256": "32a0f55c215e13741d9d1a2f4c2a8fbc338d28041ac715fb43135be8fb73f72a",
+  "projected_full_collection": {
+    "targets": 8361,
+    "full_mainline_calls_no_failures": 108693,
+    "usd_native_extrapolation": "229.74804507",
+    "cny_estimate_extrapolation": "225.2690295",
+    "sequential_hours": 59.86212210449575,
+    "ideal_hours_at_4_target_workers": 14.965530526123937,
+    "ideal_hours_at_8_target_workers": 7.482765263061968,
+    "assumptions": "Six-target extrapolation; all targets run the 13-call pipeline, no retries; target-internal panels already parallel. Cross-target 4/8-worker scaling untested; excludes image preparation and local I/O. Not an upper bound."
+  },
+  "known_phase_risk": "One correct Gemini H0 Phase was changed to incorrect on these six targets; retain negative repair examples for Gate supervision.",
+  "full_collection_started": false,
+  "gate_training_started": false,
+  "full_training_collector_ready": false,
+  "next_action": "Prepare a dedicated Training collector and data contract using frozen run_target; do not use the release prepare command, which targets Testing.",
+  "evaluation_policy": "Exclude the query video from priors; GT used only offline after sealing predictions; reserve an untouched evaluation split; no model selection from Testing."
+}

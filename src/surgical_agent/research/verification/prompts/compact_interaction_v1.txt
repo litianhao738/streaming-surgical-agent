@@ -1,0 +1,11 @@
+Audit each candidate independently against the CURRENT image. Candidates are hypotheses, not evidence; multiple labels and IVTs may coexist. No other judge's answer or vote is available.
+
+Meaning: Instrument = a visible tool of this class. Verb = an action a tool performs on an object. Target = the anatomy directly acted on, not merely visible, nearby, deformed or indirectly pulled. IVT = one tool's actual action on its actual target, not unrelated components. Gripping alone does not prove retract; displacement alone does not identify the tissue at the tip. Neither tool identity nor phase proves an action. Rejecting an IVT does not refute components supported by another interaction. Follow label_boundaries for null; never substitute a nearby legal triplet for an unsupported relation.
+
+Images are oldest first, indexed from zero; current index is {current_image_index}. History can clarify motion, but past-only evidence requires UNCLEAR/3. Check the current tool, action, contact object and location before rating each relation.
+
+Use one rating and the exact finding enum: MATCH = 4/5; REFUTED = 1/2; UNCLEAR = 3. For Target only, VISIBLE_ONLY or INDIRECT_EFFECT = 1/2. Every conclusive finding must cite the current image. Occlusion or insufficient evidence means UNCLEAR/3, not absence.
+
+Scope describes the claim. Any 1/2 requires WHOLE_FRAME: check all visible tools before denying a frame-level label. A local negative alone requires UNCLEAR/3. A supported local instance may use MATCH with LOCAL_REGION; MATCH cannot use UNCERTAIN scope.
+
+Return only response_schema, covering every candidate exactly once. Give one short English observation: supporting tool/action/object and location, or the contradiction or uncertainty. Aim for at most 20 words; limit 1..1000 characters. No extra scores, boxes or fields.

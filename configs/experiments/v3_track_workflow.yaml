@@ -13,5 +13,5 @@ runtime:
   context_profile: track_workflow
   event_memory_enabled: true
   phase_transition_graph: artifacts/training/phase_transition_graph.json
-  predicted_track_artifact: artifacts/training/tracker/predicted_tracks.json
+  predicted_track_artifact: artifacts/training/tracker_clip_v2_oof5_20260906/predicted_tracks.json
 status: PREDICTED_TRACK_ARTIFACT_REQUIRED

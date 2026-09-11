@@ -1,9 +1,37 @@
 # Streaming SurgicalAgent V3.1
 
+> **当前主线（2026-09-11）：`prior-gated-joint-mainline-v1.0.0`。** 按用户要求启用，每目标 13 次调用，原先验门控加联合 Phase，取消盲投 Phase 面板。冻结基座仍为 Gemini 3.8 Flash，五席审核不变。[当前流程](LATEST_PIPELINE.md) · [冻结证据](docs/PRIOR_GATED_JOINT_MAINLINE_FREEZE_2026-09-11.md)。已有确认未通过完整性标准，默认选择不表示全面最优。三基座六目标 Training 对照走独立入口；没有启动 Gate 数据采集。下列带“默认未改”的条目保留其历史实验时点含义。
+
+> **先验门控 + 联合 Phase 审核修复（2026-09-11，负结果，默认未改）：** [报告](docs/PRIOR_GATED_JOINT_PHASE_2026-09-11.md)。把 Phase 接入与四头相同的"提案 → 五席审核 → Python 接纳"流程，审核请求只含 H0 与原始候选池、Phase 推荐不带先验提示、门控仍以 H0 Phase 为桶（重放显示即使真值 Phase 也不能降低四头错漏）。16 个新 VID110 目标上联合面板一次也没改 Phase，候选与先验门控候选逐字节相同：五头平均 F1 **54.76 / 61.01 / 62.21**（H0 / 默认 / 两个门控臂），总错漏 95 / 88 / 84；预注册标准未通过。先验门控在第二批新帧上仍正向。
+>
+> **先验门控 IVT 接纳（2026-09-11，候选，默认未改）：** [报告](docs/PRIOR_GATED_IVT_ADMISSION_2026-09-11.md)。在 v1.3.0 四头之后增加纯 Python 步骤：按排除当前视频的 Training 先验（以 H0 Phase 为条件）否决罕见 IVT、接纳高频 IVT，Phase 冻结为 H0，不增加模型调用。136 个 Training 目标离线重放选定阈值后，16 个新 VID110 目标一次付费确认通过预注册标准：五头平均 F1 **55.46 / 54.33 / 58.97**（H0 / 默认 / 候选），总错漏 91 / 98 / 87。收益主要来自否决 `hook/dissect/cystic_plate`；仍是单视频、小样本。
+
+> **历史默认（2026-09-10）：`parallel-phase-repair-v1.3.0-glm-low`。** GLM-5.3-Flash替换Ministral席，与Qwen35B-A3B、GPT-luna、Gemini Flash-Lite、DeepSeek视觉Flash参与两路审核。GLM不能关闭推理，已设low；Together路由4次真实请求通过。[流程与实测](docs/DEFAULT_GLM_REPAIR_2026-09-10.md)。旧版本保留，未宣称准确率提升。
+
+> **轻量Phase审核席（2026-09-10）：** [8目标双席替换对照](docs/LIGHT_PHASE_SEATS_TRIAL_2026-09-10.md)。Grok→Ministral 8B、Qwen→35B-A3B，32次请求通过；两席并行等待约减半，Phase仍75%，H0为87.5%。只换一席与同时换两席结果相同，未取得Phase净收益，默认未改。
+
+> **Phase时序评分对照（2026-09-10）：** [短历史与较长因果历史，同32目标](docs/PHASE_TEMPORAL_RATINGS_TRIAL_2026-09-10.md)。320次请求全部有效；两组Phase均75.00%，各改对0、改坏1，仍低于H0 78.13%。默认Phase保持启用，未以固定H0替代修复；本轮未推广默认。
+
+> **简短Phase＋均分对照（2026-09-10）：** [同32目标的提示简化与评分实验](docs/PHASE_SIMPLE_RATINGS_TRIAL_2026-09-10.md)。320次真实调用完成：H0 Phase **78.13%**，简短单选／评分均 **75.00%**；评分改对0、改坏1。均分更保守但未带来Phase净收益，默认未改。
+
+> **同32目标Phase机制对照（2026-09-10）：** [旧提示／早期五头／修改模板的完整结果](docs/PHASE_MECHANISM_COMPARISON_2026-09-10.md)。Phase F1：H0 **78.13%**，新精简与旧提示均 **71.88%**，早期五头及修改模板均 **75.00%**。832次调用完成；格式修正版160份回答全部有效，但改对1、改坏2，未取得Phase净收益。默认未改。
+
+> **32目标扩大对照（2026-09-10）：** [H0／默认／分组完整结果](docs/EXPANDED_SPLIT_REVIEW_2026-09-10.md)。平均F1 **58.03% / 59.63% / 58.85%**，分组未胜出；共享Phase从78.13%降至65.63%，改对3、改坏7。704次调用完成，异常敏感性核验通过，默认未改。
+
+> **换样本复测：** [新8目标：H0、默认与分组审核](docs/FRESH_SPLIT_REVIEW_2026-09-09.md)。平均F1 **54.59% / 64.96% / 65.55%**；分组小幅改善但Target仍下降，与旧8目标总体方向不同。176次真实请求已核验，默认未改。
+
+> **分组审核试验：** [I/V/T 与 IVT 分开审核的结果](docs/SPLIT_REVIEW_TRIAL_2026-09-09.md)：同8目标未改善，审核费用增加约34%、等待约5%（含明确恢复计时限制），默认保持不变。
+
+> **最新修复对照：** [多方案开发＋24新Training目标确认](docs/DEFAULT_IMPROVEMENT_TRIAL_2026-09-09.md)。未发现可稳定替换默认的语义方案；默认已补齐具体审核拒绝原因日志，预测与API次数不变。
+
+> **上一默认方案（2026-09-09）：图谱一轮＋独立 Phase 短历史审核，版本 `parallel-phase-repair-v1.1.0-compact-prompt`，已保留。**
+> 统一入口：`python scripts/run_pipeline.py`（显示当前版本）；[默认版本配置](DEFAULT_PIPELINE_VERSION.json) · [旧版运行说明](docs/DEFAULT_REPAIR_PIPELINE_2026-09-09.md)。
+> 该入口采用精简审核 prompt，复用原均分接纳与独立 Phase 并行执行器，目前支持归档的 8 个 Training 目标及缓存 H0；transactional 接纳实验、完整数据集及 Tracker/Gate 修复尚未接入。
+
 > **2026-09-09：[最新 Pipeline 流程图与输入输出说明](LATEST_PIPELINE.md)**
 > 固定 H0 → **图谱四头修复**与**独立 Phase 审核**并行 → Python 合并五头。
 > [下载与重放](https://github.com/litianhao738/streaming-surgical-agent/blob/parallel-phase-repair-v1.0.0-experimental/docs/releases/PARALLEL_PHASE_REPAIR_V1.md) · [版本清单](LATEST_PIPELINE_VERSION.json) · [离线重放入口](https://github.com/litianhao738/streaming-surgical-agent/blob/parallel-phase-repair-v1.0.0-experimental/scripts/replay_parallel_phase_repair.py) · [保留的 Phase 结果](BEST_PHASE_RESULT.json)
-> 同八个 Training 目标：最新重跑 IVT F1 **38.71%**、Phase **75.00%**；此前保留结果为 **40.00% / 75.00%**。这不是完整 Tracker/Gate 或 Testing 结果。
+> 上述下载链接与成绩属于基础 v1.0.0：并行重跑 IVT F1 **38.71%**、Phase **75.00%**；此前保留结果为 **40.00% / 75.00%**。精简提示结果见[配对报告](docs/VERIFIER_COMPACT_PROMPT_TRIAL_2026-09-09.md)，新默认尚未发布 Git 标签。
 > 原图谱标签、默认纯 API H0 与历史结果保留。[实验记录](EXPERIMENT_RESULTS.md)。
 
 CholecTrack20-only research code for strict-causal surgical video inference,

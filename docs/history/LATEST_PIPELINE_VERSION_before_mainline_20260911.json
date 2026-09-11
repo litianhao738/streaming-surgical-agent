@@ -1,0 +1,22 @@
+{
+  "default_selection": "DEFAULT_PIPELINE_VERSION.json",
+  "default_repair_entrypoint": "scripts/run_pipeline.py",
+  "user_selected_as_default_repair": true,
+  "best_observed_result": "BEST_PHASE_RESULT.json",
+  "branch": "main",
+  "code_location": "Local workspace GLM low-reasoning reviewer default; not committed or tagged. Historical releases preserved.",
+  "commit": null,
+  "base_release_commit": "262cda927771f95d241bc7faa102c095fdbf1aed",
+  "base_release_tag": "parallel-phase-repair-v1.0.0-experimental",
+  "flow_document": "LATEST_PIPELINE.md",
+  "gate_integrated": false,
+  "pure_api_default_changed": false,
+  "release_manifest": "DEFAULT_PIPELINE_VERSION.json",
+  "schema_version": "latest_pipeline_release_pointer_v1",
+  "status": "user_selected_glm_low_reviewer_roster",
+  "tag": null,
+  "tracker_integrated": false,
+  "version": "parallel-phase-repair-v1.3.0-glm-low",
+  "verifier_prompt_profile": "verifier_compact_wording_v2_json_mode_candidate",
+  "roster_report": "docs/DEFAULT_GLM_REPAIR_2026-09-10.md"
+}

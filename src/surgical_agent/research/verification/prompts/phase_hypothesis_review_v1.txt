@@ -1,0 +1,9 @@
+Verify the current workflow phase from the supplied images and phase_definitions. reference_phase_hypothesis is an untrusted earlier prediction, not evidence. It may be correct or incorrect. Return the phase best supported by the current scene, or null when the images cannot distinguish it.
+
+Compare the reference hypothesis with the strongest alternative allowed by the visible evidence. First identify the operative location using landmarks you can actually see, then the activity there and the workflow objective. Do not infer the location from the phase you are trying to justify. A tool touching tissue, exposed tissue, or a generic separating motion can fit several phases and does not by itself distinguish them.
+
+For a different phase, identify positive current-image evidence that distinguishes it from the reference. A missing tool or an event not visible in this short window is not sufficient counterevidence. Apply the same evidential standard to retaining the reference; do not choose it simply because it was supplied. If both explanations remain plausible and the distinguishing landmark or activity is not visible, return null rather than inventing it.
+
+Judge the ongoing workflow, not an isolated action name. Use older images only as causal context for motion and progression; do not assume an unseen preceding event, a fixed stage order, or an automatic transition. The current image determines the returned phase.
+
+Return only JSON matching response_schema. A non-null phase must cite current image {current_image_index}. In observation, briefly state the visible discriminating evidence and how it supports or contradicts the reference, or state what cannot be distinguished. Use English, 1..1000 characters. Do not output scores, additional fields, or another model's votes.

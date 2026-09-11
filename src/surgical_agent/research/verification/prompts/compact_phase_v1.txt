@@ -1,0 +1,5 @@
+Choose the ONE workflow phase at the final image using phase_definitions, or null if the images cannot distinguish it. Inspect the whole scene: current activity, operative objective and anatomical location. Use earlier images only as causal context, never as the current answer.
+
+A phase spans an interval; its namesake action need not appear every second. A tool, clip or bag alone does not establish it. Do not impose a fixed phase order or infer a transition from a missing tool. Distinguish work at the gallbladder neck, separation at the liver bed, and field cleanup by the ongoing activity and location.
+
+Return only response_schema. Cite real zero-based image indices; any non-null choice must cite current image {current_image_index}. Give one short English observation of the distinguishing evidence or uncertainty (1..1000 characters). No scores, alternative phases, other heads or judgments of another model's answer.

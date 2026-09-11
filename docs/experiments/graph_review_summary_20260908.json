@@ -1,0 +1,1014 @@
+{
+  "profile": "graph_review_six_20260908_v1",
+  "status": "not_adopted_no_incremental_semantic_gain",
+  "scope": "six_training_time_targets_existing_definition_reorganization_not_new_medical_knowledge",
+  "completion": {
+    "all_panels_attempted": true,
+    "all_targets_have_h0": true,
+    "budget_sha256": "1570ba1a71bb7f70a53b6b3b197c79dc8b68f2ba8dfd30f8476bdd1fd2cd26d2",
+    "call_statuses": {
+      "JSON_PARSED": 102
+    },
+    "closed_utc": "2026-09-08T11:37:13.497876+00:00",
+    "fatal_error": null,
+    "gt_values_not_read_during_inference": true,
+    "occupied": {
+      "aliyun_cny": "0.194486",
+      "openrouter_usd": "0.16255344",
+      "xai_usd": "0.367128"
+    },
+    "plan_sha256": "d58e28134ec0cb597e31220c3ffe59a18ab91541c320c9665bde1efc536fc4c5",
+    "post_calls": 102,
+    "predictions_sha256": "20e0bb406000ea82ab5edad4145d58e4843047851266769a4b2977761ec5483c"
+  },
+  "metrics": {
+    "comparisons": {
+      "h0_to_flat": {
+        "categories": {
+          "partial_improvement": 1,
+          "unchanged": 5
+        },
+        "correct_additions": 3,
+        "correct_deletions": 0,
+        "error_count_after": 32,
+        "error_count_before": 35,
+        "exact_to_wrong": 0,
+        "fixed_label_errors": 3,
+        "introduced_label_errors": 0,
+        "net_errors_removed": 3,
+        "tasks": {
+          "instrument": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 6,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "ivt": {
+            "correct_additions": 1,
+            "correct_deletions": 0,
+            "valid_targets": 6,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "phase": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 6,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "target": {
+            "correct_additions": 1,
+            "correct_deletions": 0,
+            "valid_targets": 6,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "verb": {
+            "correct_additions": 1,
+            "correct_deletions": 0,
+            "valid_targets": 6,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          }
+        },
+        "wrong_additions": 0,
+        "wrong_deletions": 0,
+        "wrong_to_exact": 0
+      },
+      "h0_to_graph": {
+        "categories": {
+          "partial_improvement": 1,
+          "unchanged": 5
+        },
+        "correct_additions": 2,
+        "correct_deletions": 0,
+        "error_count_after": 33,
+        "error_count_before": 35,
+        "exact_to_wrong": 0,
+        "fixed_label_errors": 2,
+        "introduced_label_errors": 0,
+        "net_errors_removed": 2,
+        "tasks": {
+          "instrument": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 6,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "ivt": {
+            "correct_additions": 1,
+            "correct_deletions": 0,
+            "valid_targets": 6,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "phase": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 6,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "target": {
+            "correct_additions": 1,
+            "correct_deletions": 0,
+            "valid_targets": 6,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "verb": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 6,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          }
+        },
+        "wrong_additions": 0,
+        "wrong_deletions": 0,
+        "wrong_to_exact": 0
+      },
+      "h0_to_none": {
+        "categories": {
+          "partial_improvement": 1,
+          "unchanged": 5
+        },
+        "correct_additions": 3,
+        "correct_deletions": 0,
+        "error_count_after": 32,
+        "error_count_before": 35,
+        "exact_to_wrong": 0,
+        "fixed_label_errors": 3,
+        "introduced_label_errors": 0,
+        "net_errors_removed": 3,
+        "tasks": {
+          "instrument": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 6,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "ivt": {
+            "correct_additions": 1,
+            "correct_deletions": 0,
+            "valid_targets": 6,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "phase": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 6,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "target": {
+            "correct_additions": 1,
+            "correct_deletions": 0,
+            "valid_targets": 6,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "verb": {
+            "correct_additions": 1,
+            "correct_deletions": 0,
+            "valid_targets": 6,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          }
+        },
+        "wrong_additions": 0,
+        "wrong_deletions": 0,
+        "wrong_to_exact": 0
+      },
+      "none_to_flat": {
+        "categories": {
+          "unchanged": 6
+        },
+        "correct_additions": 0,
+        "correct_deletions": 0,
+        "error_count_after": 32,
+        "error_count_before": 32,
+        "exact_to_wrong": 0,
+        "fixed_label_errors": 0,
+        "introduced_label_errors": 0,
+        "net_errors_removed": 0,
+        "tasks": {
+          "instrument": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 6,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "ivt": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 6,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "phase": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 6,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "target": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 6,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "verb": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 6,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          }
+        },
+        "wrong_additions": 0,
+        "wrong_deletions": 0,
+        "wrong_to_exact": 0
+      },
+      "none_to_graph": {
+        "categories": {
+          "harm": 1,
+          "unchanged": 5
+        },
+        "correct_additions": 0,
+        "correct_deletions": 0,
+        "error_count_after": 33,
+        "error_count_before": 32,
+        "exact_to_wrong": 0,
+        "fixed_label_errors": 0,
+        "introduced_label_errors": 1,
+        "net_errors_removed": -1,
+        "tasks": {
+          "instrument": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 6,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "ivt": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 6,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "phase": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 6,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "target": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 6,
+            "wrong_additions": 0,
+            "wrong_deletions": 0
+          },
+          "verb": {
+            "correct_additions": 0,
+            "correct_deletions": 0,
+            "valid_targets": 6,
+            "wrong_additions": 0,
+            "wrong_deletions": 1
+          }
+        },
+        "wrong_additions": 0,
+        "wrong_deletions": 1,
+        "wrong_to_exact": 0
+      }
+    },
+    "coverage": {
+      "all_planned_targets_retained": true,
+      "arm_predictions_available": {
+        "flat": 6,
+        "graph": 6,
+        "none": 6
+      },
+      "arm_statuses": {
+        "flat": {
+          "UNRESOLVED": 6
+        },
+        "graph": {
+          "UNRESOLVED": 6
+        },
+        "none": {
+          "UNRESOLVED": 6
+        }
+      },
+      "failed_predictions_never_receive_exact_credit": true,
+      "fallback_prediction_is_not_evidence_of_successful_review": true,
+      "h0_available": 6,
+      "missing_gt_excluded_per_task_mask": true,
+      "scored_targets": 6,
+      "selected_targets": 6
+    },
+    "delta_definition": "Mixed means some valid heads improve and others worsen; same-loss changes are no-benefit replacements. Beneficial and harmful edits are also counted individually.",
+    "metrics": {
+      "flat": {
+        "all_valid_heads_exact": {
+          "accuracy": 0.0,
+          "exact_matches": 0,
+          "valid_targets": 6
+        },
+        "tasks": {
+          "instrument": {
+            "exact_matches": 6,
+            "exact_set_accuracy": 1.0,
+            "failed_predictions": 0,
+            "fn": 0,
+            "fp": 0,
+            "micro_f1": 1.0,
+            "micro_precision": 1.0,
+            "micro_recall": 1.0,
+            "tp": 10,
+            "valid_targets": 6
+          },
+          "ivt": {
+            "exact_matches": 0,
+            "exact_set_accuracy": 0.0,
+            "failed_predictions": 0,
+            "fn": 8,
+            "fp": 8,
+            "micro_f1": 0.3333333333333333,
+            "micro_precision": 0.3333333333333333,
+            "micro_recall": 0.3333333333333333,
+            "tp": 4,
+            "valid_targets": 6
+          },
+          "phase": {
+            "exact_matches": 5,
+            "exact_set_accuracy": 0.8333333333333334,
+            "failed_predictions": 0,
+            "fn": 1,
+            "fp": 1,
+            "micro_f1": 0.8333333333333334,
+            "micro_precision": 0.8333333333333334,
+            "micro_recall": 0.8333333333333334,
+            "tp": 5,
+            "valid_targets": 6
+          },
+          "target": {
+            "exact_matches": 1,
+            "exact_set_accuracy": 0.16666666666666666,
+            "failed_predictions": 0,
+            "fn": 4,
+            "fp": 5,
+            "micro_f1": 0.6086956521739131,
+            "micro_precision": 0.5833333333333334,
+            "micro_recall": 0.6363636363636364,
+            "tp": 7,
+            "valid_targets": 6
+          },
+          "verb": {
+            "exact_matches": 3,
+            "exact_set_accuracy": 0.5,
+            "failed_predictions": 0,
+            "fn": 2,
+            "fp": 3,
+            "micro_f1": 0.8,
+            "micro_precision": 0.7692307692307693,
+            "micro_recall": 0.8333333333333334,
+            "tp": 10,
+            "valid_targets": 6
+          }
+        }
+      },
+      "graph": {
+        "all_valid_heads_exact": {
+          "accuracy": 0.0,
+          "exact_matches": 0,
+          "valid_targets": 6
+        },
+        "tasks": {
+          "instrument": {
+            "exact_matches": 6,
+            "exact_set_accuracy": 1.0,
+            "failed_predictions": 0,
+            "fn": 0,
+            "fp": 0,
+            "micro_f1": 1.0,
+            "micro_precision": 1.0,
+            "micro_recall": 1.0,
+            "tp": 10,
+            "valid_targets": 6
+          },
+          "ivt": {
+            "exact_matches": 0,
+            "exact_set_accuracy": 0.0,
+            "failed_predictions": 0,
+            "fn": 8,
+            "fp": 8,
+            "micro_f1": 0.3333333333333333,
+            "micro_precision": 0.3333333333333333,
+            "micro_recall": 0.3333333333333333,
+            "tp": 4,
+            "valid_targets": 6
+          },
+          "phase": {
+            "exact_matches": 5,
+            "exact_set_accuracy": 0.8333333333333334,
+            "failed_predictions": 0,
+            "fn": 1,
+            "fp": 1,
+            "micro_f1": 0.8333333333333334,
+            "micro_precision": 0.8333333333333334,
+            "micro_recall": 0.8333333333333334,
+            "tp": 5,
+            "valid_targets": 6
+          },
+          "target": {
+            "exact_matches": 1,
+            "exact_set_accuracy": 0.16666666666666666,
+            "failed_predictions": 0,
+            "fn": 4,
+            "fp": 5,
+            "micro_f1": 0.6086956521739131,
+            "micro_precision": 0.5833333333333334,
+            "micro_recall": 0.6363636363636364,
+            "tp": 7,
+            "valid_targets": 6
+          },
+          "verb": {
+            "exact_matches": 3,
+            "exact_set_accuracy": 0.5,
+            "failed_predictions": 0,
+            "fn": 3,
+            "fp": 3,
+            "micro_f1": 0.75,
+            "micro_precision": 0.75,
+            "micro_recall": 0.75,
+            "tp": 9,
+            "valid_targets": 6
+          }
+        }
+      },
+      "h0": {
+        "all_valid_heads_exact": {
+          "accuracy": 0.0,
+          "exact_matches": 0,
+          "valid_targets": 6
+        },
+        "tasks": {
+          "instrument": {
+            "exact_matches": 6,
+            "exact_set_accuracy": 1.0,
+            "failed_predictions": 0,
+            "fn": 0,
+            "fp": 0,
+            "micro_f1": 1.0,
+            "micro_precision": 1.0,
+            "micro_recall": 1.0,
+            "tp": 10,
+            "valid_targets": 6
+          },
+          "ivt": {
+            "exact_matches": 0,
+            "exact_set_accuracy": 0.0,
+            "failed_predictions": 0,
+            "fn": 9,
+            "fp": 8,
+            "micro_f1": 0.2608695652173913,
+            "micro_precision": 0.2727272727272727,
+            "micro_recall": 0.25,
+            "tp": 3,
+            "valid_targets": 6
+          },
+          "phase": {
+            "exact_matches": 5,
+            "exact_set_accuracy": 0.8333333333333334,
+            "failed_predictions": 0,
+            "fn": 1,
+            "fp": 1,
+            "micro_f1": 0.8333333333333334,
+            "micro_precision": 0.8333333333333334,
+            "micro_recall": 0.8333333333333334,
+            "tp": 5,
+            "valid_targets": 6
+          },
+          "target": {
+            "exact_matches": 1,
+            "exact_set_accuracy": 0.16666666666666666,
+            "failed_predictions": 0,
+            "fn": 5,
+            "fp": 5,
+            "micro_f1": 0.5454545454545454,
+            "micro_precision": 0.5454545454545454,
+            "micro_recall": 0.5454545454545454,
+            "tp": 6,
+            "valid_targets": 6
+          },
+          "verb": {
+            "exact_matches": 3,
+            "exact_set_accuracy": 0.5,
+            "failed_predictions": 0,
+            "fn": 3,
+            "fp": 3,
+            "micro_f1": 0.75,
+            "micro_precision": 0.75,
+            "micro_recall": 0.75,
+            "tp": 9,
+            "valid_targets": 6
+          }
+        }
+      },
+      "none": {
+        "all_valid_heads_exact": {
+          "accuracy": 0.0,
+          "exact_matches": 0,
+          "valid_targets": 6
+        },
+        "tasks": {
+          "instrument": {
+            "exact_matches": 6,
+            "exact_set_accuracy": 1.0,
+            "failed_predictions": 0,
+            "fn": 0,
+            "fp": 0,
+            "micro_f1": 1.0,
+            "micro_precision": 1.0,
+            "micro_recall": 1.0,
+            "tp": 10,
+            "valid_targets": 6
+          },
+          "ivt": {
+            "exact_matches": 0,
+            "exact_set_accuracy": 0.0,
+            "failed_predictions": 0,
+            "fn": 8,
+            "fp": 8,
+            "micro_f1": 0.3333333333333333,
+            "micro_precision": 0.3333333333333333,
+            "micro_recall": 0.3333333333333333,
+            "tp": 4,
+            "valid_targets": 6
+          },
+          "phase": {
+            "exact_matches": 5,
+            "exact_set_accuracy": 0.8333333333333334,
+            "failed_predictions": 0,
+            "fn": 1,
+            "fp": 1,
+            "micro_f1": 0.8333333333333334,
+            "micro_precision": 0.8333333333333334,
+            "micro_recall": 0.8333333333333334,
+            "tp": 5,
+            "valid_targets": 6
+          },
+          "target": {
+            "exact_matches": 1,
+            "exact_set_accuracy": 0.16666666666666666,
+            "failed_predictions": 0,
+            "fn": 4,
+            "fp": 5,
+            "micro_f1": 0.6086956521739131,
+            "micro_precision": 0.5833333333333334,
+            "micro_recall": 0.6363636363636364,
+            "tp": 7,
+            "valid_targets": 6
+          },
+          "verb": {
+            "exact_matches": 3,
+            "exact_set_accuracy": 0.5,
+            "failed_predictions": 0,
+            "fn": 2,
+            "fp": 3,
+            "micro_f1": 0.8,
+            "micro_precision": 0.7692307692307693,
+            "micro_recall": 0.8333333333333334,
+            "tp": 10,
+            "valid_targets": 6
+          }
+        }
+      }
+    },
+    "protocol": "task-masked pooled label micro metrics; zero_division=0; all frozen targets retained",
+    "runtime": {
+      "dispatched_calls": {
+        "all": {
+          "calls": 102,
+          "calls_with_token_usage": 102,
+          "charge_kinds": {
+            "conservative_estimate": 18,
+            "native": 84
+          },
+          "charges_by_account": {
+            "aliyun_cny": "0.194486",
+            "openrouter_usd": "0.16255344",
+            "xai_usd": "0.367128"
+          },
+          "completion_tokens": 54814,
+          "elapsed_seconds": {
+            "max": 29.30927000000156,
+            "median": 6.194773999999597,
+            "min": 2.231983300000138,
+            "n": 102
+          },
+          "prompt_tokens": 515620,
+          "statuses": {
+            "JSON_PARSED": 102
+          },
+          "unknown_reserved_calls": 0
+        },
+        "flat": {
+          "calls": 30,
+          "calls_with_token_usage": 30,
+          "charge_kinds": {
+            "conservative_estimate": 6,
+            "native": 24
+          },
+          "charges_by_account": {
+            "aliyun_cny": "0.066248",
+            "openrouter_usd": "0.04107691",
+            "xai_usd": "0.122952"
+          },
+          "completion_tokens": 18130,
+          "elapsed_seconds": {
+            "max": 27.34733409999899,
+            "median": 6.661427149998417,
+            "min": 2.7530445999982476,
+            "n": 30
+          },
+          "prompt_tokens": 159926,
+          "statuses": {
+            "JSON_PARSED": 30
+          },
+          "unknown_reserved_calls": 0
+        },
+        "graph": {
+          "calls": 30,
+          "calls_with_token_usage": 30,
+          "charge_kinds": {
+            "conservative_estimate": 6,
+            "native": 24
+          },
+          "charges_by_account": {
+            "aliyun_cny": "0.065589",
+            "openrouter_usd": "0.04004977",
+            "xai_usd": "0.125718"
+          },
+          "completion_tokens": 17486,
+          "elapsed_seconds": {
+            "max": 29.30927000000156,
+            "median": 5.913541399999303,
+            "min": 2.231983300000138,
+            "n": 30
+          },
+          "prompt_tokens": 159866,
+          "statuses": {
+            "JSON_PARSED": 30
+          },
+          "unknown_reserved_calls": 0
+        },
+        "none": {
+          "calls": 30,
+          "calls_with_token_usage": 30,
+          "charge_kinds": {
+            "conservative_estimate": 6,
+            "native": 24
+          },
+          "charges_by_account": {
+            "aliyun_cny": "0.062649",
+            "openrouter_usd": "0.03914626",
+            "xai_usd": "0.118458"
+          },
+          "completion_tokens": 17657,
+          "elapsed_seconds": {
+            "max": 28.247363099999347,
+            "median": 6.439851700000872,
+            "min": 2.7320952999980364,
+            "n": 30
+          },
+          "prompt_tokens": 147159,
+          "statuses": {
+            "JSON_PARSED": 30
+          },
+          "unknown_reserved_calls": 0
+        },
+        "shared_h0_and_proposal": {
+          "calls": 12,
+          "calls_with_token_usage": 12,
+          "charge_kinds": {
+            "native": 12
+          },
+          "charges_by_account": {
+            "openrouter_usd": "0.04228050"
+          },
+          "completion_tokens": 1541,
+          "elapsed_seconds": {
+            "max": 8.331550899998547,
+            "median": 5.543775049998658,
+            "min": 2.5282602999977826,
+            "n": 12
+          },
+          "prompt_tokens": 48669,
+          "statuses": {
+            "JSON_PARSED": 12
+          },
+          "unknown_reserved_calls": 0
+        }
+      },
+      "notes": [
+        "Native USD and estimated CNY are reported separately; no exchange rate is assumed.",
+        "Shared panels carry no new API charge and are not independent latency observations.",
+        "Small-sample timings include provider variation; no stable p95 or causal latency claim."
+      ],
+      "timing": {
+        "flat": {
+          "local_retrieval_seconds": {
+            "max": 0.0021287999988999218,
+            "median": 0.0012562499996420229,
+            "min": 0.000504300001921365,
+            "n": 6
+          },
+          "paired_to_none": {
+            "median_percent_added": 1.2045937342680058,
+            "median_seconds_added": 0.08642144999794255,
+            "pairs": [
+              {
+                "key": "VID103_18601",
+                "percent_added": -13.491958520469204,
+                "seconds_added": -3.2945403000012448
+              },
+              {
+                "key": "VID103_33851",
+                "percent_added": 27.426308148849987,
+                "seconds_added": 4.9038292999975965
+              },
+              {
+                "key": "VID23_12976",
+                "percent_added": -2.117273885534343,
+                "seconds_added": -0.45214860000487533
+              },
+              {
+                "key": "VID23_28551",
+                "percent_added": 4.526461354070355,
+                "seconds_added": 0.6249915000007604
+              },
+              {
+                "key": "VID31_57076",
+                "percent_added": 8.325284837527459,
+                "seconds_added": 1.8603506999970705
+              },
+              {
+                "key": "VID96_20076",
+                "percent_added": -3.1831384808382213,
+                "seconds_added": -0.8995271999992838
+              }
+            ]
+          },
+          "panel_seconds": {
+            "max": 27.35960150000028,
+            "median": 21.953928099999757,
+            "min": 14.432499200000166,
+            "n": 6
+          },
+          "reference_chars": {
+            "max": 1668.0,
+            "median": 1470.0,
+            "min": 1300.0,
+            "n": 6
+          },
+          "shared_panels_excluded_from_independent_latency": 0
+        },
+        "graph": {
+          "local_retrieval_seconds": {
+            "max": 0.0006723000005877111,
+            "median": 0.00047529999937978573,
+            "min": 0.0003569000000425149,
+            "n": 6
+          },
+          "paired_to_none": {
+            "median_percent_added": 0.5713142191009601,
+            "median_seconds_added": 0.2518180499992013,
+            "pairs": [
+              {
+                "key": "VID103_18601",
+                "percent_added": -18.352605125263576,
+                "seconds_added": -4.481439600000158
+              },
+              {
+                "key": "VID103_33851",
+                "percent_added": 12.847561907316285,
+                "seconds_added": 2.2971465999980865
+              },
+              {
+                "key": "VID23_12976",
+                "percent_added": -2.617928411519821,
+                "seconds_added": -0.5590645000011136
+              },
+              {
+                "key": "VID23_28551",
+                "percent_added": 78.14372611212335,
+                "seconds_added": 10.789700999997876
+              },
+              {
+                "key": "VID31_57076",
+                "percent_added": -6.324196077666688,
+                "seconds_added": -1.413191600000573
+              },
+              {
+                "key": "VID96_20076",
+                "percent_added": 3.760556849721741,
+                "seconds_added": 1.0627005999995163
+              }
+            ]
+          },
+          "panel_seconds": {
+            "max": 29.32182929999908,
+            "median": 20.864379600001485,
+            "min": 19.937107900001138,
+            "n": 6
+          },
+          "reference_chars": {
+            "max": 1681.0,
+            "median": 1597.0,
+            "min": 1447.0,
+            "n": 6
+          },
+          "shared_panels_excluded_from_independent_latency": 0
+        },
+        "none": {
+          "local_retrieval_seconds": {
+            "max": 0.0019978999989689328,
+            "median": 0.00019035000150324777,
+            "min": 0.00014059999739401974,
+            "n": 6
+          },
+          "panel_seconds": {
+            "max": 28.259128699999565,
+            "median": 21.850507650002328,
+            "min": 13.807507699999405,
+            "n": 6
+          },
+          "reference_chars": {
+            "max": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "n": 6
+          },
+          "shared_panels_excluded_from_independent_latency": 0
+        }
+      }
+    },
+    "schema_version": "graph_review_comparison_v1",
+    "snapshot_sha256": {
+      "budget": "1570ba1a71bb7f70a53b6b3b197c79dc8b68f2ba8dfd30f8476bdd1fd2cd26d2",
+      "plan": "d58e28134ec0cb597e31220c3ffe59a18ab91541c320c9665bde1efc536fc4c5",
+      "predictions": "20e0bb406000ea82ab5edad4145d58e4843047851266769a4b2977761ec5483c"
+    },
+    "source_sha256": {
+      "configs\\perception\\joint_openrouter_h0.yaml": "408b52d872403e24ea26e05e70bab9eb6d838dadafb5c9245c5ceb6d4f9ab731",
+      "scripts\\check_candidate_panel_providers.py": "d346dead179eb01184c90bd0482ece37e9b4e9153ec0e61fed1f00e451ddce23",
+      "scripts\\panel_proposal_wire.py": "6c7118ac8a1644ba112b1be5a9d34fd51750f30f4cfa65396729a7d7bcee7726",
+      "scripts\\replay_semantic_review.py": "1da1b289fd3613dc54409ab0215f55d423d9fefd8e2ccccba4e5636bceb76811",
+      "scripts\\run_candidate_panel_trial.py": "f3195b7d884d1be6c5d9d7d11dde6c609941301a5b9b728575dd0af323f599cd",
+      "scripts\\run_complete_gt_semantic_trial.py": "0cb6341eddb0b402940e7e9396b4b057fc167e6f7e123f3ff51be09d2da28a62",
+      "scripts\\run_evidence_feedback_trial.py": "b56fd565c73002fd211ff789cec79a75efc330e099b53b729eac6eca36ec277b",
+      "scripts\\run_graph_review_trial.py": "3e2a832a56a909d4c38ee84eceef63b14cca16411efbed550129d0ed29665aca",
+      "scripts\\run_grounded_api_pipeline.py": "02da1feef8c7e083b8157d23365a28a60d9d98d93a32c13b2bd6461de90b72e8",
+      "scripts\\run_openrouter_gemini_h0_trial.py": "293e6802e5b7e456fd896ecd68b1c2014fa853bc5337d8168fc79c7da120c02b",
+      "scripts\\run_presence_review_trial.py": "869abbb3e6c957233acc923caaf4a410e6cc05d772e7c22f3abbea7e4c4500ea",
+      "scripts\\run_prior_panel_trial.py": "37fd52ddd9a7038111157eb43b6cba968573b5896b1f01916a32606e4011c796",
+      "scripts\\run_recent_mean_panel_trial.py": "1bf7397a1e1bdbba68bb6a1af9cfa28e171e5efc47e2869f8f002ec4bbaf47d8",
+      "scripts\\run_repair_revision_trial.py": "ce21362ef179d16eee2ddb0e028e43433d714b3d1972f9c17a08d40077b1e900",
+      "scripts\\run_semantic_candidate_trial.py": "4e850ecdf6c1cb1fc43678f596444be6e33f6838705df787d2dd1b0658e1ef2d",
+      "scripts\\score_graph_review_trial.py": "a956627b440397129187aaaa0e43ed62e422aed69e19323cd594e124a8f144df",
+      "src\\surgical_agent\\api\\__init__.py": "b24728dd10b842a2929e223874470b636b3428099656e2ccbe663f8f4afa03e9",
+      "src\\surgical_agent\\api\\accounting.py": "2cfa19585de3db76b74635fbb5dfbc9cbbc885b4ff5ba1c3d56e53b8ddb43ba4",
+      "src\\surgical_agent\\api\\budget.py": "650c3484c25db26dab59ac1cc56dd74135f1116b72379b95a85aa412ad07be44",
+      "src\\surgical_agent\\api\\cache.py": "de3001fdc4c9d7c9be2f5f65cb7ef0eddd5a6d98590520260e6a9f6cb8b4be99",
+      "src\\surgical_agent\\api\\client.py": "e13cf75cf99c4d54541934e6b7ab1645245e2f59558cf63b46b6ffb72d388305",
+      "src\\surgical_agent\\api\\contracts.py": "bba602931601f6b4d030618126724aefa0a4c61a6e3432286472e056e061bc40",
+      "src\\surgical_agent\\api\\credentials.py": "af30852a1d73e58500df807320eb64652371631dcea829f356d167f216a54cda",
+      "src\\surgical_agent\\api\\errors.py": "fb9e6a595cb85df856961c15fb659aaea1a4252e8023b290514e3db3f0b2e69e",
+      "src\\surgical_agent\\api\\openrouter_routing.py": "7f987235d2ed6d3b535d1a8377972435add5f46ef5da52bbce669221a44033b2",
+      "src\\surgical_agent\\api\\providers\\__init__.py": "1bea3545c5eba14dfa1405afdd00c301219bb24a0fece4bf2e4bf2c12d81626f",
+      "src\\surgical_agent\\api\\providers\\mock.py": "c60217c111a226133df43b0a6c2523a7ae0d39672bfe9e07678bf43f9ef26b4e",
+      "src\\surgical_agent\\api\\providers\\openai_compatible.py": "886d1c667d250912cea47578fc156c7596716f7d87a34fe69f229f28965add8f",
+      "src\\surgical_agent\\api\\providers\\openai_responses.py": "0ea3a61c62320180dfda623317e4d8ada9266a2dfe53b857e8331049fd326ec2",
+      "src\\surgical_agent\\api\\providers\\openrouter.py": "76e785bc209b1b137d35769056231a90c8411d080ed7e91650ee9b002ccc9330",
+      "src\\surgical_agent\\api\\proxy.py": "d17ea3142a0dcbd1dc744fa41af48edb07478d321f4dbf11dfee196b4f6a2b4d",
+      "src\\surgical_agent\\api\\registry.py": "30c2bc8d9825e47e38ae5a6052cd624ff3ce4dea786ebdc4d218d085e9f7a1ad",
+      "src\\surgical_agent\\api\\request_hash.py": "8d16afb9ced39db9fa9704aae29cecc30e2ff8c968167437cda85b3d5b07bf9c",
+      "src\\surgical_agent\\api\\retry.py": "80824d82adaef06c041fc3704b97bb2406900fa67ab61cb7fac160652a449c0d",
+      "src\\surgical_agent\\api\\schema.py": "548379092d26a716067fd0312b76f0d407185fc0049297ac17c137d5f4ffae6b",
+      "src\\surgical_agent\\api\\usage.py": "a6bbfdc3d5aa31591a7f5d6379288a625876c3ecfff2bb4b4be0234f4d33f614",
+      "src\\surgical_agent\\artifacts\\__init__.py": "c11f8aa1c12adfc050e139f83ed9f031f5e21b117bbfc5873f747ccaaabc4bb5",
+      "src\\surgical_agent\\artifacts\\manifest.py": "09faf1a7617bd7ec3684b918be09e8763f45311eb31cc3cae0c23d26c1143460",
+      "src\\surgical_agent\\artifacts\\provenance.py": "ec16970e0555f38a681e7d1374da485774654012aa5bd193859201a32e92126d",
+      "src\\surgical_agent\\config\\__init__.py": "ea6edbed4c5c05bac40c9e6f43cb0dc3d7c09d551043f593631ffb4a9a35c31e",
+      "src\\surgical_agent\\config\\context_experiment.py": "702c2539032e4088012283e8c6f50fe97d57657a950644b6e4273f1c11036734",
+      "src\\surgical_agent\\config\\final_experiment.py": "caa04ee7aea0fa84b5c494ebd0649083394549eefc8962f5ab4bdcc01fa589d0",
+      "src\\surgical_agent\\config\\loader.py": "4b152e0aefa8352f0c6a066e4290b8b9cfd4e2d6ba8f8f705847e68c0822da98",
+      "src\\surgical_agent\\config\\schema.py": "a18929a0c1b7d60bacdc829575e90ae723b3c04ec76018ffeb52255d4bdbb998",
+      "src\\surgical_agent\\data\\__init__.py": "e6c628111cc2a219f56f36b45d968672df47f4f19f9f33dc51c04ae918dcd76d",
+      "src\\surgical_agent\\data\\api_media.py": "b5ff642223fb7a748438ed8b64c88e36b6885dac4fbf67c55a5a078e2ecb4003",
+      "src\\surgical_agent\\data\\api_rollout_selection.py": "3a37aae06044c095b5a7e775f047bbe45354d193bda839187c0dbe295183a994",
+      "src\\surgical_agent\\data\\causal_window.py": "747cf481205b2eeab903eb948e559232ceff7f0197b9eb2651e30dd6524b104b",
+      "src\\surgical_agent\\data\\constants.py": "0d5f4b0f0f9cb9093fc959e3e0ef36adf7a16450a515b68acffec06eca2d04e5",
+      "src\\surgical_agent\\data\\dataset.py": "8ec96cc03040304db8b74ddafbad8787b567f776a0ea29acabbc105c0508cbbc",
+      "src\\surgical_agent\\data\\derived_supervision.py": "124da27f065a76265ce5365954eb849cde25cd130245ad687178843bcf245217",
+      "src\\surgical_agent\\data\\label_policy.py": "76e320a62e68040e9e6f3e7d25c001b11895d3141580ddcb900d8d0a75174c09",
+      "src\\surgical_agent\\data\\masks.py": "ea10e607a19d71ea9d1d17d61b31fe0feac07dcceaf9e47dfd0b54ef70ccb4f7",
+      "src\\surgical_agent\\data\\media_backend.py": "642d37f71468b6449ca999a5c4e6e8f72a08c30f1a5752dd828e777d32602920",
+      "src\\surgical_agent\\data\\parser.py": "4893b016abb3ebcaeed7d9b5a2494f814ffec415db982010445912e7beaff949",
+      "src\\surgical_agent\\data\\portability.py": "07ca7edf2225a725309f26bf1d7fb3613ff2fc32d3741e19b2b5c6995ffe44c5",
+      "src\\surgical_agent\\data\\qualification.py": "4d241eccb3232a75925007c9b6af94b2147a5966d2ea30b1e67ce00795369126",
+      "src\\surgical_agent\\data\\schemas.py": "8fbb3ec0a7e9c32372555eade36359224b7b51328c73a5f7c3d71727463f8a0a",
+      "src\\surgical_agent\\data\\splits.py": "2c77436113ab604b78ba35ea171cad1ab4610bc1b757edaebcd5d4be72d49801",
+      "src\\surgical_agent\\data\\targets.py": "647c2e492295cc433cd860a580ae069a7faff62ff73dadc4d761a8b31468c36a",
+      "src\\surgical_agent\\evaluation\\__init__.py": "c42ef4a556de00e6fed231f4409f822d858097ddaffb25530c59de4cc7cdca5d",
+      "src\\surgical_agent\\evaluation\\evaluator.py": "de900c710bb3d9b25467fe75d870f9f1a99a250b21b9e9dcb6388c1963830888",
+      "src\\surgical_agent\\evaluation\\frame_ground_truth.py": "de73cfe4564f637bf893bdd1ba2b8843dba2d8c58bff99f6da426bcd9fccae91",
+      "src\\surgical_agent\\evaluation\\frame_metrics.py": "bd04713faae4f2ee39c21c00bc526c1225f35d6cb222fa7e552841af667a1272",
+      "src\\surgical_agent\\evaluation\\gate_metrics.py": "02cb9ba4ae6287a1706d170353f1d345524aeb17d04a8c00b67fba8c2f355942",
+      "src\\surgical_agent\\evaluation\\memory_metrics.py": "cac70bb40677c27b3f31b7f5bcb263ccc4870999f5f8fc996e37b04a8259f955",
+      "src\\surgical_agent\\evaluation\\offline_artifacts.py": "485e5bce3b77b9b573c6c0dd0cc950cc9d3e5b976a27eba25727a3053815a73e",
+      "src\\surgical_agent\\evaluation\\offline_frame.py": "340c3275633abb0518e808298ecf38b2dd7543d7ac372489176e78051f37ba72",
+      "src\\surgical_agent\\evaluation\\repair_comparison.py": "a03b053e7dd9e4cf01536a2232318af7cabaed6a074b285c997c5b832b29051d",
+      "src\\surgical_agent\\evaluation\\streaming_metrics.py": "8bf512fc366d19bd4f1d2fc93eddcd29517c86e41f34b05bc63d2934f6e7b13a",
+      "src\\surgical_agent\\evaluation\\task_metrics.py": "5a9c56b697c41da372787411f5d2390731cdeb4ed1a34bc7f4b2aecc207bc678",
+      "src\\surgical_agent\\evaluation\\verification_metrics.py": "7c249f7888ac54c68c6306de1baf46b611817ea0ca2628cc14182010d2af6e57",
+      "src\\surgical_agent\\perception\\__init__.py": "33d818e35dc1969c481e800c8a2d546a965b3a01052ad175fa8e5e87cfe29399",
+      "src\\surgical_agent\\perception\\adaptive_window.py": "5332f1df704bb8005f0767581d046fa108dbe2cd3082e043a46d3454256b4c0f",
+      "src\\surgical_agent\\perception\\context_builder.py": "e675d63676a8071e92a9d4650839846d0883eda5bdecc690ecec74692f71ee47",
+      "src\\surgical_agent\\perception\\contracts.py": "2c926c97b37ea489884a16105f1960b58d5179c3a4cce1cc68d5bc563dced101",
+      "src\\surgical_agent\\perception\\expert_ablation.py": "7762e6c622ea06d0b679a2c8e1c36ff60b6aa917976ec7b6cdda4875c3b5208f",
+      "src\\surgical_agent\\perception\\final_only.py": "6dad1edd28f7b7d329a5a15b0643378dfc780b1c16fb7f72a3deb047be14201c",
+      "src\\surgical_agent\\perception\\joint_api_vlm.py": "a2ccffa10a42010f1065da5c7f2f562c5d8b84624c636039c8e44aa888df4e97",
+      "src\\surgical_agent\\perception\\local_joint.py": "2af2f3b3c8c0d97e295f50754dd365b377419578d210605441b88bc1f4cd6b09",
+      "src\\surgical_agent\\perception\\locked_baseline.py": "76ca09b71bce3af2a5663984058cc952d039457ab30cf54ae19830e99f7f3540",
+      "src\\surgical_agent\\perception\\main_h0.py": "73523b57c3324902efe345b528738404d4895ca78eb9cb82e830071336342e1c",
+      "src\\surgical_agent\\perception\\ontology_prompt.py": "62d0087f3a9ac234c70c780ad4ba4a08a295f40dc41045add1bfdd0579e589f6",
+      "src\\surgical_agent\\perception\\parser.py": "83855f8abb6f055f58a7d51836070b524f6cc1d1070705372fabf98ad7c899aa",
+      "src\\surgical_agent\\perception\\prompts\\__init__.py": "0af85dfa097156874951a43c15e3fbe29733e252c1a303dd835862e61b2bcf98",
+      "src\\surgical_agent\\perception\\prompts\\initial_baseline_lock_v1.json": "08d6707a93e8fbf70bcd8d23ce7c88b1a82c33b73e93bef007aca9e3e7956f54",
+      "src\\surgical_agent\\perception\\prompts\\perception_prompt.txt": "3174d8cd1b631569e477d2bbc8c65762f9eec3abf097db3d6097fcd544b4de99",
+      "src\\surgical_agent\\perception\\prompts\\perception_prompt_baseline_compact.txt": "9cadc33c58b0f2e0587ab6cfc4729ebf03943e4f7a602b969d4b4ab80bf9aa82",
+      "src\\surgical_agent\\perception\\prompts\\perception_prompt_compact.txt": "c150e7ab947ebb5030f632a4372e8be07bf5c4e69587d073e0dfc524852295df",
+      "src\\surgical_agent\\perception\\prompts\\perception_prompt_gate_owned_compact.txt": "77159a0e19cefd7d7bf0224b42504645afe257e59bed1c9075abd62a9ac02b45",
+      "src\\surgical_agent\\perception\\prompts\\perception_prompt_main_h0.txt": "ca0984224ee02365a70ed7aa73da12b7e5351ba40031bd15029db9be5e7891f7",
+      "src\\surgical_agent\\perception\\prompts\\perception_prompt_reliability_compact.txt": "9acd4c97e9947e1f72462d057efcce0367914c82b0546475dbb92c5832b0a1c3",
+      "src\\surgical_agent\\perception\\prompts\\perception_schema.json": "73ca2ea62ab5acb38ae3905f6b4fb953eac52a4ad27872565d094dc3dd42da4a",
+      "src\\surgical_agent\\perception\\prompts\\perception_schema_compact.json": "b268847da6f63d629bc20895af483002a53d5dfba3280ccd81c55b8862dcf91f",
+      "src\\surgical_agent\\perception\\prompts\\perception_schema_gate_owned_compact.json": "d8a713fd1ccd8aaeaf84edf33c0b3f4231f7fdfa66cccf1277a9e267c89ec49f",
+      "src\\surgical_agent\\perception\\prompts\\perception_schema_reliability_compact.json": "47cb2fc5ef73eb493038375b5fe2b1b2309c68a5fd598fe44e6d27f978c7753b",
+      "src\\surgical_agent\\perception\\schema.py": "9fd827003e1e7c122ca6a4c962466524da84dccc060ba1b3baad210e98a0a78f",
+      "src\\surgical_agent\\research\\retrieval\\__init__.py": "978729bb0629ec02d331c0ec9d289170568b2bd715b383f4ac95d2594325965a",
+      "src\\surgical_agent\\research\\retrieval\\graph_review.py": "2c1ff71b28255e0e392ed00f65989b8dabf25c7d452dc315894c67c304013d7e",
+      "src\\surgical_agent\\research\\retrieval\\review_corpus.py": "e80081d516ebab9c1a6882c9f01a03927bb2d0f6cab008034888279d7c79351f",
+      "src\\surgical_agent\\research\\verification\\__init__.py": "31ed081e9c3fe03f1434e42c9175a44da3fa44d4765985cfbace5aaf0476986a",
+      "src\\surgical_agent\\research\\verification\\block.py": "c0b959ff9d7fe3b1ae0afd297eb24564edff6b7579b09b0ba8c89058ff4d9e0f",
+      "src\\surgical_agent\\research\\verification\\candidate_coordinator.py": "96257734ceb23e435a086f9c9af007e031b6c9d70f56c374f8e990f4be7958e3",
+      "src\\surgical_agent\\research\\verification\\contracts.py": "dc7bc22831944f4c2558bb62e3ee8ba2c29ec244fac37d70ceb70373d0719996",
+      "src\\surgical_agent\\research\\verification\\coordinator.py": "f8f9ddbf671f72d0b1a2c191cc56cce7d9f35fb2aefb9126e518bcb6dd72fb76",
+      "src\\surgical_agent\\research\\verification\\coverage.py": "a636b457744504f8ee618138c967816389881f1e394b69791124669b5a138e81",
+      "src\\surgical_agent\\research\\verification\\delta_repair.py": "f385704ea22e3b387d750a62c2bc329c2e6f38d83a3d0a42584742663fb2cf79",
+      "src\\surgical_agent\\research\\verification\\diff_review.py": "025cf08223bfc44342af0730c911868842deb858c0077dffb9206417805240ea",
+      "src\\surgical_agent\\research\\verification\\factored_presence.py": "566ca28a2145e83964886acd5771cc47c860e69d0fd9f6ccf687e6da20cea530",
+      "src\\surgical_agent\\research\\verification\\final_only_grounded.py": "496bcc83d8957bbfe2071ffb0f761b686793b59ed0a906e078f6e79f1e88a38a",
+      "src\\surgical_agent\\research\\verification\\grounded_pipeline.py": "84390b3364a2fde83ad73c70d88fefc34d70154b835fd51fa79d45ff7f2b46e8",
+      "src\\surgical_agent\\research\\verification\\grounded_repair.py": "15e7d915b6a7a9961928bf2f497539da90a0b3bc02803d78edf4238812fea83d",
+      "src\\surgical_agent\\research\\verification\\hypotheses.py": "b0be43fd4378f59fbc79fce552b6bc2c44f1668fb31f12d20c5e891d4cd0c695",
+      "src\\surgical_agent\\research\\verification\\joint_api.py": "7068df929aac6f185af6e96d0d59501cfe8254b460877f7c0cb34e14716bfc90",
+      "src\\surgical_agent\\research\\verification\\mean_panel.py": "2a6289ac722f64ebc20ff620fecffd0f621488dfc672495d3f27cf0e0d68c3f0",
+      "src\\surgical_agent\\research\\verification\\presence_observation_length.py": "3d125d6400cc3702d18582328a0405b2cf01def10a6d23f2e304fdc4e36c0af9",
+      "src\\surgical_agent\\research\\verification\\presence_review.py": "63d08531a1873c12e7dfc656ec4fbae395022cd3a171dab7e342df37a9e7195b",
+      "src\\surgical_agent\\research\\verification\\prior_panel.py": "5b4564adabda2ee35db12c32ac5b71743258d1e4952906e05ad8410695419279",
+      "src\\surgical_agent\\research\\verification\\prompts\\__init__.py": "09eb9f758dd73c066a551484ec6575dfe4115a2340f4957a1b2f8f469c9e643f",
+      "src\\surgical_agent\\research\\verification\\recent_mean_panel.py": "d9bcd3df3e6b27ebb37c8bd87c8797d54028d855bec2cf7e273f75f9ac871f54",
+      "src\\surgical_agent\\research\\verification\\reflective_repair.py": "233b489b07ef673e9a1a11efb18fc600e15837713926744ffce45c037a776cda",
+      "src\\surgical_agent\\research\\verification\\repair.py": "212c9810bd08f4d83f18072fa2bca5b49c43dd9113ab629d542f1d5e328e4f2d",
+      "src\\surgical_agent\\research\\verification\\repair_v2.py": "43ac7b3b782c98d8f59ab6a9315fbd8607cf9e49c0274bd03717551a774fb0f3",
+      "src\\surgical_agent\\research\\verification\\retriever.py": "cd0268339d9f9e785fb50a166f41588b4419e2f282025d9c37a46b5aabec7085",
+      "src\\surgical_agent\\research\\verification\\review_feedback.py": "c20766b5367b9e2e63ee8db39e7397a0dc7ba0b1a503b55e8c6313ff8f3ea78e",
+      "src\\surgical_agent\\research\\verification\\review_json_compat.py": "d61843d98ea02847db3344bf369dd1fac38f22ba161ac3f2325c05b053e73cb8",
+      "src\\surgical_agent\\research\\verification\\review_normalization.py": "33f1b02f205e2bf7c83c8c00e0303629def3056877974e47ab0acd2d0b38adf7",
+      "src\\surgical_agent\\research\\verification\\scorer.py": "f5fb9ec1037827cfdcb617bc8861f026a09b09f96d09eaad9ba17140afd320d0",
+      "src\\surgical_agent\\research\\verification\\semantic_coordinator.py": "ff3ffa136128d54e0af404845782de1f47880cc0b4051fe46f566404b75b505a",
+      "src\\surgical_agent\\research\\verification\\targeted_api.py": "aa1178f9f4970121906c83e1e71b6ab62e9ce7ee693a76a50c7617c3129e2628",
+      "src\\surgical_agent\\research\\verification\\temporal_memory.py": "f7f26d683c9600d275518f06680ef1dc62729122f95df7f5687399beaf1b1c71",
+      "src\\surgical_agent\\research\\verification\\verifier.py": "b53926815e51786fe4de9db0bde3f94b8ec925d6355928af1e3dac2d0d92f6e0"
+    }
+  },
+  "additional_audit_sha256": {
+    "independent_audit.json": "871d57a72d7e68445db647a8885116b86374838c6e638112714c256886907602",
+    "mechanism_diagnostic.json": "f0b5acabe694379911d30757e3013609529912bef7c2274c8628743fb09c820f"
+  }
+}

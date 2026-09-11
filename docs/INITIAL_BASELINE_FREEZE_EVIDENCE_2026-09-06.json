@@ -1,0 +1,289 @@
+{
+  "baseline_id": "h0_qwen38_official_batch_v1_20260906",
+  "protocol_sha256": "9185ab5eab5d029b1e3bd7a620b9eec3245780db5d510ac89489e0f7b97b1ab3",
+  "selection_basis": "User explicitly selected latest baseline; not a statistical best-model claim",
+  "source_batch_job": "batch_64e811f2-858d-40dd-a712-ebe29a70836a",
+  "source_request_file_sha256": "f4a7a29f0749da587956e2290fbbe038caa8f01ab55dc62a6b087df22e171ffa",
+  "original_run_summary": {
+    "status": "COMPLETE",
+    "model": "qwen3.8-max",
+    "source": "official Beijing Batch File",
+    "split": "Training",
+    "successful": 3,
+    "prompt_tokens": 12009,
+    "completion_tokens_including_reasoning": 570,
+    "reasoning_tokens": 355,
+    "tariff_cost_cny": 0.082314,
+    "provider_billed_cost_returned": false,
+    "test_mean_extrapolation_cny": 419.307516,
+    "evaluation": {
+      "metric": "masked_set_exact_and_micro_PRF_NOT_mAP",
+      "tasks": {
+        "instrument": {
+          "valid_gt": 3,
+          "scored": 3,
+          "correct": 3,
+          "failed_with_gt": 0,
+          "exact_accuracy_conditional_on_response": 1.0,
+          "exact_accuracy_all_valid_gt": 1.0,
+          "response_coverage": 1.0,
+          "tp": 3,
+          "fp": 0,
+          "fn": 0,
+          "micro_precision": 1.0,
+          "micro_recall": 1.0,
+          "micro_f1": 1.0
+        },
+        "verb": {
+          "valid_gt": 3,
+          "scored": 3,
+          "correct": 2,
+          "failed_with_gt": 0,
+          "exact_accuracy_conditional_on_response": 0.6666666666666666,
+          "exact_accuracy_all_valid_gt": 0.6666666666666666,
+          "response_coverage": 1.0,
+          "tp": 3,
+          "fp": 1,
+          "fn": 0,
+          "micro_precision": 0.75,
+          "micro_recall": 1.0,
+          "micro_f1": 0.8571428571428571
+        },
+        "target": {
+          "valid_gt": 3,
+          "scored": 3,
+          "correct": 2,
+          "failed_with_gt": 0,
+          "exact_accuracy_conditional_on_response": 0.6666666666666666,
+          "exact_accuracy_all_valid_gt": 0.6666666666666666,
+          "response_coverage": 1.0,
+          "tp": 3,
+          "fp": 1,
+          "fn": 0,
+          "micro_precision": 0.75,
+          "micro_recall": 1.0,
+          "micro_f1": 0.8571428571428571
+        },
+        "ivt": {
+          "valid_gt": 3,
+          "scored": 3,
+          "correct": 2,
+          "failed_with_gt": 0,
+          "exact_accuracy_conditional_on_response": 0.6666666666666666,
+          "exact_accuracy_all_valid_gt": 0.6666666666666666,
+          "response_coverage": 1.0,
+          "tp": 2,
+          "fp": 2,
+          "fn": 1,
+          "micro_precision": 0.5,
+          "micro_recall": 0.6666666666666666,
+          "micro_f1": 0.5714285714285714
+        },
+        "phase": {
+          "valid_gt": 3,
+          "scored": 3,
+          "correct": 3,
+          "failed_with_gt": 0,
+          "exact_accuracy_conditional_on_response": 1.0,
+          "exact_accuracy_all_valid_gt": 1.0,
+          "response_coverage": 1.0,
+          "tp": 3,
+          "fp": 0,
+          "fn": 0,
+          "micro_precision": 1.0,
+          "micro_recall": 1.0,
+          "micro_f1": 1.0
+        }
+      },
+      "frames": [
+        {
+          "frame_id": 25101,
+          "mask": {
+            "instrument": true,
+            "verb": true,
+            "target": true,
+            "ivt": true,
+            "phase": true
+          },
+          "gt": {
+            "instrument": [
+              2
+            ],
+            "verb": [
+              2
+            ],
+            "target": [
+              0
+            ],
+            "ivt": [
+              60
+            ],
+            "phase": [
+              3
+            ]
+          },
+          "h0": {
+            "instrument": [
+              2
+            ],
+            "verb": [
+              2
+            ],
+            "target": [
+              0
+            ],
+            "ivt": [
+              60
+            ],
+            "phase": [
+              3
+            ]
+          },
+          "exact": {
+            "instrument": true,
+            "verb": true,
+            "target": true,
+            "ivt": true,
+            "phase": true
+          },
+          "status": "OK"
+        },
+        {
+          "frame_id": 25126,
+          "mask": {
+            "instrument": true,
+            "verb": true,
+            "target": true,
+            "ivt": true,
+            "phase": true
+          },
+          "gt": {
+            "instrument": [
+              2
+            ],
+            "verb": [
+              2
+            ],
+            "target": [
+              0
+            ],
+            "ivt": [
+              60
+            ],
+            "phase": [
+              3
+            ]
+          },
+          "h0": {
+            "instrument": [
+              2
+            ],
+            "verb": [
+              2,
+              1
+            ],
+            "target": [
+              0,
+              8
+            ],
+            "ivt": [
+              59,
+              64
+            ],
+            "phase": [
+              3
+            ]
+          },
+          "exact": {
+            "instrument": true,
+            "verb": false,
+            "target": false,
+            "ivt": false,
+            "phase": true
+          },
+          "status": "OK"
+        },
+        {
+          "frame_id": 25151,
+          "mask": {
+            "instrument": true,
+            "verb": true,
+            "target": true,
+            "ivt": true,
+            "phase": true
+          },
+          "gt": {
+            "instrument": [
+              2
+            ],
+            "verb": [
+              2
+            ],
+            "target": [
+              0
+            ],
+            "ivt": [
+              60
+            ],
+            "phase": [
+              3
+            ]
+          },
+          "h0": {
+            "instrument": [
+              2
+            ],
+            "verb": [
+              2
+            ],
+            "target": [
+              0
+            ],
+            "ivt": [
+              60
+            ],
+            "phase": [
+              3
+            ]
+          },
+          "exact": {
+            "instrument": true,
+            "verb": true,
+            "target": true,
+            "ivt": true,
+            "phase": true
+          },
+          "status": "OK"
+        }
+      ],
+      "failure_policy": "Every valid GT remains in exact denominator; failed/not-attempted rows receive no exact credit and empty predictions for TP/FP/FN. Missing task GT is masked.",
+      "ivt_policy": "All selected/annotated IVT IDs, including null 94-99; not official non-null mAP"
+    },
+    "result_sha256": "194dbab900ba953a37bb5d240550382575da637855827fcf2c2fab360791e78f"
+  },
+  "request_image_sha256": [
+    [
+      "69df6fa139b303afe5d9b42187ada9be8571370fd51982b8a957b8acd0089f38",
+      "21aace56c525c152e6bba5a688f63931e3c41e417068dcf28a59f7e6d4c358fa",
+      "766543d4523e4539d3e7babfc95d7ce09d875662a43fa4fa3731a6a17aa4aaa7"
+    ],
+    [
+      "21aace56c525c152e6bba5a688f63931e3c41e417068dcf28a59f7e6d4c358fa",
+      "766543d4523e4539d3e7babfc95d7ce09d875662a43fa4fa3731a6a17aa4aaa7",
+      "03422c9d0472487ee79b4fb059b659c9576a223104b6b88da2f476a1593ab8a9"
+    ],
+    [
+      "766543d4523e4539d3e7babfc95d7ce09d875662a43fa4fa3731a6a17aa4aaa7",
+      "03422c9d0472487ee79b4fb059b659c9576a223104b6b88da2f476a1593ab8a9",
+      "1829714879a0f79c49a3b64290bc2caa4a32d2d4edbe90012d85ab025d074685"
+    ]
+  ],
+  "freeze_verification": {
+    "real_input_requests_reconstructed": 3,
+    "all_request_objects_equal_to_paid_run": true,
+    "unit_and_regression_tests_passed": 38,
+    "ruff": "PASS",
+    "new_provider_calls": 0,
+    "prepared_jsonl_sha256": "63ec3fa83344c51837a57233fd82ad345a16906a9719ef0aa947bd6ffc6acbea"
+  }
+}

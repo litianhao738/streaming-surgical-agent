@@ -11,6 +11,6 @@ runtime:
   context_profile: track_only
   event_memory_enabled: false
   phase_transition_graph: null
-  predicted_track_artifact: artifacts/training/tracker/predicted_tracks.json
+  predicted_track_artifact: artifacts/training/tracker_clip_v2_oof5_20260906/predicted_tracks.json
   allow_oracle_track_provider: false
 status: PREDICTED_TRACK_ARTIFACT_REQUIRED

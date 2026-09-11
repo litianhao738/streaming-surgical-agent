@@ -1,0 +1,158 @@
+{
+  "baseline_id": "h0_qwen38_official_batch_v1_20260906",
+  "status": "user_selected_frozen",
+  "provider": "alibaba_model_studio",
+  "region": "cn-beijing",
+  "transport": "batch_file",
+  "endpoint_family": "official_beijing_standard_or_workspace",
+  "request_static": {
+    "max_tokens": 4096,
+    "response_format": {
+      "json_schema": {
+        "name": "joint_perception_final_only_v1",
+        "schema": {
+          "additionalProperties": false,
+          "properties": {
+            "instrument": {
+              "additionalProperties": false,
+              "properties": {
+                "selected_ids": {
+                  "items": {
+                    "maximum": 6,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "maxItems": 3,
+                  "type": "array"
+                }
+              },
+              "required": [
+                "selected_ids"
+              ],
+              "type": "object"
+            },
+            "ivt": {
+              "additionalProperties": false,
+              "properties": {
+                "selected_ids": {
+                  "items": {
+                    "maximum": 99,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "maxItems": 8,
+                  "type": "array"
+                }
+              },
+              "required": [
+                "selected_ids"
+              ],
+              "type": "object"
+            },
+            "phase": {
+              "additionalProperties": false,
+              "properties": {
+                "selected_id": {
+                  "maximum": 6,
+                  "minimum": 0,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "selected_id"
+              ],
+              "type": "object"
+            },
+            "schema_version": {
+              "const": "joint_perception_final_only_v1",
+              "type": "string"
+            },
+            "target": {
+              "additionalProperties": false,
+              "properties": {
+                "selected_ids": {
+                  "items": {
+                    "maximum": 14,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "maxItems": 5,
+                  "type": "array"
+                }
+              },
+              "required": [
+                "selected_ids"
+              ],
+              "type": "object"
+            },
+            "verb": {
+              "additionalProperties": false,
+              "properties": {
+                "selected_ids": {
+                  "items": {
+                    "maximum": 9,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "maxItems": 4,
+                  "type": "array"
+                }
+              },
+              "required": [
+                "selected_ids"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "schema_version",
+            "instrument",
+            "verb",
+            "target",
+            "ivt",
+            "phase"
+          ],
+          "type": "object"
+        },
+        "strict": true
+      },
+      "type": "json_schema"
+    },
+    "temperature": 0,
+    "model": "qwen3.8-max",
+    "enable_thinking": true,
+    "stream": false,
+    "reasoning_effort": "low"
+  },
+  "system_prompt_sha256": "c1009de8429158eab6b9c0f4ee39b12f51e5e970335f0c554866198191b6e3e5",
+  "input_recipe_hashes": {
+    "1": "38b711e3e39deacc6b663af47d95e2cc055b2e3645107e1c922714445ab49a18",
+    "2": "29f5546ad9df2c173b505941bfedfdd511ecc1eda0b979a5953738035380b87a",
+    "3": "b0573f0a68de509f3e63a31d9292450214d3b06fd2d5d0bc585c56263f50e133"
+  },
+  "source_fps": 25,
+  "max_causal_images": 3,
+  "target_stride_source_frames": 25,
+  "history_image_detail": "low",
+  "target_image_detail": "high",
+  "image_encoding": "lossless_rgb_png",
+  "boundary_policy": "preserve_real_partial_history_no_padding",
+  "baseline_components": {
+    "tracker": false,
+    "gate": false,
+    "verifier": false,
+    "repair": false,
+    "cross_window_memory": false
+  },
+  "model_identity": {
+    "requested": "qwen3.8-max",
+    "returned_in_smoke": "qwen3.8-max",
+    "exact_backend_snapshot_known": false,
+    "claim": "Request protocol pinned; provider alias can change. Record returned identity for each run."
+  },
+  "retries": 0,
+  "max_jsonl_line_bytes": 6000000,
+  "max_jsonl_file_bytes": 500000000,
+  "max_jsonl_requests": 50000,
+  "protocol_sha256": "9185ab5eab5d029b1e3bd7a620b9eec3245780db5d510ac89489e0f7b97b1ab3"
+}

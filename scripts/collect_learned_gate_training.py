@@ -116,7 +116,10 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--predicted-track-artifact",
         type=Path,
-        default=PROJECT_ROOT / "artifacts/training/tracker/predicted_tracks.json",
+        default=(
+            PROJECT_ROOT
+            / "artifacts/training/tracker_clip_v2_oof5_20260906/predicted_tracks.json"
+        ),
     )
     parser.add_argument(
         "--phase-transition-graph",

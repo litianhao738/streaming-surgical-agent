@@ -123,6 +123,8 @@ def test_standard_context_experiments_expose_one_runtime_memory_switch(
         )
     if profile == "track_only":
         assert loaded.phase_transition_graph is None
+    if profile in {"track_only", "track_workflow"}:
         assert loaded.predicted_track_artifact == (
-            PROJECT_ROOT / "artifacts/training/tracker/predicted_tracks.json"
+            PROJECT_ROOT
+            / "artifacts/training/tracker_clip_v2_oof5_20260906/predicted_tracks.json"
         )

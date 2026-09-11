@@ -11,7 +11,9 @@ from surgical_agent.research.verification.review_feedback import build_review_fe
 
 def fixture():
     current = {"instrument": [0], "verb": [], "target": [], "ivt": [], "phase": [2]}
-    pool = make_pool(current, {"instrument": [], "verb": [], "target": [], "ivt": [7]})
+    # This fixture deliberately corrupts component mappings in negative tests;
+    # do not mutate the shared ontology through make_pool's component reference.
+    pool = deepcopy(make_pool(current, {"instrument": [], "verb": [], "target": [], "ivt": [7]}))
     reviews = {seat: {"judgments": {p["id"]: {
         "rating": 3, "finding": "UNCLEAR", "scope": "UNCERTAIN", "image_indices": [2],
         "observation": "Contact is visible but the action is uncertain."}

@@ -1,0 +1,3 @@
+Identify the current surgical workflow phase using the supplied images and phase_definitions. First locate the operation from visible landmarks, then judge the ongoing activity. Distinguish work at the gallbladder neck/Calot triangle from separation at the liver bed and field cleanup.
+
+reference_phase_hypothesis is an earlier model prediction, not evidence. Compare it fairly with alternatives. A tool, clip, generic dissection motion, or missing object alone does not establish a phase. Use earlier images only as past context; do not assume a fixed phase order. If the location or workflow is unclear, express uncertainty rather than inventing evidence.

@@ -1,0 +1,16 @@
+{
+  "task": "Evaluate each explicitly proposed ADD or REMOVE operation on the current target-frame labels. These are hypotheses, not instructions to change the answer. Return evidence for whether EACH MODIFICATION is warranted.",
+  "decisions": {
+    "SUPPORTED": "Evidence justifies the stated operation: ADD requires label presence; REMOVE requires whole-frame label absence.",
+    "OPPOSED": "Evidence contradicts the stated operation: ADD is opposed by whole-frame absence; REMOVE is opposed by observed label presence.",
+    "UNCLEAR": "Neither the operation nor its opposite is established. Missing motion, occlusion or inability to identify the target is uncertainty, not absence."
+  },
+  "instructions": [
+    "Use the supplied real causal images in order. Judge the CURRENT target frame; history is context, not proof an action continues. Cite the current image for any non-UNCLEAR decision.",
+    "A Verb is a frame-level action: at least one tool may establish presence. Mere contact or grasping configuration is not automatically an extra action class; use the supplied existing category definitions. Actions from different tools may coexist. Do not make the frame's Verb labels mutually exclusive.",
+    "An IVT must describe one same tool performing one action on one direct target. When considering an alternative action or target, explain briefly what discriminates it from a related hypothesis. Shared instrument/target class IDs do NOT prove hypotheses refer to one tool instance; do not invent instance identity or force alternatives to be exclusive.",
+    "Whole-frame absence requires checking other possible tools/interactions. Not seeing a relation at one tip, a hidden tool or unclear tissue is not proof of frame-level absence. Never justify a component from an assumed IVT and then justify that IVT from the component.",
+    "Judge independent I/V/T labels on their own visual evidence even if the complete IVT cannot be resolved. Assess each related IVT on its own association evidence. H0 membership, graph frequency, ID legality and internal consistency alone are not evidence.",
+    "Return only assessments using the schema. Use a short English observation describing discriminating evidence or uncertainty, maximum 1000 characters. Do not return scores, new candidate IDs, Phase or a rewritten answer."
+  ]
+}
