@@ -1,0 +1,778 @@
+{
+ "rows": 6059,
+ "api_calls": 0,
+ "verb_rules_per_fold": {
+  "VID103": [
+   [
+    "clipper",
+    "clip"
+   ],
+   [
+    "hook",
+    "dissect"
+   ],
+   [
+    "scissors",
+    "cut"
+   ]
+  ],
+  "VID23": [
+   [
+    "clipper",
+    "clip"
+   ],
+   [
+    "hook",
+    "dissect"
+   ],
+   [
+    "scissors",
+    "cut"
+   ]
+  ],
+  "VID31": [
+   [
+    "clipper",
+    "clip"
+   ],
+   [
+    "hook",
+    "dissect"
+   ],
+   [
+    "scissors",
+    "cut"
+   ]
+  ],
+  "VID96": [
+   [
+    "clipper",
+    "clip"
+   ],
+   [
+    "hook",
+    "dissect"
+   ],
+   [
+    "scissors",
+    "cut"
+   ]
+  ]
+ },
+ "configs": {
+  "A0 default PGP": {
+   "all": {
+    "f1": 61.6989,
+    "errors": 36150,
+    "instrument": 86.83,
+    "verb": 60.86,
+    "target": 50.68,
+    "ivt": 36.34,
+    "phase": 73.79
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 64.5497,
+     "errors": 6541,
+     "instrument": 92.73,
+     "verb": 57.42,
+     "target": 50.51,
+     "ivt": 40.77,
+     "phase": 81.31
+    },
+    "VID23": {
+     "f1": 62.0924,
+     "errors": 4535,
+     "instrument": 82.56,
+     "verb": 69.96,
+     "target": 45.73,
+     "ivt": 40.97,
+     "phase": 71.24
+    },
+    "VID31": {
+     "f1": 61.4453,
+     "errors": 20248,
+     "instrument": 84.88,
+     "verb": 64.75,
+     "target": 50.67,
+     "ivt": 36.78,
+     "phase": 70.15
+    },
+    "VID96": {
+     "f1": 57.5638,
+     "errors": 4826,
+     "instrument": 91.31,
+     "verb": 38.53,
+     "target": 56.17,
+     "ivt": 21.52,
+     "phase": 80.28
+    }
+   },
+   "calls": 37157,
+   "usd": 86.41
+  },
+  "A1 default + S": {
+   "all": {
+    "f1": 63.0457,
+    "errors": 35334,
+    "instrument": 86.83,
+    "verb": 60.86,
+    "target": 50.68,
+    "ivt": 36.34,
+    "phase": 80.52
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 65.5935,
+     "errors": 6417,
+     "instrument": 92.73,
+     "verb": 57.42,
+     "target": 50.51,
+     "ivt": 40.77,
+     "phase": 86.53
+    },
+    "VID23": {
+     "f1": 62.8971,
+     "errors": 4467,
+     "instrument": 82.56,
+     "verb": 69.96,
+     "target": 45.73,
+     "ivt": 40.97,
+     "phase": 75.27
+    },
+    "VID31": {
+     "f1": 63.0146,
+     "errors": 19738,
+     "instrument": 84.88,
+     "verb": 64.75,
+     "target": 50.67,
+     "ivt": 36.78,
+     "phase": 78.0
+    },
+    "VID96": {
+     "f1": 59.0329,
+     "errors": 4712,
+     "instrument": 91.31,
+     "verb": 38.53,
+     "target": 56.17,
+     "ivt": 21.52,
+     "phase": 87.63
+    }
+   },
+   "calls": 37157,
+   "usd": 86.41
+  },
+  "A2a default + F": {
+   "all": {
+    "f1": 63.2479,
+    "errors": 34232,
+    "instrument": 93.98,
+    "verb": 60.86,
+    "target": 50.68,
+    "ivt": 36.93,
+    "phase": 73.79
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 65.366,
+     "errors": 6355,
+     "instrument": 96.67,
+     "verb": 57.42,
+     "target": 50.51,
+     "ivt": 40.91,
+     "phase": 81.31
+    },
+    "VID23": {
+     "f1": 63.9163,
+     "errors": 4239,
+     "instrument": 91.11,
+     "verb": 69.96,
+     "target": 45.73,
+     "ivt": 41.54,
+     "phase": 71.24
+    },
+    "VID31": {
+     "f1": 63.3961,
+     "errors": 18939,
+     "instrument": 93.85,
+     "verb": 64.75,
+     "target": 50.67,
+     "ivt": 37.56,
+     "phase": 70.15
+    },
+    "VID96": {
+     "f1": 58.0599,
+     "errors": 4699,
+     "instrument": 93.47,
+     "verb": 38.53,
+     "target": 56.17,
+     "ivt": 21.84,
+     "phase": 80.28
+    }
+   },
+   "calls": 37157,
+   "usd": 86.41
+  },
+  "A2 default + F + V": {
+   "all": {
+    "f1": 64.0732,
+    "errors": 33826,
+    "instrument": 93.98,
+    "verb": 64.99,
+    "target": 50.68,
+    "ivt": 36.93,
+    "phase": 73.79
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 65.8367,
+     "errors": 6314,
+     "instrument": 96.67,
+     "verb": 59.78,
+     "target": 50.51,
+     "ivt": 40.91,
+     "phase": 81.31
+    },
+    "VID23": {
+     "f1": 64.6338,
+     "errors": 4171,
+     "instrument": 91.11,
+     "verb": 73.55,
+     "target": 45.73,
+     "ivt": 41.54,
+     "phase": 71.24
+    },
+    "VID31": {
+     "f1": 64.3779,
+     "errors": 18665,
+     "instrument": 93.85,
+     "verb": 69.66,
+     "target": 50.67,
+     "ivt": 37.56,
+     "phase": 70.15
+    },
+    "VID96": {
+     "f1": 58.6258,
+     "errors": 4676,
+     "instrument": 93.47,
+     "verb": 41.36,
+     "target": 56.17,
+     "ivt": 21.84,
+     "phase": 80.28
+    }
+   },
+   "calls": 37157,
+   "usd": 86.41
+  },
+  "A3 default + F + V + S": {
+   "all": {
+    "f1": 65.4199,
+    "errors": 33010,
+    "instrument": 93.98,
+    "verb": 64.99,
+    "target": 50.68,
+    "ivt": 36.93,
+    "phase": 80.52
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 66.8805,
+     "errors": 6190,
+     "instrument": 96.67,
+     "verb": 59.78,
+     "target": 50.51,
+     "ivt": 40.91,
+     "phase": 86.53
+    },
+    "VID23": {
+     "f1": 65.4385,
+     "errors": 4103,
+     "instrument": 91.11,
+     "verb": 73.55,
+     "target": 45.73,
+     "ivt": 41.54,
+     "phase": 75.27
+    },
+    "VID31": {
+     "f1": 65.9471,
+     "errors": 18155,
+     "instrument": 93.85,
+     "verb": 69.66,
+     "target": 50.67,
+     "ivt": 37.56,
+     "phase": 78.0
+    },
+    "VID96": {
+     "f1": 60.0949,
+     "errors": 4562,
+     "instrument": 93.47,
+     "verb": 41.36,
+     "target": 56.17,
+     "ivt": 21.84,
+     "phase": 87.63
+    }
+   },
+   "calls": 37157,
+   "usd": 86.41
+  },
+  "B1 interaction-only review + F + V + S": {
+   "all": {
+    "f1": 65.3836,
+    "errors": 33032,
+    "instrument": 93.98,
+    "verb": 64.99,
+    "target": 50.68,
+    "ivt": 36.93,
+    "phase": 80.34
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 66.8636,
+     "errors": 6192,
+     "instrument": 96.67,
+     "verb": 59.78,
+     "target": 50.51,
+     "ivt": 40.91,
+     "phase": 86.45
+    },
+    "VID23": {
+     "f1": 65.4385,
+     "errors": 4103,
+     "instrument": 91.11,
+     "verb": 73.55,
+     "target": 45.73,
+     "ivt": 41.54,
+     "phase": 75.27
+    },
+    "VID31": {
+     "f1": 65.9163,
+     "errors": 18165,
+     "instrument": 93.85,
+     "verb": 69.66,
+     "target": 50.67,
+     "ivt": 37.56,
+     "phase": 77.85
+    },
+    "VID96": {
+     "f1": 59.966,
+     "errors": 4572,
+     "instrument": 93.47,
+     "verb": 41.36,
+     "target": 56.17,
+     "ivt": 21.84,
+     "phase": 86.98
+    }
+   },
+   "calls": 26647,
+   "usd": 60.47
+  },
+  "B2 phase-only review + F + V + S": {
+   "all": {
+    "f1": 65.202,
+    "errors": 33302,
+    "instrument": 93.98,
+    "verb": 64.68,
+    "target": 50.06,
+    "ivt": 36.77,
+    "phase": 80.52
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 66.7716,
+     "errors": 6224,
+     "instrument": 96.67,
+     "verb": 59.58,
+     "target": 50.3,
+     "ivt": 40.77,
+     "phase": 86.53
+    },
+    "VID23": {
+     "f1": 65.1898,
+     "errors": 4144,
+     "instrument": 91.11,
+     "verb": 73.2,
+     "target": 45.24,
+     "ivt": 41.13,
+     "phase": 75.27
+    },
+    "VID31": {
+     "f1": 65.6755,
+     "errors": 18363,
+     "instrument": 93.85,
+     "verb": 69.26,
+     "target": 49.94,
+     "ivt": 37.33,
+     "phase": 78.0
+    },
+    "VID96": {
+     "f1": 59.9672,
+     "errors": 4571,
+     "instrument": 93.47,
+     "verb": 41.22,
+     "target": 55.35,
+     "ivt": 22.17,
+     "phase": 87.63
+    }
+   },
+   "calls": 28687,
+   "usd": 73.98
+  },
+  "C0 no review (cheap)": {
+   "all": {
+    "f1": 61.3963,
+    "errors": 36522,
+    "instrument": 86.78,
+    "verb": 60.55,
+    "target": 50.06,
+    "ivt": 36.14,
+    "phase": 73.46
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 64.3679,
+     "errors": 6590,
+     "instrument": 92.61,
+     "verb": 57.31,
+     "target": 50.3,
+     "ivt": 40.55,
+     "phase": 81.06
+    },
+    "VID23": {
+     "f1": 61.7965,
+     "errors": 4585,
+     "instrument": 82.51,
+     "verb": 69.61,
+     "target": 45.24,
+     "ivt": 40.5,
+     "phase": 71.12
+    },
+    "VID31": {
+     "f1": 61.0767,
+     "errors": 20502,
+     "instrument": 84.85,
+     "verb": 64.32,
+     "target": 49.94,
+     "ivt": 36.53,
+     "phase": 69.75
+    },
+    "VID96": {
+     "f1": 57.338,
+     "errors": 4845,
+     "instrument": 91.24,
+     "verb": 38.4,
+     "target": 55.35,
+     "ivt": 21.81,
+     "phase": 79.9
+    }
+   },
+   "calls": 8074,
+   "usd": 33.1
+  },
+  "C0a no review + F": {
+   "all": {
+    "f1": 62.9636,
+    "errors": 34566,
+    "instrument": 93.98,
+    "verb": 60.55,
+    "target": 50.06,
+    "ivt": 36.77,
+    "phase": 73.46
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 65.2219,
+     "errors": 6393,
+     "instrument": 96.67,
+     "verb": 57.31,
+     "target": 50.3,
+     "ivt": 40.77,
+     "phase": 81.06
+    },
+    "VID23": {
+     "f1": 63.6424,
+     "errors": 4282,
+     "instrument": 91.11,
+     "verb": 69.61,
+     "target": 45.24,
+     "ivt": 41.13,
+     "phase": 71.12
+    },
+    "VID31": {
+     "f1": 63.037,
+     "errors": 19178,
+     "instrument": 93.85,
+     "verb": 64.32,
+     "target": 49.94,
+     "ivt": 37.33,
+     "phase": 69.75
+    },
+    "VID96": {
+     "f1": 57.858,
+     "errors": 4713,
+     "instrument": 93.47,
+     "verb": 38.4,
+     "target": 55.35,
+     "ivt": 22.17,
+     "phase": 79.9
+    }
+   },
+   "calls": 8074,
+   "usd": 33.1
+  },
+  "C1 no review + F + V + S": {
+   "all": {
+    "f1": 65.1657,
+    "errors": 33324,
+    "instrument": 93.98,
+    "verb": 64.68,
+    "target": 50.06,
+    "ivt": 36.77,
+    "phase": 80.34
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 66.7547,
+     "errors": 6226,
+     "instrument": 96.67,
+     "verb": 59.58,
+     "target": 50.3,
+     "ivt": 40.77,
+     "phase": 86.45
+    },
+    "VID23": {
+     "f1": 65.1898,
+     "errors": 4144,
+     "instrument": 91.11,
+     "verb": 73.2,
+     "target": 45.24,
+     "ivt": 41.13,
+     "phase": 75.27
+    },
+    "VID31": {
+     "f1": 65.6448,
+     "errors": 18373,
+     "instrument": 93.85,
+     "verb": 69.26,
+     "target": 49.94,
+     "ivt": 37.33,
+     "phase": 77.85
+    },
+    "VID96": {
+     "f1": 59.8383,
+     "errors": 4581,
+     "instrument": 93.47,
+     "verb": 41.22,
+     "target": 55.35,
+     "ivt": 22.17,
+     "phase": 86.98
+    }
+   },
+   "calls": 8074,
+   "usd": 33.1
+  },
+  "D0 review every frame + F + V + S": {
+   "all": {
+    "f1": 65.4739,
+    "errors": 32961,
+    "instrument": 93.98,
+    "verb": 65.01,
+    "target": 50.71,
+    "ivt": 36.95,
+    "phase": 80.72
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 66.8805,
+     "errors": 6190,
+     "instrument": 96.67,
+     "verb": 59.78,
+     "target": 50.51,
+     "ivt": 40.91,
+     "phase": 86.53
+    },
+    "VID23": {
+     "f1": 65.4475,
+     "errors": 4101,
+     "instrument": 91.11,
+     "verb": 73.57,
+     "target": 45.73,
+     "ivt": 41.56,
+     "phase": 75.27
+    },
+    "VID31": {
+     "f1": 66.0457,
+     "errors": 18108,
+     "instrument": 93.85,
+     "verb": 69.71,
+     "target": 50.73,
+     "ivt": 37.58,
+     "phase": 78.37
+    },
+    "VID96": {
+     "f1": 60.0949,
+     "errors": 4562,
+     "instrument": 93.47,
+     "verb": 41.36,
+     "target": 56.17,
+     "ivt": 21.84,
+     "phase": 87.63
+    }
+   },
+   "calls": 53899,
+   "usd": 122.73
+  },
+  "A3 with S = 5 s [sensitivity]": {
+   "all": {
+    "f1": 64.9281,
+    "errors": 33308,
+    "instrument": 93.98,
+    "verb": 64.99,
+    "target": 50.68,
+    "ivt": 36.93,
+    "phase": 78.07
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 66.6111,
+     "errors": 6222,
+     "instrument": 96.67,
+     "verb": 59.78,
+     "target": 50.51,
+     "ivt": 40.91,
+     "phase": 85.19
+    },
+    "VID23": {
+     "f1": 65.0835,
+     "errors": 4133,
+     "instrument": 91.11,
+     "verb": 73.55,
+     "target": 45.73,
+     "ivt": 41.54,
+     "phase": 73.49
+    },
+    "VID31": {
+     "f1": 65.3686,
+     "errors": 18343,
+     "instrument": 93.85,
+     "verb": 69.66,
+     "target": 50.67,
+     "ivt": 37.56,
+     "phase": 75.11
+    },
+    "VID96": {
+     "f1": 59.4764,
+     "errors": 4610,
+     "instrument": 93.47,
+     "verb": 41.36,
+     "target": 56.17,
+     "ivt": 21.84,
+     "phase": 84.54
+    }
+   },
+   "calls": 37157,
+   "usd": 86.41
+  },
+  "A3 with S = 20 s [sensitivity]": {
+   "all": {
+    "f1": 65.9249,
+    "errors": 32704,
+    "instrument": 93.98,
+    "verb": 64.99,
+    "target": 50.68,
+    "ivt": 36.93,
+    "phase": 83.05
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 67.3518,
+     "errors": 6134,
+     "instrument": 96.67,
+     "verb": 59.78,
+     "target": 50.51,
+     "ivt": 40.91,
+     "phase": 88.89
+    },
+    "VID23": {
+     "f1": 65.6279,
+     "errors": 4087,
+     "instrument": 91.11,
+     "verb": 73.55,
+     "target": 45.73,
+     "ivt": 41.54,
+     "phase": 76.21
+    },
+    "VID31": {
+     "f1": 66.5071,
+     "errors": 17973,
+     "instrument": 93.85,
+     "verb": 69.66,
+     "target": 50.67,
+     "ivt": 37.56,
+     "phase": 80.8
+    },
+    "VID96": {
+     "f1": 60.765,
+     "errors": 4510,
+     "instrument": 93.47,
+     "verb": 41.36,
+     "target": 56.17,
+     "ivt": 21.84,
+     "phase": 90.98
+    }
+   },
+   "calls": 37157,
+   "usd": 86.41
+  },
+  "A3 with S = 30 s [sensitivity]": {
+   "all": {
+    "f1": 66.1362,
+    "errors": 32576,
+    "instrument": 93.98,
+    "verb": 64.99,
+    "target": 50.68,
+    "ivt": 36.93,
+    "phase": 84.11
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 67.3182,
+     "errors": 6138,
+     "instrument": 96.67,
+     "verb": 59.78,
+     "target": 50.51,
+     "ivt": 40.91,
+     "phase": 88.72
+    },
+    "VID23": {
+     "f1": 65.6279,
+     "errors": 4087,
+     "instrument": 91.11,
+     "verb": 73.55,
+     "target": 45.73,
+     "ivt": 41.54,
+     "phase": 76.21
+    },
+    "VID31": {
+     "f1": 66.8086,
+     "errors": 17875,
+     "instrument": 93.85,
+     "verb": 69.66,
+     "target": 50.67,
+     "ivt": 37.56,
+     "phase": 82.31
+    },
+    "VID96": {
+     "f1": 61.2032,
+     "errors": 4476,
+     "instrument": 93.47,
+     "verb": 41.36,
+     "target": 56.17,
+     "ivt": 21.84,
+     "phase": 93.17
+    }
+   },
+   "calls": 37157,
+   "usd": 86.41
+  }
+ }
+}

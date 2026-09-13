@@ -1,0 +1,47 @@
+{
+  "schema": "tracker_pipeline_status_evidence_v1",
+  "date": "2026-09-14",
+  "purpose": "Publish existing result snapshots accompanying the current-status review; no experiment rerun.",
+  "rows": 6059,
+  "videos": [
+    "VID103",
+    "VID23",
+    "VID31",
+    "VID96"
+  ],
+  "evaluation_scope": "Repeatedly used Training development videos; Gate outer-fold results with cached upstream components, not fully nested end-to-end or independent confirmation.",
+  "v2_runtime_implemented_in_this_sync": false,
+  "default_changed_in_this_sync": false,
+  "new_api_requests_in_this_sync": 0,
+  "snapshots": [
+    {
+      "source_local_path": "artifacts/research/tracker_pipeline_v2_probe_20260914.json",
+      "snapshot": "tracker_pipeline_v2_probe_20260914.json",
+      "sha256": "09963e4cda6f4531b1750026eadcebd81f5987f57978b37c52d99741f37e9397",
+      "bytes": 11083
+    },
+    {
+      "source_local_path": "artifacts/research/tracker_pipeline_v2_ablation_20260914.json",
+      "snapshot": "tracker_pipeline_v2_ablation_20260914.json",
+      "sha256": "86eb468829267b8629a0f2bd9d5e640f547ccc55a3e6dee177dfe8d0c82df4d8",
+      "bytes": 14461
+    },
+    {
+      "source_local_path": "artifacts/research/tracker_pipeline_v2_rejected_20260914.json",
+      "snapshot": "tracker_pipeline_v2_rejected_20260914.json",
+      "sha256": "eb31d4ff6c412c46231494c2a82b3c084e7e06cb641877587643039de1f85859",
+      "bytes": 30420
+    },
+    {
+      "source_local_path": "artifacts/preflight/tracker_zero_call_fusion_20260914_r1/report.json",
+      "snapshot": "tracker_zero_call_fusion_report.json",
+      "sha256": "c82c6c9a614e630ae13a4bf1a48116c8274d174cb131e66df3a73aefc5bee9e6",
+      "bytes": 31062
+    }
+  ],
+  "default_manifest_sha256_at_sync": {
+    "DEFAULT_PIPELINE_VERSION.json": "eaaa9997eabe17155c983c92119648fc48f8f235c0549c9a1cb950da6ba46c99",
+    "DEFAULT_PGP_GATE_VERSION.json": "75608713af54dd8679d638bc7f0e2050dafde24279887b7d51b825d5717a25e4"
+  },
+  "reproduction_note": "Scripts require the local caches and frozen Tracker predictions they reference. v2 audit scripts execute at import/top level and write fixed output paths; do not rerun over frozen evidence. Full raw inputs and weights are not included in this status snapshot."
+}

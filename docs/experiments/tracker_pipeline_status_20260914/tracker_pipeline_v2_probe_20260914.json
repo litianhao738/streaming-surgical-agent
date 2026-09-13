@@ -1,0 +1,598 @@
+{
+ "rows": 6059,
+ "api_calls": 0,
+ "call_formula_mismatches": {
+  "probe_whole": 0,
+  "probe_free_whole": 0,
+  "probe_skip_not_3": 0
+ },
+ "interaction_change_label_rate": 0.0654,
+ "interaction_change_frames": 396,
+ "verb_rules_per_fold": {
+  "VID103": [
+   [
+    "clipper",
+    "clip"
+   ],
+   [
+    "hook",
+    "dissect"
+   ],
+   [
+    "scissors",
+    "cut"
+   ]
+  ],
+  "VID23": [
+   [
+    "clipper",
+    "clip"
+   ],
+   [
+    "hook",
+    "dissect"
+   ],
+   [
+    "scissors",
+    "cut"
+   ]
+  ],
+  "VID31": [
+   [
+    "clipper",
+    "clip"
+   ],
+   [
+    "hook",
+    "dissect"
+   ],
+   [
+    "scissors",
+    "cut"
+   ]
+  ],
+  "VID96": [
+   [
+    "clipper",
+    "clip"
+   ],
+   [
+    "hook",
+    "dissect"
+   ],
+   [
+    "scissors",
+    "cut"
+   ]
+  ]
+ },
+ "phase_declared_grid": {
+  "lovo_phase_f1": {
+   "raw": 73.461,
+   "w5": 77.8676,
+   "w10": 80.3433,
+   "w20": 82.7859,
+   "w30": 84.0238,
+   "w60": 85.2286,
+   "hmm": 82.3568
+  },
+  "nested_choice": {
+   "VID103": "w60",
+   "VID23": "w60",
+   "VID31": "w30",
+   "VID96": "w60"
+  },
+  "nested_phase_f1": 83.9577
+ },
+ "phase_extended_grid_sensitivity": {
+  "lovo_phase_f1": {
+   "raw": 73.461,
+   "w5": 77.8676,
+   "w10": 80.3433,
+   "w20": 82.7859,
+   "w30": 84.0238,
+   "w60": 85.2286,
+   "w90": 86.747,
+   "w120": 86.5159,
+   "w180": 84.6674,
+   "hmm": 82.3568
+  },
+  "nested_choice": {
+   "VID103": "w90",
+   "VID23": "w90",
+   "VID31": "w30",
+   "VID96": "w120"
+  },
+  "nested_phase_f1": 83.2811
+ },
+ "gate_folds": {
+  "gate_v2_qwen_probe_42": {
+   "VID103": {
+    "inner_fraction": 0.3,
+    "outer_fraction": 0.428
+   },
+   "VID23": {
+    "inner_fraction": 0.25,
+    "outer_fraction": 0.267
+   },
+   "VID31": {
+    "inner_fraction": 0.2,
+    "outer_fraction": 0.259
+   },
+   "VID96": {
+    "inner_fraction": 0.25,
+    "outer_fraction": 0.302
+   }
+  },
+  "gate_v2_probe_free_43": {
+   "VID103": {
+    "inner_fraction": 0.8,
+    "outer_fraction": 0.902
+   },
+   "VID23": {
+    "inner_fraction": 0.6,
+    "outer_fraction": 0.65
+   },
+   "VID31": {
+    "inner_fraction": 0.55,
+    "outer_fraction": 0.789
+   },
+   "VID96": {
+    "inner_fraction": 0.55,
+    "outer_fraction": 0.622
+   }
+  }
+ },
+ "lovo_auc": {
+  "gate_v2_qwen_probe_42": 0.8967,
+  "gate_v2_probe_free_43": 0.7384
+ },
+ "gate": {
+  "phase_w10": {
+   "no_review": {
+    "f1": 65.1657,
+    "errors": 33324,
+    "per_video": {
+     "VID103": [
+      66.7547,
+      6226
+     ],
+     "VID23": [
+      65.1898,
+      4144
+     ],
+     "VID31": [
+      65.6448,
+      18373
+     ],
+     "VID96": [
+      59.8383,
+      4581
+     ]
+    },
+    "every_video_not_worse_than_no_review": true,
+    "calls": 8074,
+    "usd": 33.1,
+    "reviewed": 0,
+    "fidelity": 0.9346,
+    "changes_caught": 0.0,
+    "f1_gain_retention": 0.0,
+    "error_reduction_retention": 0.0
+   },
+   "review_every_frame": {
+    "f1": 65.398,
+    "errors": 33007,
+    "per_video": {
+     "VID103": [
+      66.8636,
+      6192
+     ],
+     "VID23": [
+      65.4475,
+      4101
+     ],
+     "VID31": [
+      65.9411,
+      18142
+     ],
+     "VID96": [
+      59.966,
+      4572
+     ]
+    },
+    "every_video_not_worse_than_no_review": true,
+    "calls": 32836,
+    "usd": 71.45,
+    "reviewed": 6059,
+    "fidelity": 1.0,
+    "changes_caught": 1.0,
+    "f1_gain_retention": 1.0,
+    "error_reduction_retention": 1.0
+   },
+   "old_default_gate_routes": {
+    "f1": 65.3836,
+    "errors": 33032,
+    "per_video": {
+     "VID103": [
+      66.8636,
+      6192
+     ],
+     "VID23": [
+      65.4385,
+      4103
+     ],
+     "VID31": [
+      65.9163,
+      18165
+     ],
+     "VID96": [
+      59.966,
+      4572
+     ]
+    },
+    "every_video_not_worse_than_no_review": true,
+    "calls": 26647,
+    "usd": 60.47,
+    "reviewed": 2965,
+    "fidelity": 0.9957,
+    "changes_caught": 0.9343,
+    "f1_gain_retention": 0.938,
+    "error_reduction_retention": 0.9211
+   },
+   "gate_v2_qwen_probe_42": {
+    "f1": 65.3827,
+    "errors": 33036,
+    "per_video": {
+     "VID103": [
+      66.8558,
+      6193
+     ],
+     "VID23": [
+      65.4067,
+      4109
+     ],
+     "VID31": [
+      65.9293,
+      18160
+     ],
+     "VID96": [
+      59.9422,
+      4574
+     ]
+    },
+    "every_video_not_worse_than_no_review": true,
+    "calls": 24047,
+    "usd": 56.0,
+    "reviewed": 1810,
+    "fidelity": 0.9941,
+    "changes_caught": 0.9091,
+    "f1_gain_retention": 0.9341,
+    "error_reduction_retention": 0.9085
+   },
+   "gate_v2_probe_free_43": {
+    "f1": 65.3869,
+    "errors": 33021,
+    "per_video": {
+     "VID103": [
+      66.8636,
+      6192
+     ],
+     "VID23": [
+      65.4163,
+      4104
+     ],
+     "VID31": [
+      65.9348,
+      18149
+     ],
+     "VID96": [
+      59.9369,
+      4576
+     ]
+    },
+    "every_video_not_worse_than_no_review": true,
+    "calls": 28020,
+    "usd": 65.27,
+    "reviewed": 4669,
+    "fidelity": 0.9974,
+    "changes_caught": 0.9596,
+    "f1_gain_retention": 0.9522,
+    "error_reduction_retention": 0.9558
+   }
+  },
+  "phase_nested_declared_grid": {
+   "no_review": {
+    "f1": 65.8886,
+    "errors": 32886,
+    "per_video": {
+     "VID103": [
+      67.0072,
+      6196
+     ],
+     "VID23": [
+      65.5685,
+      4112
+     ],
+     "VID31": [
+      66.4878,
+      18099
+     ],
+     "VID96": [
+      61.1527,
+      4479
+     ]
+    },
+    "every_video_not_worse_than_no_review": true,
+    "calls": 8074,
+    "usd": 33.1,
+    "reviewed": 0,
+    "fidelity": 0.9346,
+    "changes_caught": 0.0,
+    "f1_gain_retention": 0.0,
+    "error_reduction_retention": 0.0
+   },
+   "review_every_frame": {
+    "f1": 66.1209,
+    "errors": 32569,
+    "per_video": {
+     "VID103": [
+      67.1161,
+      6162
+     ],
+     "VID23": [
+      65.8262,
+      4069
+     ],
+     "VID31": [
+      66.7842,
+      17868
+     ],
+     "VID96": [
+      61.2805,
+      4470
+     ]
+    },
+    "every_video_not_worse_than_no_review": true,
+    "calls": 32836,
+    "usd": 71.45,
+    "reviewed": 6059,
+    "fidelity": 1.0,
+    "changes_caught": 1.0,
+    "f1_gain_retention": 1.0,
+    "error_reduction_retention": 1.0
+   },
+   "old_default_gate_routes": {
+    "f1": 66.1065,
+    "errors": 32594,
+    "per_video": {
+     "VID103": [
+      67.1161,
+      6162
+     ],
+     "VID23": [
+      65.8172,
+      4071
+     ],
+     "VID31": [
+      66.7594,
+      17891
+     ],
+     "VID96": [
+      61.2805,
+      4470
+     ]
+    },
+    "every_video_not_worse_than_no_review": true,
+    "calls": 26647,
+    "usd": 60.47,
+    "reviewed": 2965,
+    "fidelity": 0.9957,
+    "changes_caught": 0.9343,
+    "f1_gain_retention": 0.938,
+    "error_reduction_retention": 0.9211
+   },
+   "gate_v2_qwen_probe_42": {
+    "f1": 66.1056,
+    "errors": 32598,
+    "per_video": {
+     "VID103": [
+      67.1083,
+      6163
+     ],
+     "VID23": [
+      65.7854,
+      4077
+     ],
+     "VID31": [
+      66.7724,
+      17886
+     ],
+     "VID96": [
+      61.2566,
+      4472
+     ]
+    },
+    "every_video_not_worse_than_no_review": true,
+    "calls": 24047,
+    "usd": 56.0,
+    "reviewed": 1810,
+    "fidelity": 0.9941,
+    "changes_caught": 0.9091,
+    "f1_gain_retention": 0.9341,
+    "error_reduction_retention": 0.9085
+   },
+   "gate_v2_probe_free_43": {
+    "f1": 66.1098,
+    "errors": 32583,
+    "per_video": {
+     "VID103": [
+      67.1161,
+      6162
+     ],
+     "VID23": [
+      65.795,
+      4072
+     ],
+     "VID31": [
+      66.7778,
+      17875
+     ],
+     "VID96": [
+      61.2513,
+      4474
+     ]
+    },
+    "every_video_not_worse_than_no_review": true,
+    "calls": 28020,
+    "usd": 65.27,
+    "reviewed": 4669,
+    "fidelity": 0.9974,
+    "changes_caught": 0.9596,
+    "f1_gain_retention": 0.9522,
+    "error_reduction_retention": 0.9558
+   }
+  }
+ },
+ "cost_fidelity_curve": [
+  {
+   "verify_fraction": 0.1,
+   "learned_qwen_probe": {
+    "fidelity": 0.9695,
+    "changes_caught": 0.5328,
+    "f1": 65.3231,
+    "errors": 33115,
+    "calls": 20315,
+    "usd": 50.71
+   },
+   "learned_probe_free": {
+    "fidelity": 0.9518,
+    "changes_caught": 0.2626,
+    "f1": 65.2528,
+    "errors": 33158,
+    "calls": 10926,
+    "usd": 37.18
+   },
+   "random_mean_of_50": {
+    "fidelity": 0.9413,
+    "changes_caught": 0.1012,
+    "f1": 65.1906,
+    "errors": 33289.28,
+    "calls": 10549.44,
+    "usd": 36.9336
+   },
+   "random_fidelity_sd": 0.0009
+  },
+  {
+   "verify_fraction": 0.2,
+   "learned_qwen_probe": {
+    "fidelity": 0.9876,
+    "changes_caught": 0.8106,
+    "f1": 65.3617,
+    "errors": 33063,
+    "calls": 22277,
+    "usd": 53.37
+   },
+   "learned_probe_free": {
+    "fidelity": 0.9637,
+    "changes_caught": 0.4444,
+    "f1": 65.2938,
+    "errors": 33104,
+    "calls": 13648,
+    "usd": 41.56
+   },
+   "random_mean_of_50": {
+    "fidelity": 0.9479,
+    "changes_caught": 0.2025,
+    "f1": 65.2127,
+    "errors": 33258.46,
+    "calls": 13024.58,
+    "usd": 40.771
+   },
+   "random_fidelity_sd": 0.0012
+  },
+  {
+   "verify_fraction": 0.3,
+   "learned_qwen_probe": {
+    "fidelity": 0.995,
+    "changes_caught": 0.9242,
+    "f1": 65.3859,
+    "errors": 33031,
+    "calls": 24053,
+    "usd": 56.02
+   },
+   "learned_probe_free": {
+    "fidelity": 0.9741,
+    "changes_caught": 0.6035,
+    "f1": 65.3331,
+    "errors": 33074,
+    "calls": 16312,
+    "usd": 45.95
+   },
+   "random_mean_of_50": {
+    "fidelity": 0.9541,
+    "changes_caught": 0.2984,
+    "f1": 65.2316,
+    "errors": 33233.64,
+    "calls": 15496.36,
+    "usd": 44.6188
+   },
+   "random_fidelity_sd": 0.0013
+  },
+  {
+   "verify_fraction": 0.5,
+   "learned_qwen_probe": {
+    "fidelity": 0.9983,
+    "changes_caught": 0.9747,
+    "f1": 65.3909,
+    "errors": 33019,
+    "calls": 27062,
+    "usd": 61.08
+   },
+   "learned_probe_free": {
+    "fidelity": 0.9889,
+    "changes_caught": 0.8308,
+    "f1": 65.3681,
+    "errors": 33032,
+    "calls": 21549,
+    "usd": 54.71
+   },
+   "random_mean_of_50": {
+    "fidelity": 0.9675,
+    "changes_caught": 0.5026,
+    "f1": 65.2829,
+    "errors": 33163.72,
+    "calls": 20451.7,
+    "usd": 52.267
+   },
+   "random_fidelity_sd": 0.0016
+  },
+  {
+   "verify_fraction": 0.7,
+   "learned_qwen_probe": {
+    "fidelity": 0.9995,
+    "changes_caught": 0.9924,
+    "f1": 65.3955,
+    "errors": 33010,
+    "calls": 29725,
+    "usd": 65.78
+   },
+   "learned_probe_free": {
+    "fidelity": 0.9979,
+    "changes_caught": 0.9672,
+    "f1": 65.3939,
+    "errors": 33017,
+    "calls": 26502,
+    "usd": 62.8
+   },
+   "random_mean_of_50": {
+    "fidelity": 0.9804,
+    "changes_caught": 0.7007,
+    "f1": 65.3276,
+    "errors": 33101.58,
+    "calls": 25409.36,
+    "usd": 59.9428
+   },
+   "random_fidelity_sd": 0.0014
+  }
+ ]
+}

@@ -1,0 +1,1605 @@
+{
+ "rows": 6059,
+ "api_calls": 0,
+ "insertion": {
+  "h0": {
+   "all": {
+    "f1": 58.4914,
+    "errors": 40241,
+    "instrument": 86.76,
+    "verb": 60.5,
+    "target": 44.66,
+    "ivt": 27.08,
+    "phase": 73.46
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 58.1266,
+     "errors": 7770,
+     "instrument": 92.61,
+     "verb": 57.2,
+     "target": 38.51,
+     "ivt": 21.25,
+     "phase": 81.06
+    },
+    "VID23": {
+     "f1": 57.5383,
+     "errors": 5244,
+     "instrument": 82.51,
+     "verb": 69.51,
+     "target": 37.45,
+     "ivt": 27.09,
+     "phase": 71.12
+    },
+    "VID31": {
+     "f1": 59.479,
+     "errors": 21958,
+     "instrument": 84.85,
+     "verb": 64.24,
+     "target": 46.96,
+     "ivt": 31.59,
+     "phase": 69.75
+    },
+    "VID96": {
+     "f1": 54.8296,
+     "errors": 5269,
+     "instrument": 91.1,
+     "verb": 38.54,
+     "target": 50.83,
+     "ivt": 13.78,
+     "phase": 79.9
+    }
+   }
+  },
+  "h0+fusion": {
+   "all": {
+    "f1": 60.0518,
+    "errors": 37991,
+    "instrument": 93.98,
+    "verb": 60.5,
+    "target": 44.66,
+    "ivt": 27.66,
+    "phase": 73.46
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 58.941,
+     "errors": 7548,
+     "instrument": 96.67,
+     "verb": 57.2,
+     "target": 38.51,
+     "ivt": 21.26,
+     "phase": 81.06
+    },
+    "VID23": {
+     "f1": 59.2421,
+     "errors": 4898,
+     "instrument": 91.11,
+     "verb": 69.51,
+     "target": 37.45,
+     "ivt": 27.01,
+     "phase": 71.12
+    },
+    "VID31": {
+     "f1": 61.4922,
+     "errors": 20434,
+     "instrument": 93.85,
+     "verb": 64.24,
+     "target": 46.96,
+     "ivt": 32.66,
+     "phase": 69.75
+    },
+    "VID96": {
+     "f1": 55.3358,
+     "errors": 5111,
+     "instrument": 93.47,
+     "verb": 38.54,
+     "target": 50.83,
+     "ivt": 13.94,
+     "phase": 79.9
+    }
+   }
+  },
+  "cheap": {
+   "all": {
+    "f1": 61.3963,
+    "errors": 36522,
+    "instrument": 86.78,
+    "verb": 60.55,
+    "target": 50.06,
+    "ivt": 36.14,
+    "phase": 73.46
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 64.3679,
+     "errors": 6590,
+     "instrument": 92.61,
+     "verb": 57.31,
+     "target": 50.3,
+     "ivt": 40.55,
+     "phase": 81.06
+    },
+    "VID23": {
+     "f1": 61.7965,
+     "errors": 4585,
+     "instrument": 82.51,
+     "verb": 69.61,
+     "target": 45.24,
+     "ivt": 40.5,
+     "phase": 71.12
+    },
+    "VID31": {
+     "f1": 61.0767,
+     "errors": 20502,
+     "instrument": 84.85,
+     "verb": 64.32,
+     "target": 49.94,
+     "ivt": 36.53,
+     "phase": 69.75
+    },
+    "VID96": {
+     "f1": 57.338,
+     "errors": 4845,
+     "instrument": 91.24,
+     "verb": 38.4,
+     "target": 55.35,
+     "ivt": 21.81,
+     "phase": 79.9
+    }
+   },
+   "calls": 8074,
+   "usd": 33.1,
+   "reviewed": 0
+  },
+  "cheap+fusion": {
+   "all": {
+    "f1": 62.9636,
+    "errors": 34566,
+    "instrument": 93.98,
+    "verb": 60.55,
+    "target": 50.06,
+    "ivt": 36.77,
+    "phase": 73.46
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 65.2219,
+     "errors": 6393,
+     "instrument": 96.67,
+     "verb": 57.31,
+     "target": 50.3,
+     "ivt": 40.77,
+     "phase": 81.06
+    },
+    "VID23": {
+     "f1": 63.6424,
+     "errors": 4282,
+     "instrument": 91.11,
+     "verb": 69.61,
+     "target": 45.24,
+     "ivt": 41.13,
+     "phase": 71.12
+    },
+    "VID31": {
+     "f1": 63.037,
+     "errors": 19178,
+     "instrument": 93.85,
+     "verb": 64.32,
+     "target": 49.94,
+     "ivt": 37.33,
+     "phase": 69.75
+    },
+    "VID96": {
+     "f1": 57.858,
+     "errors": 4713,
+     "instrument": 93.47,
+     "verb": 38.4,
+     "target": 55.35,
+     "ivt": 22.17,
+     "phase": 79.9
+    }
+   },
+   "calls": 8074,
+   "usd": 33.1,
+   "reviewed": 0
+  },
+  "default": {
+   "all": {
+    "f1": 61.6989,
+    "errors": 36150,
+    "instrument": 86.83,
+    "verb": 60.86,
+    "target": 50.68,
+    "ivt": 36.34,
+    "phase": 73.79
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 64.5497,
+     "errors": 6541,
+     "instrument": 92.73,
+     "verb": 57.42,
+     "target": 50.51,
+     "ivt": 40.77,
+     "phase": 81.31
+    },
+    "VID23": {
+     "f1": 62.0924,
+     "errors": 4535,
+     "instrument": 82.56,
+     "verb": 69.96,
+     "target": 45.73,
+     "ivt": 40.97,
+     "phase": 71.24
+    },
+    "VID31": {
+     "f1": 61.4453,
+     "errors": 20248,
+     "instrument": 84.88,
+     "verb": 64.75,
+     "target": 50.67,
+     "ivt": 36.78,
+     "phase": 70.15
+    },
+    "VID96": {
+     "f1": 57.5638,
+     "errors": 4826,
+     "instrument": 91.31,
+     "verb": 38.53,
+     "target": 56.17,
+     "ivt": 21.52,
+     "phase": 80.28
+    }
+   },
+   "calls": 37157,
+   "usd": 86.41,
+   "reviewed": 2965
+  },
+  "default+fusion": {
+   "all": {
+    "f1": 63.2479,
+    "errors": 34232,
+    "instrument": 93.98,
+    "verb": 60.86,
+    "target": 50.68,
+    "ivt": 36.93,
+    "phase": 73.79
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 65.366,
+     "errors": 6355,
+     "instrument": 96.67,
+     "verb": 57.42,
+     "target": 50.51,
+     "ivt": 40.91,
+     "phase": 81.31
+    },
+    "VID23": {
+     "f1": 63.9163,
+     "errors": 4239,
+     "instrument": 91.11,
+     "verb": 69.96,
+     "target": 45.73,
+     "ivt": 41.54,
+     "phase": 71.24
+    },
+    "VID31": {
+     "f1": 63.3961,
+     "errors": 18939,
+     "instrument": 93.85,
+     "verb": 64.75,
+     "target": 50.67,
+     "ivt": 37.56,
+     "phase": 70.15
+    },
+    "VID96": {
+     "f1": 58.0599,
+     "errors": 4699,
+     "instrument": 93.47,
+     "verb": 38.53,
+     "target": 56.17,
+     "ivt": 21.84,
+     "phase": 80.28
+    }
+   },
+   "calls": 37157,
+   "usd": 86.41,
+   "reviewed": 2965
+  },
+  "review_all": {
+   "all": {
+    "f1": 61.758,
+    "errors": 36089,
+    "instrument": 86.81,
+    "verb": 60.88,
+    "target": 50.71,
+    "ivt": 36.37,
+    "phase": 74.02
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 64.5497,
+     "errors": 6541,
+     "instrument": 92.73,
+     "verb": 57.42,
+     "target": 50.51,
+     "ivt": 40.77,
+     "phase": 81.31
+    },
+    "VID23": {
+     "f1": 62.111,
+     "errors": 4531,
+     "instrument": 82.59,
+     "verb": 69.98,
+     "target": 45.73,
+     "ivt": 41.0,
+     "phase": 71.24
+    },
+    "VID31": {
+     "f1": 61.5515,
+     "errors": 20191,
+     "instrument": 84.83,
+     "verb": 64.78,
+     "target": 50.73,
+     "ivt": 36.83,
+     "phase": 70.58
+    },
+    "VID96": {
+     "f1": 57.5638,
+     "errors": 4826,
+     "instrument": 91.31,
+     "verb": 38.53,
+     "target": 56.17,
+     "ivt": 21.52,
+     "phase": 80.28
+    }
+   },
+   "calls": 53865,
+   "usd": 122.72,
+   "reviewed": 6059
+  },
+  "review_all+fusion": {
+   "all": {
+    "f1": 63.3068,
+    "errors": 34179,
+    "instrument": 93.98,
+    "verb": 60.88,
+    "target": 50.71,
+    "ivt": 36.95,
+    "phase": 74.02
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 65.366,
+     "errors": 6355,
+     "instrument": 96.67,
+     "verb": 57.42,
+     "target": 50.51,
+     "ivt": 40.91,
+     "phase": 81.31
+    },
+    "VID23": {
+     "f1": 63.9252,
+     "errors": 4237,
+     "instrument": 91.11,
+     "verb": 69.98,
+     "target": 45.73,
+     "ivt": 41.56,
+     "phase": 71.24
+    },
+    "VID31": {
+     "f1": 63.5044,
+     "errors": 18888,
+     "instrument": 93.85,
+     "verb": 64.78,
+     "target": 50.73,
+     "ivt": 37.58,
+     "phase": 70.58
+    },
+    "VID96": {
+     "f1": 58.0599,
+     "errors": 4699,
+     "instrument": 93.47,
+     "verb": 38.53,
+     "target": 56.17,
+     "ivt": 21.84,
+     "phase": 80.28
+    }
+   },
+   "calls": 53865,
+   "usd": 122.72,
+   "reviewed": 6059
+  },
+  "default_or_disagree_trigger+fusion": {
+   "all": {
+    "f1": 63.2701,
+    "errors": 34208,
+    "instrument": 93.98,
+    "verb": 60.87,
+    "target": 50.7,
+    "ivt": 36.93,
+    "phase": 73.87
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 65.366,
+     "errors": 6355,
+     "instrument": 96.67,
+     "verb": 57.42,
+     "target": 50.51,
+     "ivt": 40.91,
+     "phase": 81.31
+    },
+    "VID23": {
+     "f1": 63.9163,
+     "errors": 4239,
+     "instrument": 91.11,
+     "verb": 69.96,
+     "target": 45.73,
+     "ivt": 41.54,
+     "phase": 71.24
+    },
+    "VID31": {
+     "f1": 63.4381,
+     "errors": 18915,
+     "instrument": 93.85,
+     "verb": 64.77,
+     "target": 50.71,
+     "ivt": 37.56,
+     "phase": 70.31
+    },
+    "VID96": {
+     "f1": 58.0599,
+     "errors": 4699,
+     "instrument": 93.47,
+     "verb": 38.53,
+     "target": 56.17,
+     "ivt": 21.84,
+     "phase": 80.28
+    }
+   },
+   "calls": 42110,
+   "usd": 97.01,
+   "reviewed": 3854
+  },
+  "only_disagree_trigger+fusion": {
+   "all": {
+    "f1": 63.0707,
+    "errors": 34469,
+    "instrument": 93.98,
+    "verb": 60.66,
+    "target": 50.23,
+    "ivt": 36.79,
+    "phase": 73.69
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 65.2263,
+     "errors": 6391,
+     "instrument": 96.67,
+     "verb": 57.38,
+     "target": 50.32,
+     "ivt": 40.79,
+     "phase": 80.98
+    },
+    "VID23": {
+     "f1": 63.7332,
+     "errors": 4272,
+     "instrument": 91.11,
+     "verb": 69.72,
+     "target": 45.48,
+     "ivt": 41.11,
+     "phase": 71.24
+    },
+    "VID31": {
+     "f1": 63.1958,
+     "errors": 19100,
+     "instrument": 93.85,
+     "verb": 64.45,
+     "target": 50.14,
+     "ivt": 37.36,
+     "phase": 70.18
+    },
+    "VID96": {
+     "f1": 57.9266,
+     "errors": 4706,
+     "instrument": 93.47,
+     "verb": 38.51,
+     "target": 55.56,
+     "ivt": 22.19,
+     "phase": 79.9
+    }
+   },
+   "calls": 21610,
+   "usd": 59.48,
+   "reviewed": 1727
+  },
+  "default_or_uncovered_trigger+fusion": {
+   "all": {
+    "f1": 63.2666,
+    "errors": 34213,
+    "instrument": 93.98,
+    "verb": 60.86,
+    "target": 50.69,
+    "ivt": 36.93,
+    "phase": 73.87
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 65.366,
+     "errors": 6355,
+     "instrument": 96.67,
+     "verb": 57.42,
+     "target": 50.51,
+     "ivt": 40.91,
+     "phase": 81.31
+    },
+    "VID23": {
+     "f1": 63.9163,
+     "errors": 4239,
+     "instrument": 91.11,
+     "verb": 69.96,
+     "target": 45.73,
+     "ivt": 41.54,
+     "phase": 71.24
+    },
+    "VID31": {
+     "f1": 63.4316,
+     "errors": 18920,
+     "instrument": 93.85,
+     "verb": 64.75,
+     "target": 50.7,
+     "ivt": 37.56,
+     "phase": 70.31
+    },
+    "VID96": {
+     "f1": 58.0599,
+     "errors": 4699,
+     "instrument": 93.47,
+     "verb": 38.53,
+     "target": 56.17,
+     "ivt": 21.84,
+     "phase": 80.28
+    }
+   },
+   "calls": 43974,
+   "usd": 100.87,
+   "reviewed": 4220
+  },
+  "only_uncovered_trigger+fusion": {
+   "all": {
+    "f1": 63.1032,
+    "errors": 34448,
+    "instrument": 93.98,
+    "verb": 60.64,
+    "target": 50.39,
+    "ivt": 36.82,
+    "phase": 73.69
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 65.215,
+     "errors": 6391,
+     "instrument": 96.67,
+     "verb": 57.34,
+     "target": 50.37,
+     "ivt": 40.8,
+     "phase": 80.89
+    },
+    "VID23": {
+     "f1": 63.7321,
+     "errors": 4274,
+     "instrument": 91.11,
+     "verb": 69.64,
+     "target": 45.48,
+     "ivt": 41.18,
+     "phase": 71.24
+    },
+    "VID31": {
+     "f1": 63.2478,
+     "errors": 19078,
+     "instrument": 93.85,
+     "verb": 64.45,
+     "target": 50.34,
+     "ivt": 37.39,
+     "phase": 70.22
+    },
+    "VID96": {
+     "f1": 57.986,
+     "errors": 4705,
+     "instrument": 93.47,
+     "verb": 38.53,
+     "target": 55.82,
+     "ivt": 22.2,
+     "phase": 79.9
+    }
+   },
+   "calls": 26303,
+   "usd": 68.24,
+   "reviewed": 2387
+  },
+  "default+fusion+ivt_prior_add": {
+   "all": {
+    "f1": 64.4556,
+    "errors": 34618,
+    "instrument": 93.98,
+    "verb": 60.66,
+    "target": 55.65,
+    "ivt": 38.2,
+    "phase": 73.79
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 67.616,
+     "errors": 6208,
+     "instrument": 96.67,
+     "verb": 60.45,
+     "target": 54.12,
+     "ivt": 45.52,
+     "phase": 81.31
+    },
+    "VID23": {
+     "f1": 65.8539,
+     "errors": 4132,
+     "instrument": 91.11,
+     "verb": 71.76,
+     "target": 49.24,
+     "ivt": 45.92,
+     "phase": 71.24
+    },
+    "VID31": {
+     "f1": 64.2772,
+     "errors": 19375,
+     "instrument": 93.85,
+     "verb": 62.95,
+     "target": 57.53,
+     "ivt": 36.91,
+     "phase": 70.15
+    },
+    "VID96": {
+     "f1": 58.4433,
+     "errors": 4903,
+     "instrument": 93.47,
+     "verb": 38.55,
+     "target": 56.04,
+     "ivt": 23.87,
+     "phase": 80.28
+    }
+   },
+   "calls": 37157,
+   "usd": 86.41,
+   "reviewed": 2965
+  },
+  "cheap+fusion+ivt_prior_add": {
+   "all": {
+    "f1": 64.196,
+    "errors": 34904,
+    "instrument": 93.98,
+    "verb": 60.3,
+    "target": 55.2,
+    "ivt": 38.05,
+    "phase": 73.46
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 67.4299,
+     "errors": 6243,
+     "instrument": 96.67,
+     "verb": 59.99,
+     "target": 54.07,
+     "ivt": 45.35,
+     "phase": 81.06
+    },
+    "VID23": {
+     "f1": 65.5691,
+     "errors": 4175,
+     "instrument": 91.11,
+     "verb": 71.31,
+     "target": 48.97,
+     "ivt": 45.33,
+     "phase": 71.12
+    },
+    "VID31": {
+     "f1": 63.9707,
+     "errors": 19576,
+     "instrument": 93.85,
+     "verb": 62.58,
+     "target": 56.92,
+     "ivt": 36.76,
+     "phase": 69.75
+    },
+    "VID96": {
+     "f1": 58.2786,
+     "errors": 4910,
+     "instrument": 93.47,
+     "verb": 38.41,
+     "target": 55.47,
+     "ivt": 24.14,
+     "phase": 79.9
+    }
+   },
+   "calls": 8074,
+   "usd": 33.1,
+   "reviewed": 0
+  },
+  "adopt_vs_default+fusion": {
+   "default_or_disagree_trigger+fusion": true,
+   "default_or_uncovered_trigger+fusion": true,
+   "default+fusion+ivt_prior_add": false
+  },
+  "trigger_rates": {
+   "disagree": 0.285,
+   "uncovered": 0.394,
+   "default_route": 0.4894
+  },
+  "gate_change_label_rate": {
+   "before_fusion": 0.084,
+   "after_fusion": 0.0729
+  },
+  "reviewer_instrument_edits": {
+   "frames": 101,
+   "errors_cheap": 104,
+   "errors_reviewer": 102,
+   "errors_tracker": 31
+  }
+ },
+ "priors": {
+  "rules_p_ge_0.8": [
+   [
+    "target",
+    "bipolar",
+    "liver"
+   ],
+   [
+    "target",
+    "clipper",
+    "gallbladder"
+   ],
+   [
+    "target",
+    "grasper",
+    "gallbladder"
+   ],
+   [
+    "target",
+    "hook",
+    "gallbladder"
+   ],
+   [
+    "target",
+    "scissors",
+    "gallbladder"
+   ],
+   [
+    "verb",
+    "clipper",
+    "clip"
+   ],
+   [
+    "verb",
+    "clipper",
+    "retract"
+   ],
+   [
+    "verb",
+    "grasper",
+    "retract"
+   ],
+   [
+    "verb",
+    "hook",
+    "dissect"
+   ],
+   [
+    "verb",
+    "irrigator",
+    "retract"
+   ],
+   [
+    "verb",
+    "scissors",
+    "cut"
+   ],
+   [
+    "verb",
+    "scissors",
+    "grasp"
+   ]
+  ],
+  "none": {
+   "all": {
+    "f1": 63.2479,
+    "errors": 34232,
+    "instrument": 93.98,
+    "verb": 60.86,
+    "target": 50.68,
+    "ivt": 36.93,
+    "phase": 73.79
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 65.366,
+     "errors": 6355,
+     "instrument": 96.67,
+     "verb": 57.42,
+     "target": 50.51,
+     "ivt": 40.91,
+     "phase": 81.31
+    },
+    "VID23": {
+     "f1": 63.9163,
+     "errors": 4239,
+     "instrument": 91.11,
+     "verb": 69.96,
+     "target": 45.73,
+     "ivt": 41.54,
+     "phase": 71.24
+    },
+    "VID31": {
+     "f1": 63.3961,
+     "errors": 18939,
+     "instrument": 93.85,
+     "verb": 64.75,
+     "target": 50.67,
+     "ivt": 37.56,
+     "phase": 70.15
+    },
+    "VID96": {
+     "f1": 58.0599,
+     "errors": 4699,
+     "instrument": 93.47,
+     "verb": 38.53,
+     "target": 56.17,
+     "ivt": 21.84,
+     "phase": 80.28
+    }
+   },
+   "calls": 37157,
+   "usd": 86.41,
+   "reviewed": 2965
+  },
+  "verb_all": {
+   "all": {
+    "f1": 64.1652,
+    "errors": 33916,
+    "instrument": 93.98,
+    "verb": 65.45,
+    "target": 50.68,
+    "ivt": 36.93,
+    "phase": 73.79
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 66.965,
+     "errors": 6192,
+     "instrument": 96.67,
+     "verb": 65.42,
+     "target": 50.51,
+     "ivt": 40.91,
+     "phase": 81.31
+    },
+    "VID23": {
+     "f1": 64.6431,
+     "errors": 4170,
+     "instrument": 91.11,
+     "verb": 73.59,
+     "target": 45.73,
+     "ivt": 41.54,
+     "phase": 71.24
+    },
+    "VID31": {
+     "f1": 64.307,
+     "errors": 18730,
+     "instrument": 93.85,
+     "verb": 69.31,
+     "target": 50.67,
+     "ivt": 37.56,
+     "phase": 70.15
+    },
+    "VID96": {
+     "f1": 58.2319,
+     "errors": 4824,
+     "instrument": 93.47,
+     "verb": 39.39,
+     "target": 56.17,
+     "ivt": 21.84,
+     "phase": 80.28
+    }
+   },
+   "calls": 37157,
+   "usd": 86.41,
+   "reviewed": 2965
+  },
+  "verb_nonamb": {
+   "all": {
+    "f1": 64.0732,
+    "errors": 33826,
+    "instrument": 93.98,
+    "verb": 64.99,
+    "target": 50.68,
+    "ivt": 36.93,
+    "phase": 73.79
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 65.8367,
+     "errors": 6314,
+     "instrument": 96.67,
+     "verb": 59.78,
+     "target": 50.51,
+     "ivt": 40.91,
+     "phase": 81.31
+    },
+    "VID23": {
+     "f1": 64.6338,
+     "errors": 4171,
+     "instrument": 91.11,
+     "verb": 73.55,
+     "target": 45.73,
+     "ivt": 41.54,
+     "phase": 71.24
+    },
+    "VID31": {
+     "f1": 64.3779,
+     "errors": 18665,
+     "instrument": 93.85,
+     "verb": 69.66,
+     "target": 50.67,
+     "ivt": 37.56,
+     "phase": 70.15
+    },
+    "VID96": {
+     "f1": 58.6258,
+     "errors": 4676,
+     "instrument": 93.47,
+     "verb": 41.36,
+     "target": 56.17,
+     "ivt": 21.84,
+     "phase": 80.28
+    }
+   },
+   "calls": 37157,
+   "usd": 86.41,
+   "reviewed": 2965
+  },
+  "target": {
+   "all": {
+    "f1": 64.5822,
+    "errors": 33565,
+    "instrument": 93.98,
+    "verb": 60.86,
+    "target": 57.35,
+    "ivt": 36.93,
+    "phase": 73.79
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 66.3721,
+     "errors": 6285,
+     "instrument": 96.67,
+     "verb": 57.42,
+     "target": 55.54,
+     "ivt": 40.91,
+     "phase": 81.31
+    },
+    "VID23": {
+     "f1": 65.146,
+     "errors": 4218,
+     "instrument": 91.11,
+     "verb": 69.96,
+     "target": 51.88,
+     "ivt": 41.54,
+     "phase": 71.24
+    },
+    "VID31": {
+     "f1": 65.137,
+     "errors": 18261,
+     "instrument": 93.85,
+     "verb": 64.75,
+     "target": 59.37,
+     "ivt": 37.56,
+     "phase": 70.15
+    },
+    "VID96": {
+     "f1": 58.2201,
+     "errors": 4801,
+     "instrument": 93.47,
+     "verb": 38.53,
+     "target": 56.97,
+     "ivt": 21.84,
+     "phase": 80.28
+    }
+   },
+   "calls": 37157,
+   "usd": 86.41,
+   "reviewed": 2965
+  },
+  "verb_nonamb+target": {
+   "all": {
+    "f1": 65.4075,
+    "errors": 33159,
+    "instrument": 93.98,
+    "verb": 64.99,
+    "target": 57.35,
+    "ivt": 36.93,
+    "phase": 73.79
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 66.8428,
+     "errors": 6244,
+     "instrument": 96.67,
+     "verb": 59.78,
+     "target": 55.54,
+     "ivt": 40.91,
+     "phase": 81.31
+    },
+    "VID23": {
+     "f1": 65.8634,
+     "errors": 4150,
+     "instrument": 91.11,
+     "verb": 73.55,
+     "target": 51.88,
+     "ivt": 41.54,
+     "phase": 71.24
+    },
+    "VID31": {
+     "f1": 66.1188,
+     "errors": 17987,
+     "instrument": 93.85,
+     "verb": 69.66,
+     "target": 59.37,
+     "ivt": 37.56,
+     "phase": 70.15
+    },
+    "VID96": {
+     "f1": 58.786,
+     "errors": 4778,
+     "instrument": 93.47,
+     "verb": 41.36,
+     "target": 56.97,
+     "ivt": 21.84,
+     "phase": 80.28
+    }
+   },
+   "calls": 37157,
+   "usd": 86.41,
+   "reviewed": 2965
+  },
+  "verb_all+target": {
+   "all": {
+    "f1": 65.4995,
+    "errors": 33249,
+    "instrument": 93.98,
+    "verb": 65.45,
+    "target": 57.35,
+    "ivt": 36.93,
+    "phase": 73.79
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 67.9711,
+     "errors": 6122,
+     "instrument": 96.67,
+     "verb": 65.42,
+     "target": 55.54,
+     "ivt": 40.91,
+     "phase": 81.31
+    },
+    "VID23": {
+     "f1": 65.8727,
+     "errors": 4149,
+     "instrument": 91.11,
+     "verb": 73.59,
+     "target": 51.88,
+     "ivt": 41.54,
+     "phase": 71.24
+    },
+    "VID31": {
+     "f1": 66.0479,
+     "errors": 18052,
+     "instrument": 93.85,
+     "verb": 69.31,
+     "target": 59.37,
+     "ivt": 37.56,
+     "phase": 70.15
+    },
+    "VID96": {
+     "f1": 58.3921,
+     "errors": 4926,
+     "instrument": 93.47,
+     "verb": 39.39,
+     "target": 56.97,
+     "ivt": 21.84,
+     "phase": 80.28
+    }
+   },
+   "calls": 37157,
+   "usd": 86.41,
+   "reviewed": 2965
+  },
+  "sensitivity_th0.9_verb_nonamb+target": {
+   "all": {
+    "f1": 63.7202,
+    "errors": 34169,
+    "instrument": 93.98,
+    "verb": 61.33,
+    "target": 52.56,
+    "ivt": 36.93,
+    "phase": 73.79
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 66.5149,
+     "errors": 6275,
+     "instrument": 96.67,
+     "verb": 58.14,
+     "target": 55.54,
+     "ivt": 40.91,
+     "phase": 81.31
+    },
+    "VID23": {
+     "f1": 65.4119,
+     "errors": 4138,
+     "instrument": 91.11,
+     "verb": 70.11,
+     "target": 53.06,
+     "ivt": 41.54,
+     "phase": 71.24
+    },
+    "VID31": {
+     "f1": 63.4582,
+     "errors": 18964,
+     "instrument": 93.85,
+     "verb": 65.06,
+     "target": 50.67,
+     "ivt": 37.56,
+     "phase": 70.15
+    },
+    "VID96": {
+     "f1": 58.1359,
+     "errors": 4792,
+     "instrument": 93.47,
+     "verb": 39.68,
+     "target": 55.41,
+     "ivt": 21.84,
+     "phase": 80.28
+    }
+   },
+   "calls": 37157,
+   "usd": 86.41,
+   "reviewed": 2965
+  },
+  "adopt_vs_none": {
+   "none": false,
+   "verb_all": false,
+   "verb_nonamb": true,
+   "target": false,
+   "verb_nonamb+target": false,
+   "verb_all+target": false,
+   "sensitivity_th0.9_verb_nonamb+target": false
+  }
+ },
+ "components": {
+  "REF": {
+   "all": {
+    "f1": 64.0732,
+    "errors": 33826,
+    "instrument": 93.98,
+    "verb": 64.99,
+    "target": 50.68,
+    "ivt": 36.93,
+    "phase": 73.79
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 65.8367,
+     "errors": 6314,
+     "instrument": 96.67,
+     "verb": 59.78,
+     "target": 50.51,
+     "ivt": 40.91,
+     "phase": 81.31
+    },
+    "VID23": {
+     "f1": 64.6338,
+     "errors": 4171,
+     "instrument": 91.11,
+     "verb": 73.55,
+     "target": 45.73,
+     "ivt": 41.54,
+     "phase": 71.24
+    },
+    "VID31": {
+     "f1": 64.3779,
+     "errors": 18665,
+     "instrument": 93.85,
+     "verb": 69.66,
+     "target": 50.67,
+     "ivt": 37.56,
+     "phase": 70.15
+    },
+    "VID96": {
+     "f1": 58.6258,
+     "errors": 4676,
+     "instrument": 93.47,
+     "verb": 41.36,
+     "target": 56.17,
+     "ivt": 21.84,
+     "phase": 80.28
+    }
+   },
+   "calls": 37157,
+   "usd": 86.41,
+   "reviewed": 2965
+  },
+  "tracker_smoothing_majority": {
+   "all": {
+    "f1": 64.1435,
+    "errors": 33709,
+    "instrument": 94.24,
+    "verb": 65.18,
+    "target": 50.68,
+    "ivt": 36.83,
+    "phase": 73.79
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 65.9781,
+     "errors": 6285,
+     "instrument": 97.05,
+     "verb": 60.01,
+     "target": 50.51,
+     "ivt": 41.01,
+     "phase": 81.31
+    },
+    "VID23": {
+     "f1": 64.2306,
+     "errors": 4211,
+     "instrument": 89.69,
+     "verb": 73.43,
+     "target": 45.73,
+     "ivt": 41.06,
+     "phase": 71.24
+    },
+    "VID31": {
+     "f1": 64.5581,
+     "errors": 18533,
+     "instrument": 94.49,
+     "verb": 69.94,
+     "target": 50.67,
+     "ivt": 37.54,
+     "phase": 70.15
+    },
+    "VID96": {
+     "f1": 58.5727,
+     "errors": 4680,
+     "instrument": 93.51,
+     "verb": 41.55,
+     "target": 56.17,
+     "ivt": 21.35,
+     "phase": 80.28
+    }
+   },
+   "calls": 37157,
+   "usd": 86.41,
+   "reviewed": 2965
+  },
+  "tracker_smoothing_fill": {
+   "all": {
+    "f1": 64.1758,
+    "errors": 33841,
+    "instrument": 94.34,
+    "verb": 65.02,
+    "target": 50.68,
+    "ivt": 37.05,
+    "phase": 73.79
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 65.9553,
+     "errors": 6309,
+     "instrument": 97.01,
+     "verb": 59.82,
+     "target": 50.51,
+     "ivt": 41.12,
+     "phase": 81.31
+    },
+    "VID23": {
+     "f1": 64.6411,
+     "errors": 4186,
+     "instrument": 90.92,
+     "verb": 73.5,
+     "target": 45.73,
+     "ivt": 41.82,
+     "phase": 71.24
+    },
+    "VID31": {
+     "f1": 64.4644,
+     "errors": 18667,
+     "instrument": 94.16,
+     "verb": 69.7,
+     "target": 50.67,
+     "ivt": 37.65,
+     "phase": 70.15
+    },
+    "VID96": {
+     "f1": 58.9194,
+     "errors": 4679,
+     "instrument": 94.72,
+     "verb": 41.51,
+     "target": 56.17,
+     "ivt": 21.92,
+     "phase": 80.28
+    }
+   },
+   "calls": 37157,
+   "usd": 86.41,
+   "reviewed": 2965
+  },
+  "tracker_smoothing_confirm": {
+   "all": {
+    "f1": 64.0389,
+    "errors": 33694,
+    "instrument": 93.87,
+    "verb": 65.14,
+    "target": 50.68,
+    "ivt": 36.71,
+    "phase": 73.79
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 65.8586,
+     "errors": 6290,
+     "instrument": 96.71,
+     "verb": 59.97,
+     "target": 50.51,
+     "ivt": 40.8,
+     "phase": 81.31
+    },
+    "VID23": {
+     "f1": 64.2174,
+     "errors": 4196,
+     "instrument": 89.87,
+     "verb": 73.48,
+     "target": 45.73,
+     "ivt": 40.77,
+     "phase": 71.24
+    },
+    "VID31": {
+     "f1": 64.4718,
+     "errors": 18531,
+     "instrument": 94.18,
+     "verb": 69.9,
+     "target": 50.67,
+     "ivt": 37.45,
+     "phase": 70.15
+    },
+    "VID96": {
+     "f1": 58.2634,
+     "errors": 4677,
+     "instrument": 92.2,
+     "verb": 41.4,
+     "target": 56.17,
+     "ivt": 21.26,
+     "phase": 80.28
+    }
+   },
+   "calls": 37157,
+   "usd": 86.41,
+   "reviewed": 2965
+  },
+  "instrument_to_phase_prior": {
+   "all": {
+    "f1": 62.4821,
+    "errors": 34790,
+    "instrument": 93.98,
+    "verb": 64.99,
+    "target": 50.68,
+    "ivt": 36.93,
+    "phase": 65.84
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 58.8165,
+     "errors": 7148,
+     "instrument": 96.67,
+     "verb": 59.78,
+     "target": 50.51,
+     "ivt": 40.91,
+     "phase": 46.21
+    },
+    "VID23": {
+     "f1": 64.6575,
+     "errors": 4169,
+     "instrument": 91.11,
+     "verb": 73.55,
+     "target": 45.73,
+     "ivt": 41.54,
+     "phase": 71.36
+    },
+    "VID31": {
+     "f1": 64.4025,
+     "errors": 18657,
+     "instrument": 93.85,
+     "verb": 69.66,
+     "target": 50.67,
+     "ivt": 37.56,
+     "phase": 70.28
+    },
+    "VID96": {
+     "f1": 56.8217,
+     "errors": 4816,
+     "instrument": 93.47,
+     "verb": 41.36,
+     "target": 56.17,
+     "ivt": 21.84,
+     "phase": 71.26
+    }
+   },
+   "calls": 37157,
+   "usd": 86.41,
+   "reviewed": 2965
+  },
+  "phase_filter_10s": {
+   "all": {
+    "f1": 65.4199,
+    "errors": 33010,
+    "instrument": 93.98,
+    "verb": 64.99,
+    "target": 50.68,
+    "ivt": 36.93,
+    "phase": 80.52
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 66.8805,
+     "errors": 6190,
+     "instrument": 96.67,
+     "verb": 59.78,
+     "target": 50.51,
+     "ivt": 40.91,
+     "phase": 86.53
+    },
+    "VID23": {
+     "f1": 65.4385,
+     "errors": 4103,
+     "instrument": 91.11,
+     "verb": 73.55,
+     "target": 45.73,
+     "ivt": 41.54,
+     "phase": 75.27
+    },
+    "VID31": {
+     "f1": 65.9471,
+     "errors": 18155,
+     "instrument": 93.85,
+     "verb": 69.66,
+     "target": 50.67,
+     "ivt": 37.56,
+     "phase": 78.0
+    },
+    "VID96": {
+     "f1": 60.0949,
+     "errors": 4562,
+     "instrument": 93.47,
+     "verb": 41.36,
+     "target": 56.17,
+     "ivt": 21.84,
+     "phase": 87.63
+    }
+   },
+   "calls": 37157,
+   "usd": 86.41,
+   "reviewed": 2965
+  },
+  "instrument_to_phase_prior+phase_filter_10s": {
+   "all": {
+    "f1": 63.5978,
+    "errors": 34114,
+    "instrument": 93.98,
+    "verb": 64.99,
+    "target": 50.68,
+    "ivt": 36.93,
+    "phase": 71.41
+   },
+   "per_video": {
+    "VID103": {
+     "f1": 58.7997,
+     "errors": 7150,
+     "instrument": 96.67,
+     "verb": 59.78,
+     "target": 50.51,
+     "ivt": 40.91,
+     "phase": 46.13
+    },
+    "VID23": {
+     "f1": 65.4622,
+     "errors": 4101,
+     "instrument": 91.11,
+     "verb": 73.55,
+     "target": 45.73,
+     "ivt": 41.54,
+     "phase": 75.38
+    },
+    "VID31": {
+     "f1": 66.0025,
+     "errors": 18137,
+     "instrument": 93.85,
+     "verb": 69.66,
+     "target": 50.67,
+     "ivt": 37.56,
+     "phase": 78.28
+    },
+    "VID96": {
+     "f1": 57.9815,
+     "errors": 4726,
+     "instrument": 93.47,
+     "verb": 41.36,
+     "target": 56.17,
+     "ivt": 21.84,
+     "phase": 77.06
+    }
+   },
+   "calls": 37157,
+   "usd": 86.41,
+   "reviewed": 2965
+  },
+  "phase_rules_p_ge_0.8": {
+   "VID103": [
+    [
+     "clipper",
+     "clipping_and_cutting",
+     1.0
+    ],
+    [
+     "hook",
+     "calot_triangle_dissection",
+     0.85
+    ]
+   ],
+   "VID23": [
+    [
+     "clipper",
+     "clipping_and_cutting",
+     1.0
+    ],
+    [
+     "scissors",
+     "clipping_and_cutting",
+     1.0
+    ]
+   ],
+   "VID31": [
+    [
+     "clipper",
+     "clipping_and_cutting",
+     0.99
+    ]
+   ],
+   "VID96": [
+    [
+     "bipolar",
+     "cleaning_and_coagulation",
+     0.82
+    ],
+    [
+     "clipper",
+     "clipping_and_cutting",
+     1.0
+    ]
+   ]
+  },
+  "adopt_vs_REF": {
+   "REF": false,
+   "tracker_smoothing_majority": false,
+   "tracker_smoothing_fill": false,
+   "tracker_smoothing_confirm": false,
+   "instrument_to_phase_prior": false,
+   "phase_filter_10s": true,
+   "instrument_to_phase_prior+phase_filter_10s": false
+  }
+ }
+}
