@@ -10,3 +10,8 @@ artifacts/training/gate/tracker_scheme4_20260914/** -text
 configs/defaults/pgp-*-before-scheme4-20260914.json -text
 artifacts/training/tracker_clip_v2_oof5_20260906/oof/**/*.json -text
 artifacts/training/tracker_clip_v2_oof5_20260906/oof/index.json -text
+docs/experiments/scheme4_pipeline_20260914/*.jsonl -text
+docs/experiments/scheme4_pipeline_20260914/*.npz -text
+docs/experiments/scheme4_pipeline_20260914/schemes56_predictions.json -text
+docs/experiments/scheme4_pipeline_20260914/schemes56_collection_receipt.json -text
+docs/experiments/scheme4_pipeline_20260914/probe_reproduction_receipt.json -text

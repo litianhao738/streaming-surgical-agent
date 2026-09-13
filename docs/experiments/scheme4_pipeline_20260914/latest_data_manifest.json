@@ -1,0 +1,147 @@
+{
+  "schema_version": "scheme4_result_publication_v1",
+  "published_on": "2026-09-14",
+  "current_pipeline": "tracker-scheme4-complete-pipeline-v1-20260914",
+  "new_api_calls": 0,
+  "verified_existing_summaries": 6,
+  "published_files": [
+    {
+      "file": "scheme4_research_predictions.jsonl",
+      "status": "CURRENT_RESEARCH",
+      "rows": 6059,
+      "bytes": 3579811,
+      "sha256": "85d74ef2373ac2af5d39937f03e694b3f26d136301b35ec1297e9f740b0838f4",
+      "source": "artifacts/research/tracker_scheme4_20260914_r2/predictions.jsonl"
+    },
+    {
+      "file": "scheme4_gate_arrays.npz",
+      "status": "CURRENT_RESEARCH",
+      "rows": 6059,
+      "bytes": 203791,
+      "sha256": "2f2db87b2557071c3797e72f08d7fc4b66af1beb80fdae8734b63db0d9db1a1f",
+      "source": "artifacts/research/tracker_scheme4_20260914_r2/predictions.npz"
+    },
+    {
+      "file": "scheme4_pipeline_predictions.jsonl",
+      "status": "CURRENT_PIPELINE_FULLFIT",
+      "rows": 6059,
+      "bytes": 11899326,
+      "sha256": "e4a5c8e07fae19aefda7eca9fa9fce58a00d1dfcf3b9332ac3dc661a8a78d1a6",
+      "source": "artifacts/preflight/tracker_scheme4_default_all_20260914_r1/predictions.jsonl"
+    },
+    {
+      "file": "schemes56_predictions.json",
+      "status": "COMPLETED_NOT_ADOPTED",
+      "rows": 16,
+      "bytes": 59660,
+      "sha256": "849d48b2dc8cc884524d7fd04ccac09ba037f3ae5d529b0cc673fac4975d784f",
+      "source": "artifacts/research/tracker_schemes56_pilot_20260914_r5/predictions.json"
+    },
+    {
+      "file": "schemes56_collection_receipt.json",
+      "status": "COMPLETED_NOT_ADOPTED",
+      "rows": 16,
+      "bytes": 558,
+      "sha256": "b2c9a4b1f41139e7ada9058c316399c2395d82fef44aefe4ccdaaed1c3e4fd71",
+      "source": "artifacts/research/tracker_schemes56_pilot_20260914_r5/collection_receipt.json"
+    },
+    {
+      "file": "probe_reproduction_receipt.json",
+      "status": "HISTORICAL_REPRODUCTION",
+      "rows": null,
+      "bytes": 1092,
+      "sha256": "ad0af4c126e55c2a9b78e9a4cfd9931ac07493588188d2f6d4bc50af7b6be666",
+      "source": "artifacts/research/tracker_scheme4_reproduction_20260914_r1/receipt.json"
+    }
+  ],
+  "data_states": [
+    {
+      "path": "artifacts/research/tracker_scheme4_20260914_r1",
+      "status": "SUPERSEDED",
+      "note": "真实 Tracker 适配修正前的中间回放；使用 r2。"
+    },
+    {
+      "path": "artifacts/research/tracker_scheme4_20260914_r2",
+      "status": "CURRENT_RESEARCH",
+      "note": "论文引用外层结果；全量拟合单独报告。"
+    },
+    {
+      "path": "artifacts/research/tracker_scheme4_reproduction_20260914_r1",
+      "status": "HISTORICAL_REPRODUCTION",
+      "note": "原探针复现证据；不是当前完整 pipeline 数字。"
+    },
+    {
+      "path": "artifacts/research/tracker_schemes56_pilot_20260914_r1",
+      "status": "FAILED_PREPARATION",
+      "note": "离线准备失败，无付费采集。"
+    },
+    {
+      "path": "artifacts/research/tracker_schemes56_pilot_20260914_r2",
+      "status": "FAILED_PREPARATION",
+      "note": "离线准备失败，无付费采集。"
+    },
+    {
+      "path": "artifacts/research/tracker_schemes56_pilot_20260914_r3",
+      "status": "SUPERSEDED_PREPARATION",
+      "note": "旧预算预览；被 r5 替代，无付费采集。"
+    },
+    {
+      "path": "artifacts/research/tracker_schemes56_pilot_20260914_r4",
+      "status": "SUPERSEDED_PREPARATION",
+      "note": "中间预览；被 r5 替代，无付费采集。"
+    },
+    {
+      "path": "artifacts/research/tracker_schemes56_pilot_20260914_r5",
+      "status": "COMPLETED_NOT_ADOPTED",
+      "note": "208 次请求配对实验的最终证据；两方案未通过，保留费用与失败记录。"
+    },
+    {
+      "path": "artifacts/preflight/tracker_scheme4_default_20260914_r1",
+      "status": "LEGACY_PREFLIGHT_NOT_SCHEME4",
+      "note": "目录名易混淆：默认切换前实际运行旧 PGP，不能引用为方案 4。"
+    },
+    {
+      "path": "artifacts/preflight/tracker_scheme4_default_all_20260914_r1",
+      "status": "CURRENT_PIPELINE_FULLFIT",
+      "note": "默认完整链路全量回放，6059 帧；不是外层验证。"
+    },
+    {
+      "path": "artifacts/preflight/scheme4_prepared_zero_20260914",
+      "status": "PREFLIGHT_ONLY",
+      "note": "零预算准备验证，无真实执行；非质量实验。"
+    },
+    {
+      "path": "artifacts/training/tracker",
+      "status": "LEGACY_NOT_CURRENT",
+      "note": "旧 Tracker 数据保留用于历史引用；当前默认使用 tracker_clip_v2_oof5_20260906。部分旧文件本地已缺失，不视为本次删除。"
+    },
+    {
+      "path": "artifacts/training/tracker_oof5",
+      "status": "LEGACY_NOT_CURRENT",
+      "note": "旧 OOF Tracker 数据保留用于历史引用；当前默认使用 clip_v2 OOF。部分旧文件本地已缺失，不视为本次删除。"
+    },
+    {
+      "path": "docs/experiments/tracker_pipeline_status_20260914",
+      "status": "HISTORICAL_RESEARCH",
+      "note": "早期探针/备选方案证据；当前数据见同级 scheme4_pipeline_20260914。"
+    }
+  ],
+  "disposable_local_paths": [
+    "tmp/scheme4_release_index_20260914.zip",
+    "tmp/scheme4_release_index_20260914",
+    "tmp/scheme4_code_snapshot_20260914",
+    "tmp/scheme4_caps_zero_20260914.json",
+    "tmp/scheme4_latency_estimate.py"
+  ],
+  "deleted_paths": [],
+  "not_published": [
+    "raw surgical images/video",
+    "GT annotation source files",
+    "provider request/response journals and local budget database"
+  ],
+  "notes": [
+    "Original source journals retained locally for audit; latest predictions and aggregate evidence are published.",
+    "NPZ labels are fused-review versus fused-cheap difference targets, not frame GT annotations.",
+    "New H0/R/G/T ablation design has no experimental results yet."
+  ]
+}

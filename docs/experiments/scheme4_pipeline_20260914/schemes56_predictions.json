@@ -1,0 +1,2884 @@
+[
+  {
+    "key": "VID103_8776",
+    "arms": {
+      "control": {
+        "prediction": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2
+          ],
+          "target": [
+            0,
+            2
+          ],
+          "ivt": [
+            17,
+            58
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2
+          ],
+          "target": [
+            0,
+            2
+          ],
+          "ivt": [
+            17,
+            58
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.008354003388083904,
+        "gate_action": 0
+      },
+      "prior": {
+        "prediction": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2
+          ],
+          "target": [
+            0,
+            2
+          ],
+          "ivt": [
+            17,
+            58
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2
+          ],
+          "target": [
+            0,
+            2
+          ],
+          "ivt": [
+            17,
+            58
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.04907378196287379,
+        "gate_action": 0
+      },
+      "qwen": {
+        "prediction": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2
+          ],
+          "target": [
+            0,
+            2
+          ],
+          "ivt": [
+            17,
+            58
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2
+          ],
+          "target": [
+            0,
+            2
+          ],
+          "ivt": [
+            17,
+            58
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.024095125449372354,
+        "gate_action": 0
+      }
+    }
+  },
+  {
+    "key": "VID23_3851",
+    "arms": {
+      "control": {
+        "prediction": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2
+          ],
+          "target": [
+            0,
+            10
+          ],
+          "ivt": [
+            20,
+            60
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2
+          ],
+          "target": [
+            0,
+            10
+          ],
+          "ivt": [
+            20,
+            60
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.027222537234255408,
+        "gate_action": 0
+      },
+      "prior": {
+        "prediction": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2
+          ],
+          "target": [
+            0,
+            10,
+            11
+          ],
+          "ivt": [
+            20,
+            60
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2
+          ],
+          "target": [
+            0,
+            10,
+            11
+          ],
+          "ivt": [
+            20,
+            60
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen",
+          "control_graph|gpt",
+          "control_graph|gemini",
+          "control_graph|grok",
+          "control_graph|deepseek"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.8831724577923693,
+        "gate_action": 1
+      },
+      "qwen": {
+        "prediction": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2
+          ],
+          "target": [
+            0,
+            10
+          ],
+          "ivt": [
+            20,
+            60
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2
+          ],
+          "target": [
+            0,
+            10
+          ],
+          "ivt": [
+            20,
+            60
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.027222537234255408,
+        "gate_action": 0
+      }
+    }
+  },
+  {
+    "key": "VID31_20226",
+    "arms": {
+      "control": {
+        "prediction": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2
+          ],
+          "target": [
+            0,
+            1,
+            14
+          ],
+          "ivt": [
+            17,
+            59
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2
+          ],
+          "target": [
+            0,
+            1,
+            14
+          ],
+          "ivt": [
+            17,
+            59
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen",
+          "control_graph|gpt",
+          "control_graph|gemini",
+          "control_graph|grok",
+          "control_graph|deepseek"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.8184705412672627,
+        "gate_action": 1
+      },
+      "prior": {
+        "prediction": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2,
+            9
+          ],
+          "target": [
+            0,
+            1,
+            14
+          ],
+          "ivt": [
+            17,
+            59,
+            96
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2,
+            9
+          ],
+          "target": [
+            0,
+            1,
+            14
+          ],
+          "ivt": [
+            17,
+            59,
+            96
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen",
+          "control_graph|gpt",
+          "control_graph|gemini",
+          "control_graph|grok",
+          "control_graph|deepseek"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.8184705412672627,
+        "gate_action": 1
+      },
+      "qwen": {
+        "prediction": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2
+          ],
+          "target": [
+            0,
+            1,
+            14
+          ],
+          "ivt": [
+            17,
+            59
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2
+          ],
+          "target": [
+            0,
+            1,
+            14
+          ],
+          "ivt": [
+            17,
+            59
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen",
+          "control_graph|gpt",
+          "control_graph|gemini",
+          "control_graph|grok",
+          "control_graph|deepseek"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.8256937984776717,
+        "gate_action": 1
+      }
+    }
+  },
+  {
+    "key": "VID96_7851",
+    "arms": {
+      "control": {
+        "prediction": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2,
+            9
+          ],
+          "target": [
+            11,
+            14
+          ],
+          "ivt": [
+            96
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2,
+            9
+          ],
+          "target": [
+            11,
+            14
+          ],
+          "ivt": [
+            96
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen",
+          "control_graph|gpt",
+          "control_graph|gemini"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.41572103772671826,
+        "gate_action": 1
+      },
+      "prior": {
+        "prediction": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2,
+            9
+          ],
+          "target": [
+            0,
+            11,
+            14
+          ],
+          "ivt": [
+            96
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2,
+            9
+          ],
+          "target": [
+            0,
+            11,
+            14
+          ],
+          "ivt": [
+            96
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen",
+          "control_graph|gpt",
+          "control_graph|gemini",
+          "control_graph|grok",
+          "control_graph|deepseek"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.41572103772671826,
+        "gate_action": 1
+      },
+      "qwen": {
+        "prediction": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2,
+            9
+          ],
+          "target": [
+            11,
+            14
+          ],
+          "ivt": [
+            96
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2,
+            9
+          ],
+          "target": [
+            11,
+            14
+          ],
+          "ivt": [
+            96
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen",
+          "control_graph|gpt",
+          "control_graph|gemini"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.6933674017677341,
+        "gate_action": 1
+      }
+    }
+  },
+  {
+    "key": "VID103_19076",
+    "arms": {
+      "control": {
+        "prediction": {
+          "instrument": [
+            0
+          ],
+          "verb": [
+            9
+          ],
+          "target": [
+            14
+          ],
+          "ivt": [
+            94
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            0
+          ],
+          "verb": [
+            9
+          ],
+          "target": [
+            14
+          ],
+          "ivt": [
+            94
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen",
+          "control_graph|gpt",
+          "control_graph|gemini"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.109761597484554,
+        "gate_action": 1
+      },
+      "prior": {
+        "prediction": {
+          "instrument": [
+            0
+          ],
+          "verb": [
+            9
+          ],
+          "target": [
+            14
+          ],
+          "ivt": [
+            94
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            0
+          ],
+          "verb": [
+            9
+          ],
+          "target": [
+            14
+          ],
+          "ivt": [
+            94
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.003392243768847992,
+        "gate_action": 0
+      },
+      "qwen": {
+        "prediction": {
+          "instrument": [
+            0
+          ],
+          "verb": [
+            9
+          ],
+          "target": [
+            14
+          ],
+          "ivt": [
+            94
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            0
+          ],
+          "verb": [
+            9
+          ],
+          "target": [
+            14
+          ],
+          "ivt": [
+            94
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.05188676783732613,
+        "gate_action": 0
+      }
+    }
+  },
+  {
+    "key": "VID23_11676",
+    "arms": {
+      "control": {
+        "prediction": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2
+          ],
+          "target": [
+            0,
+            1
+          ],
+          "ivt": [
+            17,
+            60
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2
+          ],
+          "target": [
+            0,
+            1
+          ],
+          "ivt": [
+            17,
+            60
+          ],
+          "phase": [
+            3
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen",
+          "control_graph|gpt"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.2903447363027017,
+        "gate_action": 1
+      },
+      "prior": {
+        "prediction": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2
+          ],
+          "target": [
+            0,
+            1
+          ],
+          "ivt": [
+            17,
+            60
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2
+          ],
+          "target": [
+            0,
+            1
+          ],
+          "ivt": [
+            17,
+            60
+          ],
+          "phase": [
+            3
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen",
+          "control_graph|gpt",
+          "control_graph|gemini"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.18144020979499526,
+        "gate_action": 1
+      },
+      "qwen": {
+        "prediction": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2
+          ],
+          "target": [
+            0,
+            1
+          ],
+          "ivt": [
+            17,
+            60
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2
+          ],
+          "target": [
+            0,
+            1
+          ],
+          "ivt": [
+            17,
+            60
+          ],
+          "phase": [
+            3
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen",
+          "control_graph|gpt"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.17989381845693644,
+        "gate_action": 1
+      }
+    }
+  },
+  {
+    "key": "VID31_42876",
+    "arms": {
+      "control": {
+        "prediction": {
+          "instrument": [
+            0
+          ],
+          "verb": [
+            0,
+            1
+          ],
+          "target": [
+            0
+          ],
+          "ivt": [
+            7,
+            17
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            0
+          ],
+          "verb": [
+            0,
+            1
+          ],
+          "target": [
+            0
+          ],
+          "ivt": [
+            7,
+            17
+          ],
+          "phase": [
+            3
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.03180106575430554,
+        "gate_action": 0
+      },
+      "prior": {
+        "prediction": {
+          "instrument": [
+            0
+          ],
+          "verb": [
+            0,
+            1
+          ],
+          "target": [
+            0
+          ],
+          "ivt": [
+            7,
+            17
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            0
+          ],
+          "verb": [
+            0,
+            1
+          ],
+          "target": [
+            0
+          ],
+          "ivt": [
+            7,
+            17
+          ],
+          "phase": [
+            3
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.03180106575430554,
+        "gate_action": 0
+      },
+      "qwen": {
+        "prediction": {
+          "instrument": [
+            0
+          ],
+          "verb": [
+            0,
+            1
+          ],
+          "target": [
+            0
+          ],
+          "ivt": [
+            7,
+            17
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            0
+          ],
+          "verb": [
+            0,
+            1
+          ],
+          "target": [
+            0
+          ],
+          "ivt": [
+            7,
+            17
+          ],
+          "phase": [
+            3
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.03180106575430554,
+        "gate_action": 0
+      }
+    }
+  },
+  {
+    "key": "VID96_15526",
+    "arms": {
+      "control": {
+        "prediction": {
+          "instrument": [
+            1
+          ],
+          "verb": [
+            2
+          ],
+          "target": [
+            0,
+            1
+          ],
+          "ivt": [],
+          "phase": [
+            1
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            1
+          ],
+          "verb": [
+            2
+          ],
+          "target": [
+            0,
+            1
+          ],
+          "ivt": [],
+          "phase": [
+            1
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen",
+          "control_graph|gpt",
+          "control_graph|gemini",
+          "control_graph|grok",
+          "control_graph|deepseek"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.9572306930471097,
+        "gate_action": 1
+      },
+      "prior": {
+        "prediction": {
+          "instrument": [
+            1
+          ],
+          "verb": [
+            2
+          ],
+          "target": [
+            0,
+            1
+          ],
+          "ivt": [],
+          "phase": [
+            1
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            1
+          ],
+          "verb": [
+            2
+          ],
+          "target": [
+            0,
+            1
+          ],
+          "ivt": [],
+          "phase": [
+            1
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen",
+          "control_graph|gpt",
+          "control_graph|gemini",
+          "control_graph|grok",
+          "control_graph|deepseek"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.9556874637937477,
+        "gate_action": 1
+      },
+      "qwen": {
+        "prediction": {
+          "instrument": [
+            1
+          ],
+          "verb": [
+            2
+          ],
+          "target": [
+            1
+          ],
+          "ivt": [],
+          "phase": [
+            1
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            1
+          ],
+          "verb": [
+            2
+          ],
+          "target": [
+            1
+          ],
+          "ivt": [],
+          "phase": [
+            1
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen",
+          "control_graph|gpt",
+          "control_graph|gemini"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.4855357893948196,
+        "gate_action": 1
+      }
+    }
+  },
+  {
+    "key": "VID103_29751",
+    "arms": {
+      "control": {
+        "prediction": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2
+          ],
+          "target": [
+            0,
+            1
+          ],
+          "ivt": [
+            17,
+            60
+          ],
+          "phase": [
+            3
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2
+          ],
+          "target": [
+            0,
+            1
+          ],
+          "ivt": [
+            17,
+            60
+          ],
+          "phase": [
+            3
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen",
+          "control_graph|gpt",
+          "control_graph|gemini"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.37879155764435224,
+        "gate_action": 1
+      },
+      "prior": {
+        "prediction": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2
+          ],
+          "target": [
+            0,
+            1
+          ],
+          "ivt": [
+            17,
+            60
+          ],
+          "phase": [
+            3
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2
+          ],
+          "target": [
+            0,
+            1
+          ],
+          "ivt": [
+            17,
+            60
+          ],
+          "phase": [
+            3
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen",
+          "control_graph|gpt",
+          "control_graph|gemini"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.7120498514347238,
+        "gate_action": 1
+      },
+      "qwen": {
+        "prediction": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2
+          ],
+          "target": [
+            0,
+            1
+          ],
+          "ivt": [
+            17,
+            60
+          ],
+          "phase": [
+            3
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2
+          ],
+          "target": [
+            0,
+            1
+          ],
+          "ivt": [
+            17,
+            60
+          ],
+          "phase": [
+            3
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen",
+          "control_graph|gpt",
+          "control_graph|gemini"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.3911738024701536,
+        "gate_action": 1
+      }
+    }
+  },
+  {
+    "key": "VID23_21501",
+    "arms": {
+      "control": {
+        "prediction": {
+          "instrument": [
+            2
+          ],
+          "verb": [
+            2
+          ],
+          "target": [
+            0,
+            1
+          ],
+          "ivt": [
+            60
+          ],
+          "phase": [
+            3
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            2
+          ],
+          "verb": [
+            2
+          ],
+          "target": [
+            0,
+            1
+          ],
+          "ivt": [
+            60
+          ],
+          "phase": [
+            3
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen",
+          "control_graph|gpt",
+          "control_graph|gemini"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.1771637633002574,
+        "gate_action": 1
+      },
+      "prior": {
+        "prediction": {
+          "instrument": [
+            2
+          ],
+          "verb": [
+            2
+          ],
+          "target": [
+            0,
+            1
+          ],
+          "ivt": [
+            60
+          ],
+          "phase": [
+            3
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            2
+          ],
+          "verb": [
+            2
+          ],
+          "target": [
+            0,
+            1
+          ],
+          "ivt": [
+            60
+          ],
+          "phase": [
+            3
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen",
+          "control_graph|gpt",
+          "control_graph|gemini"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.28911000694751066,
+        "gate_action": 1
+      },
+      "qwen": {
+        "prediction": {
+          "instrument": [
+            2
+          ],
+          "verb": [
+            2
+          ],
+          "target": [
+            0,
+            1
+          ],
+          "ivt": [
+            60
+          ],
+          "phase": [
+            3
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            2
+          ],
+          "verb": [
+            2
+          ],
+          "target": [
+            0,
+            1
+          ],
+          "ivt": [
+            60
+          ],
+          "phase": [
+            3
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen",
+          "control_graph|gpt"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.19892540164427977,
+        "gate_action": 1
+      }
+    }
+  },
+  {
+    "key": "VID31_66126",
+    "arms": {
+      "control": {
+        "prediction": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2,
+            9
+          ],
+          "target": [
+            0,
+            14
+          ],
+          "ivt": [
+            17,
+            94,
+            96
+          ],
+          "phase": [
+            3
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            9
+          ],
+          "target": [
+            0,
+            14
+          ],
+          "ivt": [
+            17,
+            94,
+            96
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": [
+            2
+          ]
+        },
+        "gate_score": 0.04724381936991473,
+        "gate_action": 0
+      },
+      "prior": {
+        "prediction": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2,
+            9
+          ],
+          "target": [
+            0,
+            14
+          ],
+          "ivt": [
+            17,
+            94,
+            96
+          ],
+          "phase": [
+            3
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            9
+          ],
+          "target": [
+            0,
+            14
+          ],
+          "ivt": [
+            17,
+            94,
+            96
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen",
+          "control_graph|gpt",
+          "control_graph|gemini",
+          "control_graph|grok"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": [
+            2
+          ]
+        },
+        "gate_score": 0.6256547569041032,
+        "gate_action": 1
+      },
+      "qwen": {
+        "prediction": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            2,
+            9
+          ],
+          "target": [
+            0,
+            14
+          ],
+          "ivt": [
+            17,
+            94,
+            96
+          ],
+          "phase": [
+            3
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            1,
+            9
+          ],
+          "target": [
+            0,
+            14
+          ],
+          "ivt": [
+            17,
+            94,
+            96
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen",
+          "control_graph|gpt",
+          "control_graph|gemini",
+          "control_graph|grok",
+          "control_graph|deepseek"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": [
+            2
+          ]
+        },
+        "gate_score": 0.7250519277635421,
+        "gate_action": 1
+      }
+    }
+  },
+  {
+    "key": "VID96_23151",
+    "arms": {
+      "control": {
+        "prediction": {
+          "instrument": [
+            2
+          ],
+          "verb": [
+            2,
+            9
+          ],
+          "target": [
+            14
+          ],
+          "ivt": [],
+          "phase": [
+            1
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            5
+          ],
+          "verb": [
+            9
+          ],
+          "target": [
+            14
+          ],
+          "ivt": [
+            99
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen",
+          "control_graph|gpt",
+          "control_graph|gemini"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [
+            99
+          ],
+          "added_verbs": [
+            2
+          ]
+        },
+        "gate_score": 0.5116369273275615,
+        "gate_action": 1
+      },
+      "prior": {
+        "prediction": {
+          "instrument": [
+            2
+          ],
+          "verb": [
+            2,
+            9
+          ],
+          "target": [
+            14
+          ],
+          "ivt": [],
+          "phase": [
+            1
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            5
+          ],
+          "verb": [
+            9
+          ],
+          "target": [
+            14
+          ],
+          "ivt": [
+            99
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen",
+          "control_graph|gpt",
+          "control_graph|gemini"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [
+            99
+          ],
+          "added_verbs": [
+            2
+          ]
+        },
+        "gate_score": 0.25417640828444565,
+        "gate_action": 1
+      },
+      "qwen": {
+        "prediction": {
+          "instrument": [
+            2
+          ],
+          "verb": [
+            2,
+            9
+          ],
+          "target": [
+            14
+          ],
+          "ivt": [],
+          "phase": [
+            1
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            5
+          ],
+          "verb": [
+            9
+          ],
+          "target": [
+            14
+          ],
+          "ivt": [
+            99
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen",
+          "control_graph|gpt",
+          "control_graph|gemini",
+          "control_graph|grok"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [
+            99
+          ],
+          "added_verbs": [
+            2
+          ]
+        },
+        "gate_score": 0.23737963538596776,
+        "gate_action": 1
+      }
+    }
+  },
+  {
+    "key": "VID103_39776",
+    "arms": {
+      "control": {
+        "prediction": {
+          "instrument": [
+            2
+          ],
+          "verb": [
+            2
+          ],
+          "target": [
+            0,
+            1
+          ],
+          "ivt": [
+            60
+          ],
+          "phase": [
+            3
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            2
+          ],
+          "verb": [
+            2
+          ],
+          "target": [
+            0,
+            1
+          ],
+          "ivt": [
+            60
+          ],
+          "phase": [
+            3
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen",
+          "control_graph|gpt",
+          "control_graph|gemini",
+          "control_graph|grok"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.06851834799369981,
+        "gate_action": 1
+      },
+      "prior": {
+        "prediction": {
+          "instrument": [
+            2
+          ],
+          "verb": [
+            2
+          ],
+          "target": [
+            0,
+            1
+          ],
+          "ivt": [
+            60
+          ],
+          "phase": [
+            3
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            2
+          ],
+          "verb": [
+            2
+          ],
+          "target": [
+            0,
+            1
+          ],
+          "ivt": [
+            60
+          ],
+          "phase": [
+            3
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen",
+          "control_graph|gpt",
+          "control_graph|gemini",
+          "control_graph|grok",
+          "control_graph|deepseek"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.07730817452706681,
+        "gate_action": 1
+      },
+      "qwen": {
+        "prediction": {
+          "instrument": [
+            2
+          ],
+          "verb": [
+            2
+          ],
+          "target": [
+            0,
+            1
+          ],
+          "ivt": [
+            60
+          ],
+          "phase": [
+            3
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            2
+          ],
+          "verb": [
+            2
+          ],
+          "target": [
+            0,
+            1
+          ],
+          "ivt": [
+            60
+          ],
+          "phase": [
+            3
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.04467041147132979,
+        "gate_action": 0
+      }
+    }
+  },
+  {
+    "key": "VID23_34626",
+    "arms": {
+      "control": {
+        "prediction": {
+          "instrument": [
+            0
+          ],
+          "verb": [
+            1,
+            9
+          ],
+          "target": [
+            8,
+            14
+          ],
+          "ivt": [
+            19
+          ],
+          "phase": [
+            0
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            0,
+            3
+          ],
+          "verb": [
+            1,
+            9
+          ],
+          "target": [
+            8,
+            14
+          ],
+          "ivt": [
+            19,
+            97
+          ],
+          "phase": [
+            0
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen",
+          "control_graph|gpt",
+          "control_graph|gemini",
+          "control_graph|grok",
+          "control_graph|deepseek"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [
+            97
+          ],
+          "added_verbs": []
+        },
+        "gate_score": 0.2492301805624727,
+        "gate_action": 1
+      },
+      "prior": {
+        "prediction": {
+          "instrument": [
+            0
+          ],
+          "verb": [
+            1,
+            9
+          ],
+          "target": [
+            8,
+            14
+          ],
+          "ivt": [
+            19
+          ],
+          "phase": [
+            0
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            0,
+            3
+          ],
+          "verb": [
+            1,
+            9
+          ],
+          "target": [
+            8,
+            14
+          ],
+          "ivt": [
+            19,
+            97
+          ],
+          "phase": [
+            0
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen",
+          "control_graph|gpt",
+          "control_graph|gemini",
+          "control_graph|grok"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [
+            97
+          ],
+          "added_verbs": []
+        },
+        "gate_score": 0.2543199668433913,
+        "gate_action": 1
+      },
+      "qwen": {
+        "prediction": {
+          "instrument": [
+            0
+          ],
+          "verb": [
+            1,
+            9
+          ],
+          "target": [
+            8,
+            14
+          ],
+          "ivt": [
+            19
+          ],
+          "phase": [
+            0
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            0,
+            3
+          ],
+          "verb": [
+            1,
+            9
+          ],
+          "target": [
+            8,
+            14
+          ],
+          "ivt": [
+            19,
+            97
+          ],
+          "phase": [
+            0
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen",
+          "control_graph|gpt",
+          "control_graph|gemini",
+          "control_graph|grok",
+          "control_graph|deepseek"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [
+            97
+          ],
+          "added_verbs": []
+        },
+        "gate_score": 0.2543199668433913,
+        "gate_action": 1
+      }
+    }
+  },
+  {
+    "key": "VID31_90576",
+    "arms": {
+      "control": {
+        "prediction": {
+          "instrument": [
+            0
+          ],
+          "verb": [
+            0,
+            9
+          ],
+          "target": [
+            0,
+            14
+          ],
+          "ivt": [
+            7
+          ],
+          "phase": [
+            2
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            0,
+            5
+          ],
+          "verb": [
+            0,
+            9
+          ],
+          "target": [
+            0,
+            14
+          ],
+          "ivt": [
+            7,
+            99
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [
+            99
+          ],
+          "added_verbs": []
+        },
+        "gate_score": 0.006536624778384146,
+        "gate_action": 0
+      },
+      "prior": {
+        "prediction": {
+          "instrument": [
+            0
+          ],
+          "verb": [
+            0,
+            9
+          ],
+          "target": [
+            0,
+            14
+          ],
+          "ivt": [
+            7
+          ],
+          "phase": [
+            2
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            0,
+            5
+          ],
+          "verb": [
+            0,
+            9
+          ],
+          "target": [
+            0,
+            14
+          ],
+          "ivt": [
+            7,
+            99
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [
+            99
+          ],
+          "added_verbs": []
+        },
+        "gate_score": 0.061591085718834905,
+        "gate_action": 0
+      },
+      "qwen": {
+        "prediction": {
+          "instrument": [
+            0
+          ],
+          "verb": [
+            0,
+            9
+          ],
+          "target": [
+            0,
+            14
+          ],
+          "ivt": [
+            7
+          ],
+          "phase": [
+            2
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            0,
+            5
+          ],
+          "verb": [
+            0,
+            9
+          ],
+          "target": [
+            0,
+            14
+          ],
+          "ivt": [
+            7,
+            99
+          ],
+          "phase": [
+            1
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [
+            99
+          ],
+          "added_verbs": []
+        },
+        "gate_score": 0.016596180981407714,
+        "gate_action": 0
+      }
+    }
+  },
+  {
+    "key": "VID96_29826",
+    "arms": {
+      "control": {
+        "prediction": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            2
+          ],
+          "target": [
+            1
+          ],
+          "ivt": [],
+          "phase": [
+            3
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            2
+          ],
+          "verb": [
+            2
+          ],
+          "target": [
+            1
+          ],
+          "ivt": [],
+          "phase": [
+            3
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen",
+          "control_graph|gpt",
+          "control_graph|gemini"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.12193551815824916,
+        "gate_action": 1
+      },
+      "prior": {
+        "prediction": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            2
+          ],
+          "target": [
+            0,
+            1
+          ],
+          "ivt": [
+            60
+          ],
+          "phase": [
+            3
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            2
+          ],
+          "verb": [
+            2
+          ],
+          "target": [
+            0,
+            1
+          ],
+          "ivt": [
+            60
+          ],
+          "phase": [
+            3
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.023528159820023153,
+        "gate_action": 0
+      },
+      "qwen": {
+        "prediction": {
+          "instrument": [
+            0,
+            2
+          ],
+          "verb": [
+            2
+          ],
+          "target": [
+            1
+          ],
+          "ivt": [],
+          "phase": [
+            3
+          ]
+        },
+        "before_output_modules": {
+          "instrument": [
+            2
+          ],
+          "verb": [
+            2
+          ],
+          "target": [
+            1
+          ],
+          "ivt": [],
+          "phase": [
+            3
+          ]
+        },
+        "call_keys": [
+          "h0|base",
+          "proposal|base",
+          "control_graph|qwen",
+          "control_graph|gpt",
+          "control_graph|gemini"
+        ],
+        "output_modules": {
+          "tracker_available": true,
+          "m1_applied": true,
+          "m1_capacity_fallback": false,
+          "m2_capacity_fallback": false,
+          "deleted_ivts": [],
+          "added_verbs": []
+        },
+        "gate_score": 0.22543736179409085,
+        "gate_action": 1
+      }
+    }
+  }
+]
