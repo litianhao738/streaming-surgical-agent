@@ -6,3 +6,7 @@ DEFAULT_PIPELINE_VERSION.json -text
 artifacts/training/gate/pgp_ambiguity_assessment_20260913_r2/** -text
 artifacts/preflight/pgp_pipeline_all_20260913_r1/*.json -text
 artifacts/preflight/pgp_pipeline_integration_freeze_20260913/*.json -text
+artifacts/training/gate/tracker_scheme4_20260914/** -text
+configs/defaults/pgp-*-before-scheme4-20260914.json -text
+artifacts/training/tracker_clip_v2_oof5_20260906/oof/**/*.json -text
+artifacts/training/tracker_clip_v2_oof5_20260906/oof/index.json -text

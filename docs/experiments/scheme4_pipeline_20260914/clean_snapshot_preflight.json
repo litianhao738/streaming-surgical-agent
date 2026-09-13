@@ -1,0 +1,14 @@
+{
+  "state": "PASS",
+  "profile": "tracker_scheme4_pipeline_v1",
+  "rows": 8,
+  "logical_calls": 24,
+  "api_calls": 0,
+  "gate_version": "pgp-tracker-scheme4-gate-v2-20260914",
+  "phase_window_seconds": 60,
+  "phase_initialization": "empty per-video state; chronological inventory prefix",
+  "elapsed_seconds": 1.2698832000005496,
+  "predictions_sha256": "2f0a3c02ae0327398187983138b004bf9811861690086c0a82ae3a22ebad19fa",
+  "model_sha256": "91f6b1402eea03061aeaec96417c37c153f18e17d834085cb52a435b484a23d9",
+  "scope": "full-fit Training replay; not outer OOF or online validation"
+}

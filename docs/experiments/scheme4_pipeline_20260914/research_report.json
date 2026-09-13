@@ -1,0 +1,3334 @@
+{
+  "version": "tracker-output-interaction-pgp-research-v2.1",
+  "rows": 6059,
+  "api_calls": 0,
+  "default_changed": false,
+  "runtime_parity_rows": 6059,
+  "prediction_feature_call_mismatches": 0,
+  "real_frozen_tracker_adapter_parity_rows": 6059,
+  "scope": "Reused four Training development videos; fixed upstream not fully nested; no independent validation.",
+  "fallbacks_old_gate": {
+    "m1_capacity_fallback": 1,
+    "m2_capacity_fallback": 1,
+    "tracker_unavailable": 0
+  },
+  "ivt_deletions_old_gate": {
+    "deleted_correct_ivt": 69,
+    "deleted_incorrect_ivt": 622
+  },
+  "phase": {
+    "outer_choices": {
+      "VID103": 60,
+      "VID23": 60,
+      "VID31": 60,
+      "VID96": 60
+    },
+    "final_fit_window_seconds": 60,
+    "nested_f1": 85.34411619079056,
+    "fixed_window_f1": {
+      "0": 73.46096715629642,
+      "5": 77.43852120812015,
+      "10": 80.14523848819937,
+      "20": 82.50536392143918,
+      "30": 84.13929691368213,
+      "60": 85.34411619079056
+    },
+    "latency_observation_only": {
+      "raw_cheap": {
+        "observed_transitions": 18,
+        "matched_segments": 18,
+        "unmatched_segments": 0,
+        "median_seconds_from_first_observed_new_gt": 0.0,
+        "p90_seconds_from_first_observed_new_gt": 6.300000000000001,
+        "max_boundary_observation_gap_seconds": 153.0
+      },
+      "nested_filter": {
+        "observed_transitions": 18,
+        "matched_segments": 15,
+        "unmatched_segments": 3,
+        "median_seconds_from_first_observed_new_gt": 11.0,
+        "p90_seconds_from_first_observed_new_gt": 34.79999999999999,
+        "max_boundary_observation_gap_seconds": 153.0
+      },
+      "fixed_window_filter": {
+        "observed_transitions": 18,
+        "matched_segments": 15,
+        "unmatched_segments": 3,
+        "median_seconds_from_first_observed_new_gt": 11.0,
+        "p90_seconds_from_first_observed_new_gt": 34.79999999999999,
+        "max_boundary_observation_gap_seconds": 153.0
+      }
+    },
+    "latency_limit": "Sparse cached observations; true transition lies within preceding observation gap; these are not dense-stream deployment latency estimates."
+  },
+  "gate": {
+    "changed_frames": 396,
+    "oof_auc": 0.8967145853734235,
+    "outer_folds": {
+      "VID103": {
+        "selected": {
+          "fraction": 0.3,
+          "threshold": 0.03222088478034642,
+          "feasible": true,
+          "calls": 19369
+        },
+        "candidates": [
+          {
+            "fraction": 0.05,
+            "threshold": 0.802371718710541,
+            "feasible": false,
+            "calls": 15463
+          },
+          {
+            "fraction": 0.1,
+            "threshold": 0.6032819336085619,
+            "feasible": false,
+            "calls": 16313
+          },
+          {
+            "fraction": 0.15,
+            "threshold": 0.36207761462906984,
+            "feasible": false,
+            "calls": 17127
+          },
+          {
+            "fraction": 0.2,
+            "threshold": 0.1747576844508996,
+            "feasible": false,
+            "calls": 17911
+          },
+          {
+            "fraction": 0.25,
+            "threshold": 0.0758902029460061,
+            "feasible": false,
+            "calls": 18672
+          },
+          {
+            "fraction": 0.3,
+            "threshold": 0.03222088478034642,
+            "feasible": true,
+            "calls": 19369
+          },
+          {
+            "fraction": 0.35,
+            "threshold": 0.018524381510152465,
+            "feasible": true,
+            "calls": 19980
+          },
+          {
+            "fraction": 0.4,
+            "threshold": 0.012193395213806506,
+            "feasible": true,
+            "calls": 20579
+          },
+          {
+            "fraction": 0.45,
+            "threshold": 0.00835418306315963,
+            "feasible": true,
+            "calls": 21165
+          },
+          {
+            "fraction": 0.5,
+            "threshold": 0.00589214030141401,
+            "feasible": true,
+            "calls": 21656
+          },
+          {
+            "fraction": 0.55,
+            "threshold": 0.004469182567579745,
+            "feasible": true,
+            "calls": 22148
+          },
+          {
+            "fraction": 0.6,
+            "threshold": 0.0030682649625059385,
+            "feasible": true,
+            "calls": 22676
+          },
+          {
+            "fraction": 0.65,
+            "threshold": 0.0019446255046815701,
+            "feasible": true,
+            "calls": 23250
+          },
+          {
+            "fraction": 0.7,
+            "threshold": 0.0015201034798660684,
+            "feasible": true,
+            "calls": 23768
+          },
+          {
+            "fraction": 0.75,
+            "threshold": 0.0012078751118831696,
+            "feasible": true,
+            "calls": 24315
+          },
+          {
+            "fraction": 0.8,
+            "threshold": 0.0008389971899935658,
+            "feasible": true,
+            "calls": 24780
+          },
+          {
+            "fraction": 0.85,
+            "threshold": 0.0004882871303961371,
+            "feasible": true,
+            "calls": 25269
+          },
+          {
+            "fraction": 0.9,
+            "threshold": 0.0002988610282291471,
+            "feasible": true,
+            "calls": 25709
+          },
+          {
+            "fraction": 0.95,
+            "threshold": 0.00016935712416996855,
+            "feasible": true,
+            "calls": 26116
+          },
+          {
+            "fraction": 1.0,
+            "threshold": 1.5858744390932835e-05,
+            "feasible": true,
+            "calls": 26449
+          }
+        ]
+      },
+      "VID23": {
+        "selected": {
+          "fraction": 0.25,
+          "threshold": 0.10806834112421201,
+          "feasible": true,
+          "calls": 19897
+        },
+        "candidates": [
+          {
+            "fraction": 0.05,
+            "threshold": 0.8362679532942571,
+            "feasible": false,
+            "calls": 16570
+          },
+          {
+            "fraction": 0.1,
+            "threshold": 0.6049758012499218,
+            "feasible": false,
+            "calls": 17463
+          },
+          {
+            "fraction": 0.15,
+            "threshold": 0.3748858747221172,
+            "feasible": false,
+            "calls": 18323
+          },
+          {
+            "fraction": 0.2,
+            "threshold": 0.1993823828538721,
+            "feasible": false,
+            "calls": 19158
+          },
+          {
+            "fraction": 0.25,
+            "threshold": 0.10806834112421201,
+            "feasible": true,
+            "calls": 19897
+          },
+          {
+            "fraction": 0.3,
+            "threshold": 0.059033501471127306,
+            "feasible": true,
+            "calls": 20605
+          },
+          {
+            "fraction": 0.35,
+            "threshold": 0.03026675718902699,
+            "feasible": true,
+            "calls": 21325
+          },
+          {
+            "fraction": 0.4,
+            "threshold": 0.01871851969897805,
+            "feasible": true,
+            "calls": 21988
+          },
+          {
+            "fraction": 0.45,
+            "threshold": 0.0120985541635407,
+            "feasible": true,
+            "calls": 22586
+          },
+          {
+            "fraction": 0.5,
+            "threshold": 0.008508716152817225,
+            "feasible": true,
+            "calls": 23249
+          },
+          {
+            "fraction": 0.55,
+            "threshold": 0.0059338829886754615,
+            "feasible": true,
+            "calls": 23850
+          },
+          {
+            "fraction": 0.6,
+            "threshold": 0.00406233271525896,
+            "feasible": true,
+            "calls": 24415
+          },
+          {
+            "fraction": 0.65,
+            "threshold": 0.0028886506791894677,
+            "feasible": true,
+            "calls": 25009
+          },
+          {
+            "fraction": 0.7,
+            "threshold": 0.001825219700462146,
+            "feasible": true,
+            "calls": 25526
+          },
+          {
+            "fraction": 0.75,
+            "threshold": 0.0012505135349661339,
+            "feasible": true,
+            "calls": 26001
+          },
+          {
+            "fraction": 0.8,
+            "threshold": 0.0009524322561242829,
+            "feasible": true,
+            "calls": 26467
+          },
+          {
+            "fraction": 0.85,
+            "threshold": 0.0006957792443737848,
+            "feasible": true,
+            "calls": 27000
+          },
+          {
+            "fraction": 0.9,
+            "threshold": 0.0003721480242864289,
+            "feasible": true,
+            "calls": 27444
+          },
+          {
+            "fraction": 0.95,
+            "threshold": 0.00023761147656967582,
+            "feasible": true,
+            "calls": 27882
+          },
+          {
+            "fraction": 1.0,
+            "threshold": 9.042159799313187e-06,
+            "feasible": true,
+            "calls": 28237
+          }
+        ]
+      },
+      "VID31": {
+        "selected": {
+          "fraction": 0.2,
+          "threshold": 0.124279802239059,
+          "feasible": true,
+          "calls": 10305
+        },
+        "candidates": [
+          {
+            "fraction": 0.05,
+            "threshold": 0.8257658713049809,
+            "feasible": false,
+            "calls": 8933
+          },
+          {
+            "fraction": 0.1,
+            "threshold": 0.5592916714521932,
+            "feasible": false,
+            "calls": 9415
+          },
+          {
+            "fraction": 0.15,
+            "threshold": 0.28469127990243925,
+            "feasible": false,
+            "calls": 9870
+          },
+          {
+            "fraction": 0.2,
+            "threshold": 0.124279802239059,
+            "feasible": true,
+            "calls": 10305
+          },
+          {
+            "fraction": 0.25,
+            "threshold": 0.0534116235105881,
+            "feasible": true,
+            "calls": 10705
+          },
+          {
+            "fraction": 0.3,
+            "threshold": 0.02210180053239723,
+            "feasible": true,
+            "calls": 11110
+          },
+          {
+            "fraction": 0.35,
+            "threshold": 0.013270364502018704,
+            "feasible": true,
+            "calls": 11454
+          },
+          {
+            "fraction": 0.4,
+            "threshold": 0.007817391628929065,
+            "feasible": true,
+            "calls": 11810
+          },
+          {
+            "fraction": 0.45,
+            "threshold": 0.005487220599389273,
+            "feasible": true,
+            "calls": 12128
+          },
+          {
+            "fraction": 0.5,
+            "threshold": 0.004145864784524963,
+            "feasible": true,
+            "calls": 12478
+          },
+          {
+            "fraction": 0.55,
+            "threshold": 0.0032471432700740726,
+            "feasible": true,
+            "calls": 12833
+          },
+          {
+            "fraction": 0.6,
+            "threshold": 0.0024348817869381837,
+            "feasible": true,
+            "calls": 13104
+          },
+          {
+            "fraction": 0.65,
+            "threshold": 0.0018588428850169051,
+            "feasible": true,
+            "calls": 13429
+          },
+          {
+            "fraction": 0.7,
+            "threshold": 0.0013701601095163756,
+            "feasible": true,
+            "calls": 13711
+          },
+          {
+            "fraction": 0.75,
+            "threshold": 0.0010398092477268619,
+            "feasible": true,
+            "calls": 13953
+          },
+          {
+            "fraction": 0.8,
+            "threshold": 0.0007452796120171104,
+            "feasible": true,
+            "calls": 14245
+          },
+          {
+            "fraction": 0.85,
+            "threshold": 0.0005511505768780377,
+            "feasible": true,
+            "calls": 14531
+          },
+          {
+            "fraction": 0.9,
+            "threshold": 0.0003271192841599048,
+            "feasible": true,
+            "calls": 14792
+          },
+          {
+            "fraction": 0.95,
+            "threshold": 0.00019324298119635555,
+            "feasible": true,
+            "calls": 14995
+          },
+          {
+            "fraction": 1.0,
+            "threshold": 1.2605540145261737e-05,
+            "feasible": true,
+            "calls": 15171
+          }
+        ]
+      },
+      "VID96": {
+        "selected": {
+          "fraction": 0.25,
+          "threshold": 0.1001101122896754,
+          "feasible": true,
+          "calls": 20234
+        },
+        "candidates": [
+          {
+            "fraction": 0.05,
+            "threshold": 0.8593074772389742,
+            "feasible": false,
+            "calls": 16794
+          },
+          {
+            "fraction": 0.1,
+            "threshold": 0.6368149878167586,
+            "feasible": false,
+            "calls": 17711
+          },
+          {
+            "fraction": 0.15,
+            "threshold": 0.37840283970666727,
+            "feasible": false,
+            "calls": 18598
+          },
+          {
+            "fraction": 0.2,
+            "threshold": 0.2026071226893621,
+            "feasible": false,
+            "calls": 19417
+          },
+          {
+            "fraction": 0.25,
+            "threshold": 0.1001101122896754,
+            "feasible": true,
+            "calls": 20234
+          },
+          {
+            "fraction": 0.3,
+            "threshold": 0.05991617215821251,
+            "feasible": true,
+            "calls": 20974
+          },
+          {
+            "fraction": 0.35,
+            "threshold": 0.033568779093895135,
+            "feasible": true,
+            "calls": 21671
+          },
+          {
+            "fraction": 0.4,
+            "threshold": 0.025447320537221742,
+            "feasible": true,
+            "calls": 22303
+          },
+          {
+            "fraction": 0.45,
+            "threshold": 0.017468572856187626,
+            "feasible": true,
+            "calls": 22970
+          },
+          {
+            "fraction": 0.5,
+            "threshold": 0.011964745214574538,
+            "feasible": true,
+            "calls": 23586
+          },
+          {
+            "fraction": 0.55,
+            "threshold": 0.007714058361819416,
+            "feasible": true,
+            "calls": 24224
+          },
+          {
+            "fraction": 0.6,
+            "threshold": 0.005636858592613394,
+            "feasible": true,
+            "calls": 24798
+          },
+          {
+            "fraction": 0.65,
+            "threshold": 0.00408292305068729,
+            "feasible": true,
+            "calls": 25326
+          },
+          {
+            "fraction": 0.7,
+            "threshold": 0.0026310299170599727,
+            "feasible": true,
+            "calls": 25872
+          },
+          {
+            "fraction": 0.75,
+            "threshold": 0.002034232578169478,
+            "feasible": true,
+            "calls": 26529
+          },
+          {
+            "fraction": 0.8,
+            "threshold": 0.0015063088108054326,
+            "feasible": true,
+            "calls": 27064
+          },
+          {
+            "fraction": 0.85,
+            "threshold": 0.0010864782338187258,
+            "feasible": true,
+            "calls": 27567
+          },
+          {
+            "fraction": 0.9,
+            "threshold": 0.0006488392729460018,
+            "feasible": true,
+            "calls": 28007
+          },
+          {
+            "fraction": 0.95,
+            "threshold": 0.00037687281647300335,
+            "feasible": true,
+            "calls": 28453
+          },
+          {
+            "fraction": 1.0,
+            "threshold": 9.832639655196906e-05,
+            "feasible": true,
+            "calls": 28753
+          }
+        ]
+      }
+    },
+    "final_calibration": {
+      "selected": {
+        "fraction": 0.25,
+        "threshold": 0.15189561345941022,
+        "feasible": true,
+        "calls": 23191
+      },
+      "candidates": [
+        {
+          "fraction": 0.05,
+          "threshold": 0.8754528424393765,
+          "feasible": false,
+          "calls": 19248
+        },
+        {
+          "fraction": 0.1,
+          "threshold": 0.7160422180960572,
+          "feasible": false,
+          "calls": 20304
+        },
+        {
+          "fraction": 0.15,
+          "threshold": 0.4974143713736425,
+          "feasible": false,
+          "calls": 21322
+        },
+        {
+          "fraction": 0.2,
+          "threshold": 0.29514045853184145,
+          "feasible": false,
+          "calls": 22268
+        },
+        {
+          "fraction": 0.25,
+          "threshold": 0.15189561345941022,
+          "feasible": true,
+          "calls": 23191
+        },
+        {
+          "fraction": 0.3,
+          "threshold": 0.07680177009364979,
+          "feasible": true,
+          "calls": 24059
+        },
+        {
+          "fraction": 0.35,
+          "threshold": 0.048525124337406744,
+          "feasible": true,
+          "calls": 24893
+        },
+        {
+          "fraction": 0.4,
+          "threshold": 0.029873515914079832,
+          "feasible": true,
+          "calls": 25670
+        },
+        {
+          "fraction": 0.45,
+          "threshold": 0.02163533701791611,
+          "feasible": true,
+          "calls": 26341
+        },
+        {
+          "fraction": 0.5,
+          "threshold": 0.01574545206509655,
+          "feasible": true,
+          "calls": 27102
+        },
+        {
+          "fraction": 0.55,
+          "threshold": 0.010582101832331959,
+          "feasible": true,
+          "calls": 27757
+        },
+        {
+          "fraction": 0.6,
+          "threshold": 0.008044168159332085,
+          "feasible": true,
+          "calls": 28400
+        },
+        {
+          "fraction": 0.65,
+          "threshold": 0.006271688293219897,
+          "feasible": true,
+          "calls": 29030
+        },
+        {
+          "fraction": 0.7,
+          "threshold": 0.004687594921633373,
+          "feasible": true,
+          "calls": 29677
+        },
+        {
+          "fraction": 0.75,
+          "threshold": 0.0032020664492806395,
+          "feasible": true,
+          "calls": 30351
+        },
+        {
+          "fraction": 0.8,
+          "threshold": 0.0025184025902472034,
+          "feasible": true,
+          "calls": 30925
+        },
+        {
+          "fraction": 0.85,
+          "threshold": 0.0018911065300257627,
+          "feasible": true,
+          "calls": 31539
+        },
+        {
+          "fraction": 0.9,
+          "threshold": 0.0012833682706690109,
+          "feasible": true,
+          "calls": 32070
+        },
+        {
+          "fraction": 0.95,
+          "threshold": 0.0005826906773372995,
+          "feasible": true,
+          "calls": 32498
+        },
+        {
+          "fraction": 1.0,
+          "threshold": 3.331907527053097e-05,
+          "feasible": true,
+          "calls": 32870
+        }
+      ]
+    }
+  },
+  "variants": {
+    "original_pgp": {
+      "f1": 61.69890226009785,
+      "errors": 36150,
+      "by_head": {
+        "instrument": {
+          "f1": 86.8283696653362,
+          "tp": 8484,
+          "fp": 995,
+          "fn": 1579
+        },
+        "verb": {
+          "f1": 60.859375,
+          "tp": 6232,
+          "fp": 3834,
+          "fn": 4182
+        },
+        "target": {
+          "f1": 50.67594834543987,
+          "tp": 5023,
+          "fp": 5471,
+          "fn": 4307
+        },
+        "ivt": {
+          "f1": 36.339763660236336,
+          "tp": 3598,
+          "fp": 4912,
+          "fn": 7694
+        },
+        "phase": {
+          "f1": 73.79105462947682,
+          "tp": 4471,
+          "fp": 1588,
+          "fn": 1588
+        }
+      },
+      "calls": 37157,
+      "per_video": {
+        "VID103": {
+          "f1": 64.5497132742603,
+          "errors": 6541,
+          "by_head": {
+            "instrument": {
+              "f1": 92.73224043715847,
+              "tp": 1697,
+              "fp": 65,
+              "fn": 201
+            },
+            "verb": {
+              "f1": 57.42275810097966,
+              "tp": 1143,
+              "fp": 700,
+              "fn": 995
+            },
+            "target": {
+              "f1": 50.51140833988985,
+              "tp": 963,
+              "fp": 1106,
+              "fn": 781
+            },
+            "ivt": {
+              "f1": 40.769028180142215,
+              "tp": 774,
+              "fp": 879,
+              "fn": 1370
+            },
+            "phase": {
+              "f1": 81.31313131313131,
+              "tp": 966,
+              "fp": 222,
+              "fn": 222
+            }
+          }
+        },
+        "VID23": {
+          "f1": 62.092386510404594,
+          "errors": 4535,
+          "by_head": {
+            "instrument": {
+              "f1": 82.56227758007117,
+              "tp": 1044,
+              "fp": 174,
+              "fn": 267
+            },
+            "verb": {
+              "f1": 69.9582225598177,
+              "tp": 921,
+              "fp": 379,
+              "fn": 412
+            },
+            "target": {
+              "f1": 45.730027548209364,
+              "tp": 581,
+              "fp": 799,
+              "fn": 580
+            },
+            "ivt": {
+              "f1": 40.9688013136289,
+              "tp": 499,
+              "fp": 534,
+              "fn": 904
+            },
+            "phase": {
+              "f1": 71.24260355029585,
+              "tp": 602,
+              "fp": 243,
+              "fn": 243
+            }
+          }
+        },
+        "VID31": {
+          "f1": 61.44534992531745,
+          "errors": 20248,
+          "by_head": {
+            "instrument": {
+              "f1": 84.87662751525085,
+              "tp": 4661,
+              "fp": 698,
+              "fn": 963
+            },
+            "verb": {
+              "f1": 64.75122634898388,
+              "tp": 3696,
+              "fp": 2031,
+              "fn": 1993
+            },
+            "target": {
+              "f1": 50.669319826338636,
+              "tp": 2801,
+              "fp": 2989,
+              "fn": 2465
+            },
+            "ivt": {
+              "f1": 36.77572978216774,
+              "tp": 2085,
+              "fp": 2763,
+              "fn": 4406
+            },
+            "phase": {
+              "f1": 70.15384615384616,
+              "tp": 2280,
+              "fp": 970,
+              "fn": 970
+            }
+          }
+        },
+        "VID96": {
+          "f1": 57.56382520809367,
+          "errors": 4826,
+          "by_head": {
+            "instrument": {
+              "f1": 91.30801687763713,
+              "tp": 1082,
+              "fp": 58,
+              "fn": 148
+            },
+            "verb": {
+              "f1": 38.53061224489796,
+              "tp": 472,
+              "fp": 724,
+              "fn": 782
+            },
+            "target": {
+              "f1": 56.17232808616404,
+              "tp": 678,
+              "fp": 577,
+              "fn": 481
+            },
+            "ivt": {
+              "f1": 21.524663677130047,
+              "tp": 240,
+              "fp": 736,
+              "fn": 1014
+            },
+            "phase": {
+              "f1": 80.28350515463917,
+              "tp": 623,
+              "fp": 153,
+              "fn": 153
+            }
+          }
+        }
+      }
+    },
+    "m1_m4_old_gate_outer": {
+      "f1": 66.38580465497722,
+      "errors": 32423,
+      "by_head": {
+        "instrument": {
+          "f1": 93.98885350318471,
+          "tp": 9444,
+          "fp": 589,
+          "fn": 619
+        },
+        "verb": {
+          "f1": 64.98849516797054,
+          "tp": 7061,
+          "fp": 4255,
+          "fn": 3353
+        },
+        "target": {
+          "f1": 50.67594834543987,
+          "tp": 5023,
+          "fp": 5471,
+          "fn": 4307
+        },
+        "ivt": {
+          "f1": 36.931610067500394,
+          "tp": 3529,
+          "fp": 4290,
+          "fn": 7763
+        },
+        "phase": {
+          "f1": 85.34411619079056,
+          "tp": 5171,
+          "fp": 888,
+          "fn": 888
+        }
+      },
+      "calls": 26647,
+      "known_usd_estimate": 60.466485332725696,
+      "reviewed": 2965,
+      "per_video": {
+        "VID103": {
+          "f1": 67.21715889800554,
+          "errors": 6150,
+          "by_head": {
+            "instrument": {
+              "f1": 96.6711051930759,
+              "tp": 1815,
+              "fp": 42,
+              "fn": 83
+            },
+            "verb": {
+              "f1": 59.77626459143969,
+              "tp": 1229,
+              "fp": 745,
+              "fn": 909
+            },
+            "target": {
+              "f1": 50.51140833988985,
+              "tp": 963,
+              "fp": 1106,
+              "fn": 781
+            },
+            "ivt": {
+              "f1": 40.911528150134046,
+              "tp": 763,
+              "fp": 823,
+              "fn": 1381
+            },
+            "phase": {
+              "f1": 88.21548821548822,
+              "tp": 1048,
+              "fp": 140,
+              "fn": 140
+            }
+          }
+        },
+        "VID23": {
+          "f1": 65.81723525683756,
+          "errors": 4071,
+          "by_head": {
+            "instrument": {
+              "f1": 91.11369809856423,
+              "tp": 1174,
+              "fp": 92,
+              "fn": 137
+            },
+            "verb": {
+              "f1": 73.54555433589462,
+              "tp": 1005,
+              "fp": 395,
+              "fn": 328
+            },
+            "target": {
+              "f1": 45.730027548209364,
+              "tp": 581,
+              "fp": 799,
+              "fn": 580
+            },
+            "ivt": {
+              "f1": 41.53713298791019,
+              "tp": 481,
+              "fp": 432,
+              "fn": 922
+            },
+            "phase": {
+              "f1": 77.15976331360947,
+              "tp": 652,
+              "fp": 193,
+              "fn": 193
+            }
+          }
+        },
+        "VID31": {
+          "f1": 67.23196290584806,
+          "errors": 17736,
+          "by_head": {
+            "instrument": {
+              "f1": 93.8618028761838,
+              "tp": 5352,
+              "fp": 428,
+              "fn": 272
+            },
+            "verb": {
+              "f1": 69.67146787506069,
+              "tp": 4305,
+              "fp": 2364,
+              "fn": 1384
+            },
+            "target": {
+              "f1": 50.669319826338636,
+              "tp": 2801,
+              "fp": 2989,
+              "fn": 2465
+            },
+            "ivt": {
+              "f1": 37.55722395165721,
+              "tp": 2051,
+              "fp": 2380,
+              "fn": 4440
+            },
+            "phase": {
+              "f1": 84.4,
+              "tp": 2743,
+              "fp": 507,
+              "fn": 507
+            }
+          }
+        },
+        "VID96": {
+          "f1": 61.32273845739962,
+          "errors": 4466,
+          "by_head": {
+            "instrument": {
+              "f1": 93.47457627118644,
+              "tp": 1103,
+              "fp": 27,
+              "fn": 127
+            },
+            "verb": {
+              "f1": 41.313810842896714,
+              "tp": 522,
+              "fp": 751,
+              "fn": 732
+            },
+            "target": {
+              "f1": 56.17232808616404,
+              "tp": 678,
+              "fp": 577,
+              "fn": 481
+            },
+            "ivt": {
+              "f1": 21.838544097060197,
+              "tp": 234,
+              "fp": 655,
+              "fn": 1020
+            },
+            "phase": {
+              "f1": 93.81443298969072,
+              "tp": 728,
+              "fp": 48,
+              "fn": 48
+            }
+          }
+        }
+      },
+      "f1_gain_retention": 0.9379247170086248,
+      "error_reduction_retention": 0.9211356466876972
+    },
+    "m1_m5_gate_v2_outer": {
+      "f1": 66.38489134946754,
+      "errors": 32427,
+      "by_head": {
+        "instrument": {
+          "f1": 93.98885350318471,
+          "tp": 9444,
+          "fp": 589,
+          "fn": 619
+        },
+        "verb": {
+          "f1": 64.9887268209635,
+          "tp": 7062,
+          "fp": 4257,
+          "fn": 3352
+        },
+        "target": {
+          "f1": 50.6684154769712,
+          "tp": 5022,
+          "fp": 5471,
+          "fn": 4308
+        },
+        "ivt": {
+          "f1": 36.934344755427674,
+          "tp": 3530,
+          "fp": 4293,
+          "fn": 7762
+        },
+        "phase": {
+          "f1": 85.34411619079056,
+          "tp": 5171,
+          "fp": 888,
+          "fn": 888
+        }
+      },
+      "calls": 24047,
+      "known_usd_estimate": 56.00106921706419,
+      "reviewed": 1810,
+      "per_video": {
+        "VID103": {
+          "f1": 67.20931584492789,
+          "errors": 6151,
+          "by_head": {
+            "instrument": {
+              "f1": 96.6711051930759,
+              "tp": 1815,
+              "fp": 42,
+              "fn": 83
+            },
+            "verb": {
+              "f1": 59.77626459143969,
+              "tp": 1229,
+              "fp": 745,
+              "fn": 909
+            },
+            "target": {
+              "f1": 50.472193074501575,
+              "tp": 962,
+              "fp": 1106,
+              "fn": 782
+            },
+            "ivt": {
+              "f1": 40.911528150134046,
+              "tp": 763,
+              "fp": 823,
+              "fn": 1381
+            },
+            "phase": {
+              "f1": 88.21548821548822,
+              "tp": 1048,
+              "fp": 140,
+              "fn": 140
+            }
+          }
+        },
+        "VID23": {
+          "f1": 65.78536635879672,
+          "errors": 4077,
+          "by_head": {
+            "instrument": {
+              "f1": 91.11369809856423,
+              "tp": 1174,
+              "fp": 92,
+              "fn": 137
+            },
+            "verb": {
+              "f1": 73.51865398683248,
+              "tp": 1005,
+              "fp": 396,
+              "fn": 328
+            },
+            "target": {
+              "f1": 45.65131837859111,
+              "tp": 580,
+              "fp": 800,
+              "fn": 581
+            },
+            "ivt": {
+              "f1": 41.483398016386374,
+              "tp": 481,
+              "fp": 435,
+              "fn": 922
+            },
+            "phase": {
+              "f1": 77.15976331360947,
+              "tp": 652,
+              "fp": 193,
+              "fn": 193
+            }
+          }
+        },
+        "VID31": {
+          "f1": 67.24493775241797,
+          "errors": 17731,
+          "by_head": {
+            "instrument": {
+              "f1": 93.8618028761838,
+              "tp": 5352,
+              "fp": 428,
+              "fn": 272
+            },
+            "verb": {
+              "f1": 69.67637540453075,
+              "tp": 4306,
+              "fp": 2365,
+              "fn": 1383
+            },
+            "target": {
+              "f1": 50.714414903237476,
+              "tp": 2804,
+              "fp": 2988,
+              "fn": 2462
+            },
+            "ivt": {
+              "f1": 37.572095578137876,
+              "tp": 2052,
+              "fp": 2380,
+              "fn": 4439
+            },
+            "phase": {
+              "f1": 84.4,
+              "tp": 2743,
+              "fp": 507,
+              "fn": 507
+            }
+          }
+        },
+        "VID96": {
+          "f1": 61.29888643884012,
+          "errors": 4468,
+          "by_head": {
+            "instrument": {
+              "f1": 93.47457627118644,
+              "tp": 1103,
+              "fp": 27,
+              "fn": 127
+            },
+            "verb": {
+              "f1": 41.313810842896714,
+              "tp": 522,
+              "fp": 751,
+              "fn": 732
+            },
+            "target": {
+              "f1": 56.053067993366504,
+              "tp": 676,
+              "fp": 577,
+              "fn": 483
+            },
+            "ivt": {
+              "f1": 21.838544097060197,
+              "tp": 234,
+              "fp": 655,
+              "fn": 1020
+            },
+            "phase": {
+              "f1": 93.81443298969072,
+              "tp": 728,
+              "fp": 48,
+              "fn": 48
+            }
+          }
+        }
+      },
+      "f1_gain_retention": 0.9339938496193633,
+      "error_reduction_retention": 0.9085173501577287
+    },
+    "same_probe_always_review": {
+      "f1": 66.40022734909458,
+      "errors": 32398,
+      "by_head": {
+        "instrument": {
+          "f1": 93.98885350318471,
+          "tp": 9444,
+          "fp": 589,
+          "fn": 619
+        },
+        "verb": {
+          "f1": 65.01519476931577,
+          "tp": 7060,
+          "fp": 4244,
+          "fn": 3354
+        },
+        "target": {
+          "f1": 50.70862964644172,
+          "tp": 5027,
+          "fp": 5470,
+          "fn": 4303
+        },
+        "ivt": {
+          "f1": 36.94434263574009,
+          "tp": 3528,
+          "fp": 4279,
+          "fn": 7764
+        },
+        "phase": {
+          "f1": 85.34411619079056,
+          "tp": 5171,
+          "fp": 888,
+          "fn": 888
+        }
+      },
+      "calls": 32870,
+      "known_usd_estimate": 71.45914401324404,
+      "reviewed": 6059,
+      "per_video": {
+        "VID103": {
+          "f1": 67.21715889800554,
+          "errors": 6150,
+          "by_head": {
+            "instrument": {
+              "f1": 96.6711051930759,
+              "tp": 1815,
+              "fp": 42,
+              "fn": 83
+            },
+            "verb": {
+              "f1": 59.77626459143969,
+              "tp": 1229,
+              "fp": 745,
+              "fn": 909
+            },
+            "target": {
+              "f1": 50.51140833988985,
+              "tp": 963,
+              "fp": 1106,
+              "fn": 781
+            },
+            "ivt": {
+              "f1": 40.911528150134046,
+              "tp": 763,
+              "fp": 823,
+              "fn": 1381
+            },
+            "phase": {
+              "f1": 88.21548821548822,
+              "tp": 1048,
+              "fp": 140,
+              "fn": 140
+            }
+          }
+        },
+        "VID23": {
+          "f1": 65.82620778641616,
+          "errors": 4069,
+          "by_head": {
+            "instrument": {
+              "f1": 91.11369809856423,
+              "tp": 1174,
+              "fp": 92,
+              "fn": 137
+            },
+            "verb": {
+              "f1": 73.57247437774524,
+              "tp": 1005,
+              "fp": 394,
+              "fn": 328
+            },
+            "target": {
+              "f1": 45.730027548209364,
+              "tp": 581,
+              "fp": 799,
+              "fn": 580
+            },
+            "ivt": {
+              "f1": 41.55507559395248,
+              "tp": 481,
+              "fp": 431,
+              "fn": 922
+            },
+            "phase": {
+              "f1": 77.15976331360947,
+              "tp": 652,
+              "fp": 193,
+              "fn": 193
+            }
+          }
+        },
+        "VID31": {
+          "f1": 67.25676288756662,
+          "errors": 17713,
+          "by_head": {
+            "instrument": {
+              "f1": 93.8618028761838,
+              "tp": 5352,
+              "fp": 428,
+              "fn": 272
+            },
+            "verb": {
+              "f1": 69.71734024459383,
+              "tp": 4304,
+              "fp": 2354,
+              "fn": 1385
+            },
+            "target": {
+              "f1": 50.72791391626729,
+              "tp": 2805,
+              "fp": 2988,
+              "fn": 2461
+            },
+            "ivt": {
+              "f1": 37.576757400788196,
+              "tp": 2050,
+              "fp": 2370,
+              "fn": 4441
+            },
+            "phase": {
+              "f1": 84.4,
+              "tp": 2743,
+              "fp": 507,
+              "fn": 507
+            }
+          }
+        },
+        "VID96": {
+          "f1": 61.32273845739962,
+          "errors": 4466,
+          "by_head": {
+            "instrument": {
+              "f1": 93.47457627118644,
+              "tp": 1103,
+              "fp": 27,
+              "fn": 127
+            },
+            "verb": {
+              "f1": 41.313810842896714,
+              "tp": 522,
+              "fp": 751,
+              "fn": 732
+            },
+            "target": {
+              "f1": 56.17232808616404,
+              "tp": 678,
+              "fp": 577,
+              "fn": 481
+            },
+            "ivt": {
+              "f1": 21.838544097060197,
+              "tp": 234,
+              "fp": 655,
+              "fn": 1020
+            },
+            "phase": {
+              "f1": 93.81443298969072,
+              "tp": 728,
+              "fp": 48,
+              "fn": 48
+            }
+          }
+        }
+      }
+    },
+    "same_probe_no_review": {
+      "f1": 66.16788536976988,
+      "errors": 32715,
+      "by_head": {
+        "instrument": {
+          "f1": 93.98885350318471,
+          "tp": 9444,
+          "fp": 589,
+          "fn": 619
+        },
+        "verb": {
+          "f1": 64.67976010621251,
+          "tp": 7064,
+          "fp": 4365,
+          "fn": 3350
+        },
+        "target": {
+          "f1": 50.058242593061536,
+          "tp": 4942,
+          "fp": 5473,
+          "fn": 4388
+        },
+        "ivt": {
+          "f1": 36.768454455600065,
+          "tp": 3534,
+          "fp": 4397,
+          "fn": 7758
+        },
+        "phase": {
+          "f1": 85.34411619079056,
+          "tp": 5171,
+          "fp": 888,
+          "fn": 888
+        }
+      },
+      "calls": 18177,
+      "known_usd_estimate": 48.04046201384743,
+      "reviewed": 0,
+      "per_video": {
+        "VID103": {
+          "f1": 67.10825837527983,
+          "errors": 6184,
+          "by_head": {
+            "instrument": {
+              "f1": 96.6711051930759,
+              "tp": 1815,
+              "fp": 42,
+              "fn": 83
+            },
+            "verb": {
+              "f1": 59.5837366892546,
+              "tp": 1231,
+              "fp": 763,
+              "fn": 907
+            },
+            "target": {
+              "f1": 50.302551960010526,
+              "tp": 956,
+              "fp": 1101,
+              "fn": 788
+            },
+            "ivt": {
+              "f1": 40.76840981856991,
+              "tp": 764,
+              "fp": 840,
+              "fn": 1380
+            },
+            "phase": {
+              "f1": 88.21548821548822,
+              "tp": 1048,
+              "fp": 140,
+              "fn": 140
+            }
+          }
+        },
+        "VID23": {
+          "f1": 65.56849040955258,
+          "errors": 4112,
+          "by_head": {
+            "instrument": {
+              "f1": 91.11369809856423,
+              "tp": 1174,
+              "fp": 92,
+              "fn": 137
+            },
+            "verb": {
+              "f1": 73.20261437908496,
+              "tp": 1008,
+              "fp": 413,
+              "fn": 325
+            },
+            "target": {
+              "f1": 45.23527085804666,
+              "tp": 572,
+              "fp": 796,
+              "fn": 589
+            },
+            "ivt": {
+              "f1": 41.131105398457585,
+              "tp": 480,
+              "fp": 451,
+              "fn": 923
+            },
+            "phase": {
+              "f1": 77.15976331360947,
+              "tp": 652,
+              "fp": 193,
+              "fn": 193
+            }
+          }
+        },
+        "VID31": {
+          "f1": 66.96037894214707,
+          "errors": 17944,
+          "by_head": {
+            "instrument": {
+              "f1": 93.8618028761838,
+              "tp": 5352,
+              "fp": 428,
+              "fn": 272
+            },
+            "verb": {
+              "f1": 69.27410268791245,
+              "tp": 4304,
+              "fp": 2433,
+              "fn": 1385
+            },
+            "target": {
+              "f1": 49.9365367180417,
+              "tp": 2754,
+              "fp": 3010,
+              "fn": 2512
+            },
+            "ivt": {
+              "f1": 37.32945242859741,
+              "tp": 2052,
+              "fp": 2451,
+              "fn": 4439
+            },
+            "phase": {
+              "f1": 84.4,
+              "tp": 2743,
+              "fp": 507,
+              "fn": 507
+            }
+          }
+        },
+        "VID96": {
+          "f1": 61.194977971291316,
+          "errors": 4475,
+          "by_head": {
+            "instrument": {
+              "f1": 93.47457627118644,
+              "tp": 1103,
+              "fp": 27,
+              "fn": 127
+            },
+            "verb": {
+              "f1": 41.16949822204662,
+              "tp": 521,
+              "fp": 756,
+              "fn": 733
+            },
+            "target": {
+              "f1": 55.34591194968554,
+              "tp": 660,
+              "fp": 566,
+              "fn": 499
+            },
+            "ivt": {
+              "f1": 22.170470423847227,
+              "tp": 238,
+              "fp": 655,
+              "fn": 1016
+            },
+            "phase": {
+              "f1": 93.81443298969072,
+              "tp": 728,
+              "fp": 48,
+              "fn": 48
+            }
+          }
+        }
+      }
+    },
+    "gate_v2_fullfit_training_replay_fixed_window": {
+      "f1": 66.40022734909458,
+      "errors": 32398,
+      "by_head": {
+        "instrument": {
+          "f1": 93.98885350318471,
+          "tp": 9444,
+          "fp": 589,
+          "fn": 619
+        },
+        "verb": {
+          "f1": 65.01519476931577,
+          "tp": 7060,
+          "fp": 4244,
+          "fn": 3354
+        },
+        "target": {
+          "f1": 50.70862964644172,
+          "tp": 5027,
+          "fp": 5470,
+          "fn": 4303
+        },
+        "ivt": {
+          "f1": 36.94434263574009,
+          "tp": 3528,
+          "fp": 4279,
+          "fn": 7764
+        },
+        "phase": {
+          "f1": 85.34411619079056,
+          "tp": 5171,
+          "fp": 888,
+          "fn": 888
+        }
+      },
+      "calls": 23600,
+      "known_usd_estimate": 55.17638661242235,
+      "reviewed": 1624,
+      "per_video": {
+        "VID103": {
+          "f1": 67.21715889800554,
+          "errors": 6150,
+          "by_head": {
+            "instrument": {
+              "f1": 96.6711051930759,
+              "tp": 1815,
+              "fp": 42,
+              "fn": 83
+            },
+            "verb": {
+              "f1": 59.77626459143969,
+              "tp": 1229,
+              "fp": 745,
+              "fn": 909
+            },
+            "target": {
+              "f1": 50.51140833988985,
+              "tp": 963,
+              "fp": 1106,
+              "fn": 781
+            },
+            "ivt": {
+              "f1": 40.911528150134046,
+              "tp": 763,
+              "fp": 823,
+              "fn": 1381
+            },
+            "phase": {
+              "f1": 88.21548821548822,
+              "tp": 1048,
+              "fp": 140,
+              "fn": 140
+            }
+          }
+        },
+        "VID23": {
+          "f1": 65.82620778641616,
+          "errors": 4069,
+          "by_head": {
+            "instrument": {
+              "f1": 91.11369809856423,
+              "tp": 1174,
+              "fp": 92,
+              "fn": 137
+            },
+            "verb": {
+              "f1": 73.57247437774524,
+              "tp": 1005,
+              "fp": 394,
+              "fn": 328
+            },
+            "target": {
+              "f1": 45.730027548209364,
+              "tp": 581,
+              "fp": 799,
+              "fn": 580
+            },
+            "ivt": {
+              "f1": 41.55507559395248,
+              "tp": 481,
+              "fp": 431,
+              "fn": 922
+            },
+            "phase": {
+              "f1": 77.15976331360947,
+              "tp": 652,
+              "fp": 193,
+              "fn": 193
+            }
+          }
+        },
+        "VID31": {
+          "f1": 67.25676288756662,
+          "errors": 17713,
+          "by_head": {
+            "instrument": {
+              "f1": 93.8618028761838,
+              "tp": 5352,
+              "fp": 428,
+              "fn": 272
+            },
+            "verb": {
+              "f1": 69.71734024459383,
+              "tp": 4304,
+              "fp": 2354,
+              "fn": 1385
+            },
+            "target": {
+              "f1": 50.72791391626729,
+              "tp": 2805,
+              "fp": 2988,
+              "fn": 2461
+            },
+            "ivt": {
+              "f1": 37.576757400788196,
+              "tp": 2050,
+              "fp": 2370,
+              "fn": 4441
+            },
+            "phase": {
+              "f1": 84.4,
+              "tp": 2743,
+              "fp": 507,
+              "fn": 507
+            }
+          }
+        },
+        "VID96": {
+          "f1": 61.32273845739962,
+          "errors": 4466,
+          "by_head": {
+            "instrument": {
+              "f1": 93.47457627118644,
+              "tp": 1103,
+              "fp": 27,
+              "fn": 127
+            },
+            "verb": {
+              "f1": 41.313810842896714,
+              "tp": 522,
+              "fp": 751,
+              "fn": 732
+            },
+            "target": {
+              "f1": 56.17232808616404,
+              "tp": 678,
+              "fp": 577,
+              "fn": 481
+            },
+            "ivt": {
+              "f1": 21.838544097060197,
+              "tp": 234,
+              "fp": 655,
+              "fn": 1020
+            },
+            "phase": {
+              "f1": 93.81443298969072,
+              "tp": 728,
+              "fp": 48,
+              "fn": 48
+            }
+          }
+        }
+      }
+    }
+  },
+  "ablation_fixed_old_gate_routes": {
+    "T0_PGP0_Phase0": {
+      "f1": 61.39629264236756,
+      "errors": 36522,
+      "by_head": {
+        "instrument": {
+          "f1": 86.77503717758064,
+          "tp": 8461,
+          "fp": 977,
+          "fn": 1602
+        },
+        "verb": {
+          "f1": 60.54867686331634,
+          "tp": 6235,
+          "fp": 3946,
+          "fn": 4179
+        },
+        "target": {
+          "f1": 50.058242593061536,
+          "tp": 4942,
+          "fp": 5473,
+          "fn": 4388
+        },
+        "ivt": {
+          "f1": 36.13853942158288,
+          "tp": 3605,
+          "fp": 5054,
+          "fn": 7687
+        },
+        "phase": {
+          "f1": 73.46096715629642,
+          "tp": 4451,
+          "fp": 1608,
+          "fn": 1608
+        }
+      },
+      "calls": 8074,
+      "known_usd_estimate": 33.10068445311673,
+      "reviewed": 0,
+      "per_video": {
+        "VID103": {
+          "f1": 64.36794816350641,
+          "errors": 6590,
+          "by_head": {
+            "instrument": {
+              "f1": 92.6148796498906,
+              "tp": 1693,
+              "fp": 65,
+              "fn": 205
+            },
+            "verb": {
+              "f1": 57.3070197351986,
+              "tp": 1147,
+              "fp": 718,
+              "fn": 991
+            },
+            "target": {
+              "f1": 50.302551960010526,
+              "tp": 956,
+              "fp": 1101,
+              "fn": 788
+            },
+            "ivt": {
+              "f1": 40.55468341182627,
+              "tp": 775,
+              "fp": 903,
+              "fn": 1369
+            },
+            "phase": {
+              "f1": 81.06060606060606,
+              "tp": 963,
+              "fp": 225,
+              "fn": 225
+            }
+          }
+        },
+        "VID23": {
+          "f1": 61.7965002140936,
+          "errors": 4585,
+          "by_head": {
+            "instrument": {
+              "f1": 82.51085669166996,
+              "tp": 1045,
+              "fp": 177,
+              "fn": 266
+            },
+            "verb": {
+              "f1": 69.6078431372549,
+              "tp": 923,
+              "fp": 396,
+              "fn": 410
+            },
+            "target": {
+              "f1": 45.23527085804666,
+              "tp": 572,
+              "fp": 796,
+              "fn": 589
+            },
+            "ivt": {
+              "f1": 40.504270028466856,
+              "tp": 498,
+              "fp": 558,
+              "fn": 905
+            },
+            "phase": {
+              "f1": 71.12426035502959,
+              "tp": 601,
+              "fp": 244,
+              "fn": 244
+            }
+          }
+        },
+        "VID31": {
+          "f1": 61.07670779784522,
+          "errors": 20502,
+          "by_head": {
+            "instrument": {
+              "f1": 84.84793131792858,
+              "tp": 4645,
+              "fp": 680,
+              "fn": 979
+            },
+            "verb": {
+              "f1": 64.31618351179594,
+              "tp": 3694,
+              "fp": 2104,
+              "fn": 1995
+            },
+            "target": {
+              "f1": 49.9365367180417,
+              "tp": 2754,
+              "fp": 3010,
+              "fn": 2512
+            },
+            "ivt": {
+              "f1": 36.529041287613715,
+              "tp": 2088,
+              "fp": 2853,
+              "fn": 4403
+            },
+            "phase": {
+              "f1": 69.75384615384615,
+              "tp": 2267,
+              "fp": 983,
+              "fn": 983
+            }
+          }
+        },
+        "VID96": {
+          "f1": 57.33798167403387,
+          "errors": 4845,
+          "by_head": {
+            "instrument": {
+              "f1": 91.2399492170969,
+              "tp": 1078,
+              "fp": 55,
+              "fn": 152
+            },
+            "verb": {
+              "f1": 38.40195678760701,
+              "tp": 471,
+              "fp": 728,
+              "fn": 783
+            },
+            "target": {
+              "f1": 55.34591194968554,
+              "tp": 660,
+              "fp": 566,
+              "fn": 499
+            },
+            "ivt": {
+              "f1": 21.805183199285075,
+              "tp": 244,
+              "fp": 740,
+              "fn": 1010
+            },
+            "phase": {
+              "f1": 79.89690721649484,
+              "tp": 620,
+              "fp": 156,
+              "fn": 156
+            }
+          }
+        }
+      }
+    },
+    "T0_PGP0_Phase1": {
+      "f1": 63.77292244926639,
+      "errors": 35082,
+      "by_head": {
+        "instrument": {
+          "f1": 86.77503717758064,
+          "tp": 8461,
+          "fp": 977,
+          "fn": 1602
+        },
+        "verb": {
+          "f1": 60.54867686331634,
+          "tp": 6235,
+          "fp": 3946,
+          "fn": 4179
+        },
+        "target": {
+          "f1": 50.058242593061536,
+          "tp": 4942,
+          "fp": 5473,
+          "fn": 4388
+        },
+        "ivt": {
+          "f1": 36.13853942158288,
+          "tp": 3605,
+          "fp": 5054,
+          "fn": 7687
+        },
+        "phase": {
+          "f1": 85.34411619079056,
+          "tp": 5171,
+          "fp": 888,
+          "fn": 888
+        }
+      },
+      "calls": 8074,
+      "known_usd_estimate": 33.10068445311673,
+      "reviewed": 0,
+      "per_video": {
+        "VID103": {
+          "f1": 65.79892459448284,
+          "errors": 6420,
+          "by_head": {
+            "instrument": {
+              "f1": 92.6148796498906,
+              "tp": 1693,
+              "fp": 65,
+              "fn": 205
+            },
+            "verb": {
+              "f1": 57.3070197351986,
+              "tp": 1147,
+              "fp": 718,
+              "fn": 991
+            },
+            "target": {
+              "f1": 50.302551960010526,
+              "tp": 956,
+              "fp": 1101,
+              "fn": 788
+            },
+            "ivt": {
+              "f1": 40.55468341182627,
+              "tp": 775,
+              "fp": 903,
+              "fn": 1369
+            },
+            "phase": {
+              "f1": 88.21548821548822,
+              "tp": 1048,
+              "fp": 140,
+              "fn": 140
+            }
+          }
+        },
+        "VID23": {
+          "f1": 63.00360080580957,
+          "errors": 4483,
+          "by_head": {
+            "instrument": {
+              "f1": 82.51085669166996,
+              "tp": 1045,
+              "fp": 177,
+              "fn": 266
+            },
+            "verb": {
+              "f1": 69.6078431372549,
+              "tp": 923,
+              "fp": 396,
+              "fn": 410
+            },
+            "target": {
+              "f1": 45.23527085804666,
+              "tp": 572,
+              "fp": 796,
+              "fn": 589
+            },
+            "ivt": {
+              "f1": 40.504270028466856,
+              "tp": 498,
+              "fp": 558,
+              "fn": 905
+            },
+            "phase": {
+              "f1": 77.15976331360947,
+              "tp": 652,
+              "fp": 193,
+              "fn": 193
+            }
+          }
+        },
+        "VID31": {
+          "f1": 64.00593856707599,
+          "errors": 19550,
+          "by_head": {
+            "instrument": {
+              "f1": 84.84793131792858,
+              "tp": 4645,
+              "fp": 680,
+              "fn": 979
+            },
+            "verb": {
+              "f1": 64.31618351179594,
+              "tp": 3694,
+              "fp": 2104,
+              "fn": 1995
+            },
+            "target": {
+              "f1": 49.9365367180417,
+              "tp": 2754,
+              "fp": 3010,
+              "fn": 2512
+            },
+            "ivt": {
+              "f1": 36.529041287613715,
+              "tp": 2088,
+              "fp": 2853,
+              "fn": 4403
+            },
+            "phase": {
+              "f1": 84.4,
+              "tp": 2743,
+              "fp": 507,
+              "fn": 507
+            }
+          }
+        },
+        "VID96": {
+          "f1": 60.12148682867305,
+          "errors": 4629,
+          "by_head": {
+            "instrument": {
+              "f1": 91.2399492170969,
+              "tp": 1078,
+              "fp": 55,
+              "fn": 152
+            },
+            "verb": {
+              "f1": 38.40195678760701,
+              "tp": 471,
+              "fp": 728,
+              "fn": 783
+            },
+            "target": {
+              "f1": 55.34591194968554,
+              "tp": 660,
+              "fp": 566,
+              "fn": 499
+            },
+            "ivt": {
+              "f1": 21.805183199285075,
+              "tp": 244,
+              "fp": 740,
+              "fn": 1010
+            },
+            "phase": {
+              "f1": 93.81443298969072,
+              "tp": 728,
+              "fp": 48,
+              "fn": 48
+            }
+          }
+        }
+      }
+    },
+    "T0_PGP1_Phase0": {
+      "f1": 61.63288476546177,
+      "errors": 36190,
+      "by_head": {
+        "instrument": {
+          "f1": 86.8283696653362,
+          "tp": 8484,
+          "fp": 995,
+          "fn": 1579
+        },
+        "verb": {
+          "f1": 60.859375,
+          "tp": 6232,
+          "fp": 3834,
+          "fn": 4182
+        },
+        "target": {
+          "f1": 50.67594834543987,
+          "tp": 5023,
+          "fp": 5471,
+          "fn": 4307
+        },
+        "ivt": {
+          "f1": 36.339763660236336,
+          "tp": 3598,
+          "fp": 4912,
+          "fn": 7694
+        },
+        "phase": {
+          "f1": 73.46096715629642,
+          "tp": 4451,
+          "fp": 1608,
+          "fn": 1608
+        }
+      },
+      "calls": 26647,
+      "known_usd_estimate": 60.466485332725696,
+      "reviewed": 2965,
+      "per_video": {
+        "VID103": {
+          "f1": 64.49920822375525,
+          "errors": 6547,
+          "by_head": {
+            "instrument": {
+              "f1": 92.73224043715847,
+              "tp": 1697,
+              "fp": 65,
+              "fn": 201
+            },
+            "verb": {
+              "f1": 57.42275810097966,
+              "tp": 1143,
+              "fp": 700,
+              "fn": 995
+            },
+            "target": {
+              "f1": 50.51140833988985,
+              "tp": 963,
+              "fp": 1106,
+              "fn": 781
+            },
+            "ivt": {
+              "f1": 40.769028180142215,
+              "tp": 774,
+              "fp": 879,
+              "fn": 1370
+            },
+            "phase": {
+              "f1": 81.06060606060606,
+              "tp": 963,
+              "fp": 225,
+              "fn": 225
+            }
+          }
+        },
+        "VID23": {
+          "f1": 62.06871787135135,
+          "errors": 4537,
+          "by_head": {
+            "instrument": {
+              "f1": 82.56227758007117,
+              "tp": 1044,
+              "fp": 174,
+              "fn": 267
+            },
+            "verb": {
+              "f1": 69.9582225598177,
+              "tp": 921,
+              "fp": 379,
+              "fn": 412
+            },
+            "target": {
+              "f1": 45.730027548209364,
+              "tp": 581,
+              "fp": 799,
+              "fn": 580
+            },
+            "ivt": {
+              "f1": 40.9688013136289,
+              "tp": 499,
+              "fp": 534,
+              "fn": 904
+            },
+            "phase": {
+              "f1": 71.12426035502959,
+              "tp": 601,
+              "fp": 244,
+              "fn": 244
+            }
+          }
+        },
+        "VID31": {
+          "f1": 61.365349925317446,
+          "errors": 20274,
+          "by_head": {
+            "instrument": {
+              "f1": 84.87662751525085,
+              "tp": 4661,
+              "fp": 698,
+              "fn": 963
+            },
+            "verb": {
+              "f1": 64.75122634898388,
+              "tp": 3696,
+              "fp": 2031,
+              "fn": 1993
+            },
+            "target": {
+              "f1": 50.669319826338636,
+              "tp": 2801,
+              "fp": 2989,
+              "fn": 2465
+            },
+            "ivt": {
+              "f1": 36.77572978216774,
+              "tp": 2085,
+              "fp": 2763,
+              "fn": 4406
+            },
+            "phase": {
+              "f1": 69.75384615384615,
+              "tp": 2267,
+              "fp": 983,
+              "fn": 983
+            }
+          }
+        },
+        "VID96": {
+          "f1": 57.4865056204648,
+          "errors": 4832,
+          "by_head": {
+            "instrument": {
+              "f1": 91.30801687763713,
+              "tp": 1082,
+              "fp": 58,
+              "fn": 148
+            },
+            "verb": {
+              "f1": 38.53061224489796,
+              "tp": 472,
+              "fp": 724,
+              "fn": 782
+            },
+            "target": {
+              "f1": 56.17232808616404,
+              "tp": 678,
+              "fp": 577,
+              "fn": 481
+            },
+            "ivt": {
+              "f1": 21.524663677130047,
+              "tp": 240,
+              "fp": 736,
+              "fn": 1014
+            },
+            "phase": {
+              "f1": 79.89690721649484,
+              "tp": 620,
+              "fp": 156,
+              "fn": 156
+            }
+          }
+        }
+      }
+    },
+    "T0_PGP1_Phase1": {
+      "f1": 64.00951457236059,
+      "errors": 34750,
+      "by_head": {
+        "instrument": {
+          "f1": 86.8283696653362,
+          "tp": 8484,
+          "fp": 995,
+          "fn": 1579
+        },
+        "verb": {
+          "f1": 60.859375,
+          "tp": 6232,
+          "fp": 3834,
+          "fn": 4182
+        },
+        "target": {
+          "f1": 50.67594834543987,
+          "tp": 5023,
+          "fp": 5471,
+          "fn": 4307
+        },
+        "ivt": {
+          "f1": 36.339763660236336,
+          "tp": 3598,
+          "fp": 4912,
+          "fn": 7694
+        },
+        "phase": {
+          "f1": 85.34411619079056,
+          "tp": 5171,
+          "fp": 888,
+          "fn": 888
+        }
+      },
+      "calls": 26647,
+      "known_usd_estimate": 60.466485332725696,
+      "reviewed": 2965,
+      "per_video": {
+        "VID103": {
+          "f1": 65.93018465473168,
+          "errors": 6377,
+          "by_head": {
+            "instrument": {
+              "f1": 92.73224043715847,
+              "tp": 1697,
+              "fp": 65,
+              "fn": 201
+            },
+            "verb": {
+              "f1": 57.42275810097966,
+              "tp": 1143,
+              "fp": 700,
+              "fn": 995
+            },
+            "target": {
+              "f1": 50.51140833988985,
+              "tp": 963,
+              "fp": 1106,
+              "fn": 781
+            },
+            "ivt": {
+              "f1": 40.769028180142215,
+              "tp": 774,
+              "fp": 879,
+              "fn": 1370
+            },
+            "phase": {
+              "f1": 88.21548821548822,
+              "tp": 1048,
+              "fp": 140,
+              "fn": 140
+            }
+          }
+        },
+        "VID23": {
+          "f1": 63.275818463067324,
+          "errors": 4435,
+          "by_head": {
+            "instrument": {
+              "f1": 82.56227758007117,
+              "tp": 1044,
+              "fp": 174,
+              "fn": 267
+            },
+            "verb": {
+              "f1": 69.9582225598177,
+              "tp": 921,
+              "fp": 379,
+              "fn": 412
+            },
+            "target": {
+              "f1": 45.730027548209364,
+              "tp": 581,
+              "fp": 799,
+              "fn": 580
+            },
+            "ivt": {
+              "f1": 40.9688013136289,
+              "tp": 499,
+              "fp": 534,
+              "fn": 904
+            },
+            "phase": {
+              "f1": 77.15976331360947,
+              "tp": 652,
+              "fp": 193,
+              "fn": 193
+            }
+          }
+        },
+        "VID31": {
+          "f1": 64.29458069454822,
+          "errors": 19322,
+          "by_head": {
+            "instrument": {
+              "f1": 84.87662751525085,
+              "tp": 4661,
+              "fp": 698,
+              "fn": 963
+            },
+            "verb": {
+              "f1": 64.75122634898388,
+              "tp": 3696,
+              "fp": 2031,
+              "fn": 1993
+            },
+            "target": {
+              "f1": 50.669319826338636,
+              "tp": 2801,
+              "fp": 2989,
+              "fn": 2465
+            },
+            "ivt": {
+              "f1": 36.77572978216774,
+              "tp": 2085,
+              "fp": 2763,
+              "fn": 4406
+            },
+            "phase": {
+              "f1": 84.4,
+              "tp": 2743,
+              "fp": 507,
+              "fn": 507
+            }
+          }
+        },
+        "VID96": {
+          "f1": 60.27001077510397,
+          "errors": 4616,
+          "by_head": {
+            "instrument": {
+              "f1": 91.30801687763713,
+              "tp": 1082,
+              "fp": 58,
+              "fn": 148
+            },
+            "verb": {
+              "f1": 38.53061224489796,
+              "tp": 472,
+              "fp": 724,
+              "fn": 782
+            },
+            "target": {
+              "f1": 56.17232808616404,
+              "tp": 678,
+              "fp": 577,
+              "fn": 481
+            },
+            "ivt": {
+              "f1": 21.524663677130047,
+              "tp": 240,
+              "fp": 736,
+              "fn": 1014
+            },
+            "phase": {
+              "f1": 93.81443298969072,
+              "tp": 728,
+              "fp": 48,
+              "fn": 48
+            }
+          }
+        }
+      }
+    },
+    "T1_PGP0_Phase0": {
+      "f1": 63.79125556287105,
+      "errors": 34155,
+      "by_head": {
+        "instrument": {
+          "f1": 93.98885350318471,
+          "tp": 9444,
+          "fp": 589,
+          "fn": 619
+        },
+        "verb": {
+          "f1": 64.67976010621251,
+          "tp": 7064,
+          "fp": 4365,
+          "fn": 3350
+        },
+        "target": {
+          "f1": 50.058242593061536,
+          "tp": 4942,
+          "fp": 5473,
+          "fn": 4388
+        },
+        "ivt": {
+          "f1": 36.768454455600065,
+          "tp": 3534,
+          "fp": 4397,
+          "fn": 7758
+        },
+        "phase": {
+          "f1": 73.46096715629642,
+          "tp": 4451,
+          "fp": 1608,
+          "fn": 1608
+        }
+      },
+      "calls": 8074,
+      "known_usd_estimate": 33.10068445311673,
+      "reviewed": 0,
+      "per_video": {
+        "VID103": {
+          "f1": 65.6772819443034,
+          "errors": 6354,
+          "by_head": {
+            "instrument": {
+              "f1": 96.6711051930759,
+              "tp": 1815,
+              "fp": 42,
+              "fn": 83
+            },
+            "verb": {
+              "f1": 59.5837366892546,
+              "tp": 1231,
+              "fp": 763,
+              "fn": 907
+            },
+            "target": {
+              "f1": 50.302551960010526,
+              "tp": 956,
+              "fp": 1101,
+              "fn": 788
+            },
+            "ivt": {
+              "f1": 40.76840981856991,
+              "tp": 764,
+              "fp": 840,
+              "fn": 1380
+            },
+            "phase": {
+              "f1": 81.06060606060606,
+              "tp": 963,
+              "fp": 225,
+              "fn": 225
+            }
+          }
+        },
+        "VID23": {
+          "f1": 64.36138981783661,
+          "errors": 4214,
+          "by_head": {
+            "instrument": {
+              "f1": 91.11369809856423,
+              "tp": 1174,
+              "fp": 92,
+              "fn": 137
+            },
+            "verb": {
+              "f1": 73.20261437908496,
+              "tp": 1008,
+              "fp": 413,
+              "fn": 325
+            },
+            "target": {
+              "f1": 45.23527085804666,
+              "tp": 572,
+              "fp": 796,
+              "fn": 589
+            },
+            "ivt": {
+              "f1": 41.131105398457585,
+              "tp": 480,
+              "fp": 451,
+              "fn": 923
+            },
+            "phase": {
+              "f1": 71.12426035502959,
+              "tp": 601,
+              "fp": 244,
+              "fn": 244
+            }
+          }
+        },
+        "VID31": {
+          "f1": 64.0311481729163,
+          "errors": 18896,
+          "by_head": {
+            "instrument": {
+              "f1": 93.8618028761838,
+              "tp": 5352,
+              "fp": 428,
+              "fn": 272
+            },
+            "verb": {
+              "f1": 69.27410268791245,
+              "tp": 4304,
+              "fp": 2433,
+              "fn": 1385
+            },
+            "target": {
+              "f1": 49.9365367180417,
+              "tp": 2754,
+              "fp": 3010,
+              "fn": 2512
+            },
+            "ivt": {
+              "f1": 37.32945242859741,
+              "tp": 2052,
+              "fp": 2451,
+              "fn": 4439
+            },
+            "phase": {
+              "f1": 69.75384615384615,
+              "tp": 2267,
+              "fp": 983,
+              "fn": 983
+            }
+          }
+        },
+        "VID96": {
+          "f1": 58.411472816652136,
+          "errors": 4691,
+          "by_head": {
+            "instrument": {
+              "f1": 93.47457627118644,
+              "tp": 1103,
+              "fp": 27,
+              "fn": 127
+            },
+            "verb": {
+              "f1": 41.16949822204662,
+              "tp": 521,
+              "fp": 756,
+              "fn": 733
+            },
+            "target": {
+              "f1": 55.34591194968554,
+              "tp": 660,
+              "fp": 566,
+              "fn": 499
+            },
+            "ivt": {
+              "f1": 22.170470423847227,
+              "tp": 238,
+              "fp": 655,
+              "fn": 1016
+            },
+            "phase": {
+              "f1": 79.89690721649484,
+              "tp": 620,
+              "fp": 156,
+              "fn": 156
+            }
+          }
+        }
+      }
+    },
+    "T1_PGP0_Phase1": {
+      "f1": 66.16788536976988,
+      "errors": 32715,
+      "by_head": {
+        "instrument": {
+          "f1": 93.98885350318471,
+          "tp": 9444,
+          "fp": 589,
+          "fn": 619
+        },
+        "verb": {
+          "f1": 64.67976010621251,
+          "tp": 7064,
+          "fp": 4365,
+          "fn": 3350
+        },
+        "target": {
+          "f1": 50.058242593061536,
+          "tp": 4942,
+          "fp": 5473,
+          "fn": 4388
+        },
+        "ivt": {
+          "f1": 36.768454455600065,
+          "tp": 3534,
+          "fp": 4397,
+          "fn": 7758
+        },
+        "phase": {
+          "f1": 85.34411619079056,
+          "tp": 5171,
+          "fp": 888,
+          "fn": 888
+        }
+      },
+      "calls": 8074,
+      "known_usd_estimate": 33.10068445311673,
+      "reviewed": 0,
+      "per_video": {
+        "VID103": {
+          "f1": 67.10825837527983,
+          "errors": 6184,
+          "by_head": {
+            "instrument": {
+              "f1": 96.6711051930759,
+              "tp": 1815,
+              "fp": 42,
+              "fn": 83
+            },
+            "verb": {
+              "f1": 59.5837366892546,
+              "tp": 1231,
+              "fp": 763,
+              "fn": 907
+            },
+            "target": {
+              "f1": 50.302551960010526,
+              "tp": 956,
+              "fp": 1101,
+              "fn": 788
+            },
+            "ivt": {
+              "f1": 40.76840981856991,
+              "tp": 764,
+              "fp": 840,
+              "fn": 1380
+            },
+            "phase": {
+              "f1": 88.21548821548822,
+              "tp": 1048,
+              "fp": 140,
+              "fn": 140
+            }
+          }
+        },
+        "VID23": {
+          "f1": 65.56849040955258,
+          "errors": 4112,
+          "by_head": {
+            "instrument": {
+              "f1": 91.11369809856423,
+              "tp": 1174,
+              "fp": 92,
+              "fn": 137
+            },
+            "verb": {
+              "f1": 73.20261437908496,
+              "tp": 1008,
+              "fp": 413,
+              "fn": 325
+            },
+            "target": {
+              "f1": 45.23527085804666,
+              "tp": 572,
+              "fp": 796,
+              "fn": 589
+            },
+            "ivt": {
+              "f1": 41.131105398457585,
+              "tp": 480,
+              "fp": 451,
+              "fn": 923
+            },
+            "phase": {
+              "f1": 77.15976331360947,
+              "tp": 652,
+              "fp": 193,
+              "fn": 193
+            }
+          }
+        },
+        "VID31": {
+          "f1": 66.96037894214707,
+          "errors": 17944,
+          "by_head": {
+            "instrument": {
+              "f1": 93.8618028761838,
+              "tp": 5352,
+              "fp": 428,
+              "fn": 272
+            },
+            "verb": {
+              "f1": 69.27410268791245,
+              "tp": 4304,
+              "fp": 2433,
+              "fn": 1385
+            },
+            "target": {
+              "f1": 49.9365367180417,
+              "tp": 2754,
+              "fp": 3010,
+              "fn": 2512
+            },
+            "ivt": {
+              "f1": 37.32945242859741,
+              "tp": 2052,
+              "fp": 2451,
+              "fn": 4439
+            },
+            "phase": {
+              "f1": 84.4,
+              "tp": 2743,
+              "fp": 507,
+              "fn": 507
+            }
+          }
+        },
+        "VID96": {
+          "f1": 61.194977971291316,
+          "errors": 4475,
+          "by_head": {
+            "instrument": {
+              "f1": 93.47457627118644,
+              "tp": 1103,
+              "fp": 27,
+              "fn": 127
+            },
+            "verb": {
+              "f1": 41.16949822204662,
+              "tp": 521,
+              "fp": 756,
+              "fn": 733
+            },
+            "target": {
+              "f1": 55.34591194968554,
+              "tp": 660,
+              "fp": 566,
+              "fn": 499
+            },
+            "ivt": {
+              "f1": 22.170470423847227,
+              "tp": 238,
+              "fp": 655,
+              "fn": 1016
+            },
+            "phase": {
+              "f1": 93.81443298969072,
+              "tp": 728,
+              "fp": 48,
+              "fn": 48
+            }
+          }
+        }
+      }
+    },
+    "T1_PGP1_Phase0": {
+      "f1": 64.0091748480784,
+      "errors": 33863,
+      "by_head": {
+        "instrument": {
+          "f1": 93.98885350318471,
+          "tp": 9444,
+          "fp": 589,
+          "fn": 619
+        },
+        "verb": {
+          "f1": 64.98849516797054,
+          "tp": 7061,
+          "fp": 4255,
+          "fn": 3353
+        },
+        "target": {
+          "f1": 50.67594834543987,
+          "tp": 5023,
+          "fp": 5471,
+          "fn": 4307
+        },
+        "ivt": {
+          "f1": 36.931610067500394,
+          "tp": 3529,
+          "fp": 4290,
+          "fn": 7763
+        },
+        "phase": {
+          "f1": 73.46096715629642,
+          "tp": 4451,
+          "fp": 1608,
+          "fn": 1608
+        }
+      },
+      "calls": 26647,
+      "known_usd_estimate": 60.466485332725696,
+      "reviewed": 2965,
+      "per_video": {
+        "VID103": {
+          "f1": 65.7861824670291,
+          "errors": 6320,
+          "by_head": {
+            "instrument": {
+              "f1": 96.6711051930759,
+              "tp": 1815,
+              "fp": 42,
+              "fn": 83
+            },
+            "verb": {
+              "f1": 59.77626459143969,
+              "tp": 1229,
+              "fp": 745,
+              "fn": 909
+            },
+            "target": {
+              "f1": 50.51140833988985,
+              "tp": 963,
+              "fp": 1106,
+              "fn": 781
+            },
+            "ivt": {
+              "f1": 40.911528150134046,
+              "tp": 763,
+              "fp": 823,
+              "fn": 1381
+            },
+            "phase": {
+              "f1": 81.06060606060606,
+              "tp": 963,
+              "fp": 225,
+              "fn": 225
+            }
+          }
+        },
+        "VID23": {
+          "f1": 64.61013466512159,
+          "errors": 4173,
+          "by_head": {
+            "instrument": {
+              "f1": 91.11369809856423,
+              "tp": 1174,
+              "fp": 92,
+              "fn": 137
+            },
+            "verb": {
+              "f1": 73.54555433589462,
+              "tp": 1005,
+              "fp": 395,
+              "fn": 328
+            },
+            "target": {
+              "f1": 45.730027548209364,
+              "tp": 581,
+              "fp": 799,
+              "fn": 580
+            },
+            "ivt": {
+              "f1": 41.53713298791019,
+              "tp": 481,
+              "fp": 432,
+              "fn": 922
+            },
+            "phase": {
+              "f1": 71.12426035502959,
+              "tp": 601,
+              "fp": 244,
+              "fn": 244
+            }
+          }
+        },
+        "VID31": {
+          "f1": 64.3027321366173,
+          "errors": 18688,
+          "by_head": {
+            "instrument": {
+              "f1": 93.8618028761838,
+              "tp": 5352,
+              "fp": 428,
+              "fn": 272
+            },
+            "verb": {
+              "f1": 69.67146787506069,
+              "tp": 4305,
+              "fp": 2364,
+              "fn": 1384
+            },
+            "target": {
+              "f1": 50.669319826338636,
+              "tp": 2801,
+              "fp": 2989,
+              "fn": 2465
+            },
+            "ivt": {
+              "f1": 37.55722395165721,
+              "tp": 2051,
+              "fp": 2380,
+              "fn": 4440
+            },
+            "phase": {
+              "f1": 69.75384615384615,
+              "tp": 2267,
+              "fp": 983,
+              "fn": 983
+            }
+          }
+        },
+        "VID96": {
+          "f1": 58.53923330276045,
+          "errors": 4682,
+          "by_head": {
+            "instrument": {
+              "f1": 93.47457627118644,
+              "tp": 1103,
+              "fp": 27,
+              "fn": 127
+            },
+            "verb": {
+              "f1": 41.313810842896714,
+              "tp": 522,
+              "fp": 751,
+              "fn": 732
+            },
+            "target": {
+              "f1": 56.17232808616404,
+              "tp": 678,
+              "fp": 577,
+              "fn": 481
+            },
+            "ivt": {
+              "f1": 21.838544097060197,
+              "tp": 234,
+              "fp": 655,
+              "fn": 1020
+            },
+            "phase": {
+              "f1": 79.89690721649484,
+              "tp": 620,
+              "fp": 156,
+              "fn": 156
+            }
+          }
+        }
+      }
+    },
+    "T1_PGP1_Phase1": {
+      "f1": 66.38580465497722,
+      "errors": 32423,
+      "by_head": {
+        "instrument": {
+          "f1": 93.98885350318471,
+          "tp": 9444,
+          "fp": 589,
+          "fn": 619
+        },
+        "verb": {
+          "f1": 64.98849516797054,
+          "tp": 7061,
+          "fp": 4255,
+          "fn": 3353
+        },
+        "target": {
+          "f1": 50.67594834543987,
+          "tp": 5023,
+          "fp": 5471,
+          "fn": 4307
+        },
+        "ivt": {
+          "f1": 36.931610067500394,
+          "tp": 3529,
+          "fp": 4290,
+          "fn": 7763
+        },
+        "phase": {
+          "f1": 85.34411619079056,
+          "tp": 5171,
+          "fp": 888,
+          "fn": 888
+        }
+      },
+      "calls": 26647,
+      "known_usd_estimate": 60.466485332725696,
+      "reviewed": 2965,
+      "per_video": {
+        "VID103": {
+          "f1": 67.21715889800554,
+          "errors": 6150,
+          "by_head": {
+            "instrument": {
+              "f1": 96.6711051930759,
+              "tp": 1815,
+              "fp": 42,
+              "fn": 83
+            },
+            "verb": {
+              "f1": 59.77626459143969,
+              "tp": 1229,
+              "fp": 745,
+              "fn": 909
+            },
+            "target": {
+              "f1": 50.51140833988985,
+              "tp": 963,
+              "fp": 1106,
+              "fn": 781
+            },
+            "ivt": {
+              "f1": 40.911528150134046,
+              "tp": 763,
+              "fp": 823,
+              "fn": 1381
+            },
+            "phase": {
+              "f1": 88.21548821548822,
+              "tp": 1048,
+              "fp": 140,
+              "fn": 140
+            }
+          }
+        },
+        "VID23": {
+          "f1": 65.81723525683756,
+          "errors": 4071,
+          "by_head": {
+            "instrument": {
+              "f1": 91.11369809856423,
+              "tp": 1174,
+              "fp": 92,
+              "fn": 137
+            },
+            "verb": {
+              "f1": 73.54555433589462,
+              "tp": 1005,
+              "fp": 395,
+              "fn": 328
+            },
+            "target": {
+              "f1": 45.730027548209364,
+              "tp": 581,
+              "fp": 799,
+              "fn": 580
+            },
+            "ivt": {
+              "f1": 41.53713298791019,
+              "tp": 481,
+              "fp": 432,
+              "fn": 922
+            },
+            "phase": {
+              "f1": 77.15976331360947,
+              "tp": 652,
+              "fp": 193,
+              "fn": 193
+            }
+          }
+        },
+        "VID31": {
+          "f1": 67.23196290584806,
+          "errors": 17736,
+          "by_head": {
+            "instrument": {
+              "f1": 93.8618028761838,
+              "tp": 5352,
+              "fp": 428,
+              "fn": 272
+            },
+            "verb": {
+              "f1": 69.67146787506069,
+              "tp": 4305,
+              "fp": 2364,
+              "fn": 1384
+            },
+            "target": {
+              "f1": 50.669319826338636,
+              "tp": 2801,
+              "fp": 2989,
+              "fn": 2465
+            },
+            "ivt": {
+              "f1": 37.55722395165721,
+              "tp": 2051,
+              "fp": 2380,
+              "fn": 4440
+            },
+            "phase": {
+              "f1": 84.4,
+              "tp": 2743,
+              "fp": 507,
+              "fn": 507
+            }
+          }
+        },
+        "VID96": {
+          "f1": 61.32273845739962,
+          "errors": 4466,
+          "by_head": {
+            "instrument": {
+              "f1": 93.47457627118644,
+              "tp": 1103,
+              "fp": 27,
+              "fn": 127
+            },
+            "verb": {
+              "f1": 41.313810842896714,
+              "tp": 522,
+              "fp": 751,
+              "fn": 732
+            },
+            "target": {
+              "f1": 56.17232808616404,
+              "tp": 678,
+              "fp": 577,
+              "fn": 481
+            },
+            "ivt": {
+              "f1": 21.838544097060197,
+              "tp": 234,
+              "fp": 655,
+              "fn": 1020
+            },
+            "phase": {
+              "f1": 93.81443298969072,
+              "tp": 728,
+              "fp": 48,
+              "fn": 48
+            }
+          }
+        }
+      }
+    }
+  },
+  "source_sha256": {
+    "D:\\PythonProject7\\artifacts\\training\\gate\\official_behavior_net_v2_20260913\\primary_rows.json": "edb4d32397bc197815090ac69b6c7856bce554f85e77c4a0db27e7cc75d6421f",
+    "D:\\PythonProject7\\artifacts\\training\\gate\\pgp_ambiguity_assessment_20260913_r2\\predictions.npz": "f7ece707c6e94ffd7f26c99851dc9bad0564d2a2a54e658948fc7112920ab527",
+    "D:\\PythonProject7\\artifacts\\training\\tracker_clip_v2_oof5_20260906\\oof\\index.json": "572f6ab5778a8aa6a08d760b96e6f35a7a8df7e904c3bd2333fbc36771f09479",
+    "D:\\PythonProject7\\docs\\TRACKER_SCHEME_4_5_6_TRIAL_PROTOCOL_2026-09-14.md": "a61f135b2dc997cb9cbe66ed6f9ce8ae0d1fb63f9f8ed9414a1dd9e5a86eea9a",
+    "D:\\PythonProject7\\scripts\\assess_tracker_scheme4.py": "91bb997797a53654e865de6d7fa0ae94bef2d9f2a1c6f4b96b21df2d6e922912",
+    "D:\\PythonProject7\\src\\surgical_agent\\research\\gate\\tracker_pipeline_v2.py": "8a99dd1bd38a2adfcff30ff22d83f0a09bf77ce020caa36f7271e48ba1e32e6c",
+    "D:\\PythonProject7\\DEFAULT_PIPELINE_VERSION.json": "eaaa9997eabe17155c983c92119648fc48f8f235c0549c9a1cb950da6ba46c99",
+    "D:\\PythonProject7\\DEFAULT_PGP_GATE_VERSION.json": "75608713af54dd8679d638bc7f0e2050dafde24279887b7d51b825d5717a25e4"
+  },
+  "tracker_sha256": {
+    "D:\\PythonProject7\\artifacts\\training\\tracker_clip_v2_oof5_20260906\\oof\\fold_2\\predicted_tracks.json": "a0b73e4cb58cc20cefb0be932a3b4faec15865ee4ba729a52322fb6ed14fe01d",
+    "D:\\PythonProject7\\artifacts\\training\\tracker_clip_v2_oof5_20260906\\oof\\fold_1\\predicted_tracks.json": "a9561cff83e7b4b0d87a160adfbd9a501c96bedfe554b6aeb700f784d0b1e4d6",
+    "D:\\PythonProject7\\artifacts\\training\\tracker_clip_v2_oof5_20260906\\oof\\vid31\\predicted_tracks.json": "ae57b55a1e0bfbbefc3cc48e2e5ec33db570cea5ed25942b7e62ac6e5b8f42b1",
+    "D:\\PythonProject7\\artifacts\\training\\tracker_clip_v2_oof5_20260906\\oof\\fold_3\\predicted_tracks.json": "04ac638184ea53db32c25f4482e16de47dac219520909ef83b4d9d9bf79de835"
+  },
+  "predictions_sha256": "85d74ef2373ac2af5d39937f03e694b3f26d136301b35ec1297e9f740b0838f4",
+  "elapsed_seconds": 169.01806639999995
+}

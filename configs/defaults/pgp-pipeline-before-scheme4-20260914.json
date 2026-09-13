@@ -1,0 +1,33 @@
+{
+  "schema_version": "default_repair_pipeline_selection_v2",
+  "selected_on": "2026-09-13",
+  "selected_by": "explicit_user_request",
+  "version": "pgp-ambiguity-single-probe-pipeline-v1-20260913",
+  "profile": "pgp_ambiguity_single_probe_v1",
+  "default_entrypoint": "scripts/run_pipeline.py",
+  "implementation_entrypoint": "scripts/run_pgp_pipeline.py",
+  "scoring_entrypoint": "scripts/run_pgp_pipeline.py",
+  "scoring_requires_command": true,
+  "accepts_dataset_root": false,
+  "dataset_root": "D:/cholec_dataset",
+  "gate_default_manifest": "DEFAULT_PGP_GATE_VERSION.json",
+  "previous_default_manifest": "configs\\defaults\\prior-gated-joint-before-pgp-20260913.json",
+  "scope": "Training-only causal PGP; cached replay and explicitly budgeted transport execution",
+  "gate_version": "pgp-ambiguity-single-qwen-hgb-no-tracker-v1-20260913",
+  "tracker_enabled": false,
+  "calls_per_target_min": 3,
+  "calls_per_target_max": 13,
+  "paid_execution_requires_explicit_flag": true,
+  "api_execution_validated": false,
+  "Testing_enabled": false,
+  "deployable": false,
+  "quality_status": "CONDITIONAL_RESEARCH_SELECTION_RETENTION90_NOT_PASSED",
+  "supported_commands": [
+    "info",
+    "preflight",
+    "replay",
+    "prepare",
+    "execute",
+    "score"
+  ]
+}

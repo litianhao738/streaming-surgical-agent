@@ -1,3 +1,5 @@
+> **当前默认（2026-09-14）：方案 4 完整 Pipeline。** 入口为 scripts/run_pipeline.py，包含 Tracker 输出融合、动作先验、因果阶段滤波及 Gate v2。每帧 3–7 次逻辑调用。详见 [当前流程与运行指南](docs/SCHEME4_COMPLETE_PIPELINE_2026-09-14.md)。Training 研究版本，尚无独立测试或完整在线验证。以下早期流程说明保留为历史记录。
+
 ﻿# 当前主线：先验门控 + 联合 Phase
 
 2026-09-11 按用户明确要求设为 **`prior-gated-joint-mainline-v1.0.0`**。

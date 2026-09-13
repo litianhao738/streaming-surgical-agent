@@ -37,6 +37,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--variant',choices=['qwen','tracker-gemini38'])
     parser.add_argument('--tracker',choices=['on','off'])
     parser.add_argument('--gate-model',type=Path)
+    parser.add_argument('--tracker-index',type=Path)
     args = parser.parse_args(argv)
     selection = json.loads(DEFAULT_MANIFEST.read_text(encoding="utf-8-sig"))
     if args.command == "info":
@@ -49,8 +50,10 @@ def main(argv: list[str] | None = None) -> int:
     if args.command != "score" or selection.get("scoring_requires_command", False):
         command.append(args.command)
     command.extend(("--output", str(args.output.resolve())))
-    if selection.get('profile') == 'pgp_ambiguity_single_probe_v1':
-        for name in ('source','limit','budget_limits','annotations','variant','tracker','gate_model'):
+    if selection.get('profile') in ('pgp_ambiguity_single_probe_v1','tracker_scheme4_pipeline_v1'):
+        if selection.get('profile') == 'tracker_scheme4_pipeline_v1' and any((args.variant,args.tracker,args.gate_model)):
+            parser.error('scheme4 has a pinned Qwen Gate and Tracker; legacy variant overrides are unsupported')
+        for name in ('source','limit','budget_limits','annotations','variant','tracker','gate_model','tracker_index'):
             value=getattr(args,name)
             if value is not None: command.extend(('--'+name.replace('_','-'),str(value)))
         if args.allow_paid: command.append('--allow-paid')

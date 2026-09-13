@@ -1,5 +1,8 @@
 # Streaming SurgicalAgent V3.1
 
+> **当前默认（2026-09-14）：方案 4 完整 Pipeline。** 入口为 `scripts/run_pipeline.py`，包含 Tracker 输出融合、动作先验、因果阶段滤波及 Gate v2。每帧 3–7 次逻辑调用。详见 [当前流程与运行指南](docs/SCHEME4_COMPLETE_PIPELINE_2026-09-14.md)。Training 研究版本，尚无独立测试或完整在线验证。以下早期流程说明保留为历史记录。
+
+
 > **当前主线（2026-09-11）：`prior-gated-joint-mainline-v1.0.0`。** 按用户要求启用，每目标 13 次调用，原先验门控加联合 Phase，取消盲投 Phase 面板。冻结基座仍为 Gemini 3.8 Flash，五席审核不变。[当前流程](LATEST_PIPELINE.md) · [冻结证据](docs/PRIOR_GATED_JOINT_MAINLINE_FREEZE_2026-09-11.md)。已有确认未通过完整性标准，默认选择不表示全面最优。三基座六目标 Training 对照走独立入口；没有启动 Gate 数据采集。下列带“默认未改”的条目保留其历史实验时点含义。
 
 > **先验门控 + 联合 Phase 审核修复（2026-09-11，负结果，默认未改）：** [报告](docs/PRIOR_GATED_JOINT_PHASE_2026-09-11.md)。把 Phase 接入与四头相同的"提案 → 五席审核 → Python 接纳"流程，审核请求只含 H0 与原始候选池、Phase 推荐不带先验提示、门控仍以 H0 Phase 为桶（重放显示即使真值 Phase 也不能降低四头错漏）。16 个新 VID110 目标上联合面板一次也没改 Phase，候选与先验门控候选逐字节相同：五头平均 F1 **54.76 / 61.01 / 62.21**（H0 / 默认 / 两个门控臂），总错漏 95 / 88 / 84；预注册标准未通过。先验门控在第二批新帧上仍正向。

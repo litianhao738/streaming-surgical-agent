@@ -1,0 +1,323 @@
+{
+  "api_calls_from_this_audit": 0,
+  "verified_frozen_plan": true,
+  "physical_dispatches": 208,
+  "unique_dispatches": 208,
+  "terminal_dispatches": 208,
+  "requests_by_seat": {
+    "base": 32,
+    "gpt": 32,
+    "gemini": 32,
+    "deepseek": 32,
+    "grok": 32,
+    "qwen": 48
+  },
+  "scheme6_shared_response_parity_rows": 16,
+  "started_utc": "2026-09-13T20:33:33.747152+00:00",
+  "finished_utc": "2026-09-13T20:48:28.313043+00:00",
+  "scheme5_finished_before_scheme6": true,
+  "statuses_by_arm_and_seat": {
+    "control/base": {
+      "JSON_PARSED": 16
+    },
+    "control/gpt": {
+      "JSON_PARSED": 16
+    },
+    "control/gemini": {
+      "JSON_PARSED": 15,
+      "SAFE_JSON_REJECTED": 1
+    },
+    "prior/base": {
+      "JSON_PARSED": 16
+    },
+    "prior/gpt": {
+      "JSON_PARSED": 16
+    },
+    "prior/gemini": {
+      "JSON_PARSED": 16
+    },
+    "control/deepseek": {
+      "JSON_PARSED": 16
+    },
+    "control/grok": {
+      "JSON_PARSED": 16
+    },
+    "control/qwen": {
+      "JSON_PARSED": 16
+    },
+    "prior/deepseek": {
+      "JSON_PARSED": 16
+    },
+    "prior/grok": {
+      "JSON_PARSED": 14,
+      "FAILED": 2
+    },
+    "prior/qwen": {
+      "JSON_PARSED": 16
+    },
+    "qwen/qwen": {
+      "JSON_PARSED": 16
+    }
+  },
+  "refusals": [],
+  "non_json_parsed": [
+    {
+      "target": "VID96_7851__control",
+      "seat": "gemini",
+      "status": "SAFE_JSON_REJECTED",
+      "http_status": 200,
+      "error_type": null,
+      "charge_kind": "native"
+    },
+    {
+      "target": "VID103_8776__prior",
+      "seat": "grok",
+      "status": "FAILED",
+      "http_status": 200,
+      "error_type": "JSONDecodeError",
+      "charge_kind": "request_count_not_money"
+    },
+    {
+      "target": "VID31_90576__prior",
+      "seat": "grok",
+      "status": "FAILED",
+      "http_status": 200,
+      "error_type": "JSONDecodeError",
+      "charge_kind": "request_count_not_money"
+    }
+  ],
+  "prediction_and_route_changes": {
+    "prior": [
+      {
+        "key": "VID23_3851",
+        "edits": {
+          "target": {
+            "removed": [],
+            "added": [
+              11
+            ]
+          }
+        },
+        "gate_actions": [
+          0,
+          1
+        ],
+        "logical_calls": [
+          3,
+          7
+        ]
+      },
+      {
+        "key": "VID31_20226",
+        "edits": {
+          "verb": {
+            "removed": [],
+            "added": [
+              9
+            ]
+          },
+          "ivt": {
+            "removed": [],
+            "added": [
+              96
+            ]
+          }
+        },
+        "gate_actions": [
+          1,
+          1
+        ],
+        "logical_calls": [
+          7,
+          7
+        ]
+      },
+      {
+        "key": "VID96_7851",
+        "edits": {
+          "target": {
+            "removed": [],
+            "added": [
+              0
+            ]
+          }
+        },
+        "gate_actions": [
+          1,
+          1
+        ],
+        "logical_calls": [
+          5,
+          7
+        ]
+      },
+      {
+        "key": "VID103_19076",
+        "edits": {},
+        "gate_actions": [
+          1,
+          0
+        ],
+        "logical_calls": [
+          5,
+          3
+        ]
+      },
+      {
+        "key": "VID23_11676",
+        "edits": {},
+        "gate_actions": [
+          1,
+          1
+        ],
+        "logical_calls": [
+          4,
+          5
+        ]
+      },
+      {
+        "key": "VID31_66126",
+        "edits": {},
+        "gate_actions": [
+          0,
+          1
+        ],
+        "logical_calls": [
+          3,
+          6
+        ]
+      },
+      {
+        "key": "VID103_39776",
+        "edits": {},
+        "gate_actions": [
+          1,
+          1
+        ],
+        "logical_calls": [
+          6,
+          7
+        ]
+      },
+      {
+        "key": "VID23_34626",
+        "edits": {},
+        "gate_actions": [
+          1,
+          1
+        ],
+        "logical_calls": [
+          7,
+          6
+        ]
+      },
+      {
+        "key": "VID96_29826",
+        "edits": {
+          "target": {
+            "removed": [],
+            "added": [
+              0
+            ]
+          },
+          "ivt": {
+            "removed": [],
+            "added": [
+              60
+            ]
+          }
+        },
+        "gate_actions": [
+          1,
+          0
+        ],
+        "logical_calls": [
+          5,
+          3
+        ]
+      }
+    ],
+    "qwen": [
+      {
+        "key": "VID103_19076",
+        "edits": {},
+        "gate_actions": [
+          1,
+          0
+        ],
+        "logical_calls": [
+          5,
+          3
+        ]
+      },
+      {
+        "key": "VID96_15526",
+        "edits": {
+          "target": {
+            "removed": [
+              0
+            ],
+            "added": []
+          }
+        },
+        "gate_actions": [
+          1,
+          1
+        ],
+        "logical_calls": [
+          7,
+          5
+        ]
+      },
+      {
+        "key": "VID23_21501",
+        "edits": {},
+        "gate_actions": [
+          1,
+          1
+        ],
+        "logical_calls": [
+          5,
+          4
+        ]
+      },
+      {
+        "key": "VID31_66126",
+        "edits": {},
+        "gate_actions": [
+          0,
+          1
+        ],
+        "logical_calls": [
+          3,
+          7
+        ]
+      },
+      {
+        "key": "VID96_23151",
+        "edits": {},
+        "gate_actions": [
+          1,
+          1
+        ],
+        "logical_calls": [
+          5,
+          6
+        ]
+      },
+      {
+        "key": "VID103_39776",
+        "edits": {},
+        "gate_actions": [
+          1,
+          0
+        ],
+        "logical_calls": [
+          6,
+          3
+        ]
+      }
+    ]
+  },
+  "note": "Descriptive checks after collection; no new primary acceptance criteria or provider requests."
+}

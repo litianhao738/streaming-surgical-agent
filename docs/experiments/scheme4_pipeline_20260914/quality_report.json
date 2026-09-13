@@ -1,0 +1,837 @@
+{
+  "rows": 16,
+  "api_calls": 0,
+  "default_changed": false,
+  "scope": "Small reused-Training migration pilot; not an independently calibrated Gate or validation cohort",
+  "arms": {
+    "control": {
+      "f1": 66.14438082925479,
+      "errors": 86,
+      "by_head": {
+        "instrument": {
+          "f1": 89.79591836734694,
+          "tp": 22,
+          "fp": 2,
+          "fn": 3
+        },
+        "verb": {
+          "f1": 64.28571428571429,
+          "tp": 18,
+          "fp": 11,
+          "fn": 9
+        },
+        "target": {
+          "f1": 53.84615384615385,
+          "tp": 14,
+          "fp": 15,
+          "fn": 9
+        },
+        "ivt": {
+          "f1": 35.294117647058826,
+          "tp": 9,
+          "fp": 12,
+          "fn": 21
+        },
+        "phase": {
+          "f1": 87.5,
+          "tp": 14,
+          "fp": 2,
+          "fn": 2
+        }
+      },
+      "before_output_modules": {
+        "f1": 61.88774928774929,
+        "errors": 96,
+        "by_head": {
+          "instrument": {
+            "f1": 88.0,
+            "tp": 22,
+            "fp": 3,
+            "fn": 3
+          },
+          "verb": {
+            "f1": 59.25925925925926,
+            "tp": 16,
+            "fp": 11,
+            "fn": 11
+          },
+          "target": {
+            "f1": 53.84615384615385,
+            "tp": 14,
+            "fp": 15,
+            "fn": 9
+          },
+          "ivt": {
+            "f1": 33.333333333333336,
+            "tp": 9,
+            "fp": 15,
+            "fn": 21
+          },
+          "phase": {
+            "f1": 75.0,
+            "tp": 12,
+            "fp": 4,
+            "fn": 4
+          }
+        }
+      },
+      "per_video": {
+        "VID103": {
+          "f1": 68.2051282051282,
+          "errors": 20,
+          "by_head": {
+            "instrument": {
+              "f1": 100.0,
+              "tp": 6,
+              "fp": 0,
+              "fn": 0
+            },
+            "verb": {
+              "f1": 61.53846153846154,
+              "tp": 4,
+              "fp": 2,
+              "fn": 3
+            },
+            "target": {
+              "f1": 33.333333333333336,
+              "tp": 2,
+              "fp": 5,
+              "fn": 3
+            },
+            "ivt": {
+              "f1": 46.15384615384615,
+              "tp": 3,
+              "fp": 3,
+              "fn": 4
+            },
+            "phase": {
+              "f1": 100.0,
+              "tp": 4,
+              "fp": 0,
+              "fn": 0
+            }
+          }
+        },
+        "VID23": {
+          "f1": 69.28571428571428,
+          "errors": 19,
+          "by_head": {
+            "instrument": {
+              "f1": 76.92307692307692,
+              "tp": 5,
+              "fp": 1,
+              "fn": 2
+            },
+            "verb": {
+              "f1": 71.42857142857143,
+              "tp": 5,
+              "fp": 2,
+              "fn": 2
+            },
+            "target": {
+              "f1": 76.92307692307692,
+              "tp": 5,
+              "fp": 3,
+              "fn": 0
+            },
+            "ivt": {
+              "f1": 46.15384615384615,
+              "tp": 3,
+              "fp": 3,
+              "fn": 4
+            },
+            "phase": {
+              "f1": 75.0,
+              "tp": 3,
+              "fp": 1,
+              "fn": 1
+            }
+          }
+        },
+        "VID31": {
+          "f1": 69.16666666666666,
+          "errors": 24,
+          "by_head": {
+            "instrument": {
+              "f1": 100.0,
+              "tp": 6,
+              "fp": 0,
+              "fn": 0
+            },
+            "verb": {
+              "f1": 75.0,
+              "tp": 6,
+              "fp": 3,
+              "fn": 1
+            },
+            "target": {
+              "f1": 62.5,
+              "tp": 5,
+              "fp": 3,
+              "fn": 3
+            },
+            "ivt": {
+              "f1": 33.333333333333336,
+              "tp": 3,
+              "fp": 5,
+              "fn": 7
+            },
+            "phase": {
+              "f1": 75.0,
+              "tp": 3,
+              "fp": 1,
+              "fn": 1
+            }
+          }
+        },
+        "VID96": {
+          "f1": 53.170163170163164,
+          "errors": 23,
+          "by_head": {
+            "instrument": {
+              "f1": 83.33333333333333,
+              "tp": 5,
+              "fp": 1,
+              "fn": 1
+            },
+            "verb": {
+              "f1": 46.15384615384615,
+              "tp": 3,
+              "fp": 4,
+              "fn": 3
+            },
+            "target": {
+              "f1": 36.36363636363637,
+              "tp": 2,
+              "fp": 4,
+              "fn": 3
+            },
+            "ivt": {
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 1,
+              "fn": 6
+            },
+            "phase": {
+              "f1": 100.0,
+              "tp": 4,
+              "fp": 0,
+              "fn": 0
+            }
+          }
+        }
+      },
+      "cost_accounts_per_inference_path": {
+        "logical_calls": 76,
+        "openrouter_usd": 0.16189584694482445,
+        "aliyun_cny": 0.0226442,
+        "glm_requests": 4.0,
+        "deepseek_requests": 3.0
+      },
+      "candidate_coverage": {
+        "true_ivts_covered": 11,
+        "true_ivts_total": 30,
+        "candidate_ivts": 48,
+        "false_candidate_ivts": 37
+      }
+    },
+    "prior": {
+      "f1": 66.54702334124947,
+      "errors": 88,
+      "by_head": {
+        "instrument": {
+          "f1": 89.79591836734694,
+          "tp": 22,
+          "fp": 2,
+          "fn": 3
+        },
+        "verb": {
+          "f1": 63.1578947368421,
+          "tp": 18,
+          "fp": 12,
+          "fn": 9
+        },
+        "target": {
+          "f1": 54.54545454545455,
+          "tp": 15,
+          "fp": 17,
+          "fn": 8
+        },
+        "ivt": {
+          "f1": 37.735849056603776,
+          "tp": 10,
+          "fp": 13,
+          "fn": 20
+        },
+        "phase": {
+          "f1": 87.5,
+          "tp": 14,
+          "fp": 2,
+          "fn": 2
+        }
+      },
+      "before_output_modules": {
+        "f1": 62.288311688311694,
+        "errors": 98,
+        "by_head": {
+          "instrument": {
+            "f1": 88.0,
+            "tp": 22,
+            "fp": 3,
+            "fn": 3
+          },
+          "verb": {
+            "f1": 58.18181818181818,
+            "tp": 16,
+            "fp": 12,
+            "fn": 11
+          },
+          "target": {
+            "f1": 54.54545454545455,
+            "tp": 15,
+            "fp": 17,
+            "fn": 8
+          },
+          "ivt": {
+            "f1": 35.714285714285715,
+            "tp": 10,
+            "fp": 16,
+            "fn": 20
+          },
+          "phase": {
+            "f1": 75.0,
+            "tp": 12,
+            "fp": 4,
+            "fn": 4
+          }
+        }
+      },
+      "per_video": {
+        "VID103": {
+          "f1": 68.2051282051282,
+          "errors": 20,
+          "by_head": {
+            "instrument": {
+              "f1": 100.0,
+              "tp": 6,
+              "fp": 0,
+              "fn": 0
+            },
+            "verb": {
+              "f1": 61.53846153846154,
+              "tp": 4,
+              "fp": 2,
+              "fn": 3
+            },
+            "target": {
+              "f1": 33.333333333333336,
+              "tp": 2,
+              "fp": 5,
+              "fn": 3
+            },
+            "ivt": {
+              "f1": 46.15384615384615,
+              "tp": 3,
+              "fp": 3,
+              "fn": 4
+            },
+            "phase": {
+              "f1": 100.0,
+              "tp": 4,
+              "fp": 0,
+              "fn": 0
+            }
+          }
+        },
+        "VID23": {
+          "f1": 68.18681318681318,
+          "errors": 20,
+          "by_head": {
+            "instrument": {
+              "f1": 76.92307692307692,
+              "tp": 5,
+              "fp": 1,
+              "fn": 2
+            },
+            "verb": {
+              "f1": 71.42857142857143,
+              "tp": 5,
+              "fp": 2,
+              "fn": 2
+            },
+            "target": {
+              "f1": 71.42857142857143,
+              "tp": 5,
+              "fp": 4,
+              "fn": 0
+            },
+            "ivt": {
+              "f1": 46.15384615384615,
+              "tp": 3,
+              "fp": 3,
+              "fn": 4
+            },
+            "phase": {
+              "f1": 75.0,
+              "tp": 3,
+              "fp": 1,
+              "fn": 1
+            }
+          }
+        },
+        "VID31": {
+          "f1": 67.93343653250774,
+          "errors": 26,
+          "by_head": {
+            "instrument": {
+              "f1": 100.0,
+              "tp": 6,
+              "fp": 0,
+              "fn": 0
+            },
+            "verb": {
+              "f1": 70.58823529411765,
+              "tp": 6,
+              "fp": 4,
+              "fn": 1
+            },
+            "target": {
+              "f1": 62.5,
+              "tp": 5,
+              "fp": 3,
+              "fn": 3
+            },
+            "ivt": {
+              "f1": 31.57894736842105,
+              "tp": 3,
+              "fp": 6,
+              "fn": 7
+            },
+            "phase": {
+              "f1": 75.0,
+              "tp": 3,
+              "fp": 1,
+              "fn": 1
+            }
+          }
+        },
+        "VID96": {
+          "f1": 60.128205128205124,
+          "errors": 22,
+          "by_head": {
+            "instrument": {
+              "f1": 83.33333333333333,
+              "tp": 5,
+              "fp": 1,
+              "fn": 1
+            },
+            "verb": {
+              "f1": 46.15384615384615,
+              "tp": 3,
+              "fp": 4,
+              "fn": 3
+            },
+            "target": {
+              "f1": 46.15384615384615,
+              "tp": 3,
+              "fp": 5,
+              "fn": 2
+            },
+            "ivt": {
+              "f1": 25.0,
+              "tp": 1,
+              "fp": 1,
+              "fn": 5
+            },
+            "phase": {
+              "f1": 100.0,
+              "tp": 4,
+              "fp": 0,
+              "fn": 0
+            }
+          }
+        }
+      },
+      "cost_accounts_per_inference_path": {
+        "logical_calls": 82,
+        "openrouter_usd": 0.17042403694482444,
+        "aliyun_cny": 0.0216044,
+        "glm_requests": 7.0,
+        "deepseek_requests": 5.0
+      },
+      "candidate_coverage": {
+        "true_ivts_covered": 12,
+        "true_ivts_total": 30,
+        "candidate_ivts": 46,
+        "false_candidate_ivts": 34
+      }
+    },
+    "qwen": {
+      "f1": 65.57122849139657,
+      "errors": 87,
+      "by_head": {
+        "instrument": {
+          "f1": 89.79591836734694,
+          "tp": 22,
+          "fp": 2,
+          "fn": 3
+        },
+        "verb": {
+          "f1": 64.28571428571429,
+          "tp": 18,
+          "fp": 11,
+          "fn": 9
+        },
+        "target": {
+          "f1": 50.98039215686274,
+          "tp": 13,
+          "fp": 15,
+          "fn": 10
+        },
+        "ivt": {
+          "f1": 35.294117647058826,
+          "tp": 9,
+          "fp": 12,
+          "fn": 21
+        },
+        "phase": {
+          "f1": 87.5,
+          "tp": 14,
+          "fp": 2,
+          "fn": 2
+        }
+      },
+      "before_output_modules": {
+        "f1": 61.314596949891076,
+        "errors": 97,
+        "by_head": {
+          "instrument": {
+            "f1": 88.0,
+            "tp": 22,
+            "fp": 3,
+            "fn": 3
+          },
+          "verb": {
+            "f1": 59.25925925925926,
+            "tp": 16,
+            "fp": 11,
+            "fn": 11
+          },
+          "target": {
+            "f1": 50.98039215686274,
+            "tp": 13,
+            "fp": 15,
+            "fn": 10
+          },
+          "ivt": {
+            "f1": 33.333333333333336,
+            "tp": 9,
+            "fp": 15,
+            "fn": 21
+          },
+          "phase": {
+            "f1": 75.0,
+            "tp": 12,
+            "fp": 4,
+            "fn": 4
+          }
+        }
+      },
+      "per_video": {
+        "VID103": {
+          "f1": 68.2051282051282,
+          "errors": 20,
+          "by_head": {
+            "instrument": {
+              "f1": 100.0,
+              "tp": 6,
+              "fp": 0,
+              "fn": 0
+            },
+            "verb": {
+              "f1": 61.53846153846154,
+              "tp": 4,
+              "fp": 2,
+              "fn": 3
+            },
+            "target": {
+              "f1": 33.333333333333336,
+              "tp": 2,
+              "fp": 5,
+              "fn": 3
+            },
+            "ivt": {
+              "f1": 46.15384615384615,
+              "tp": 3,
+              "fp": 3,
+              "fn": 4
+            },
+            "phase": {
+              "f1": 100.0,
+              "tp": 4,
+              "fp": 0,
+              "fn": 0
+            }
+          }
+        },
+        "VID23": {
+          "f1": 69.28571428571428,
+          "errors": 19,
+          "by_head": {
+            "instrument": {
+              "f1": 76.92307692307692,
+              "tp": 5,
+              "fp": 1,
+              "fn": 2
+            },
+            "verb": {
+              "f1": 71.42857142857143,
+              "tp": 5,
+              "fp": 2,
+              "fn": 2
+            },
+            "target": {
+              "f1": 76.92307692307692,
+              "tp": 5,
+              "fp": 3,
+              "fn": 0
+            },
+            "ivt": {
+              "f1": 46.15384615384615,
+              "tp": 3,
+              "fp": 3,
+              "fn": 4
+            },
+            "phase": {
+              "f1": 75.0,
+              "tp": 3,
+              "fp": 1,
+              "fn": 1
+            }
+          }
+        },
+        "VID31": {
+          "f1": 69.16666666666666,
+          "errors": 24,
+          "by_head": {
+            "instrument": {
+              "f1": 100.0,
+              "tp": 6,
+              "fp": 0,
+              "fn": 0
+            },
+            "verb": {
+              "f1": 75.0,
+              "tp": 6,
+              "fp": 3,
+              "fn": 1
+            },
+            "target": {
+              "f1": 62.5,
+              "tp": 5,
+              "fp": 3,
+              "fn": 3
+            },
+            "ivt": {
+              "f1": 33.333333333333336,
+              "tp": 3,
+              "fp": 5,
+              "fn": 7
+            },
+            "phase": {
+              "f1": 75.0,
+              "tp": 3,
+              "fp": 1,
+              "fn": 1
+            }
+          }
+        },
+        "VID96": {
+          "f1": 49.8974358974359,
+          "errors": 24,
+          "by_head": {
+            "instrument": {
+              "f1": 83.33333333333333,
+              "tp": 5,
+              "fp": 1,
+              "fn": 1
+            },
+            "verb": {
+              "f1": 46.15384615384615,
+              "tp": 3,
+              "fp": 4,
+              "fn": 3
+            },
+            "target": {
+              "f1": 20.0,
+              "tp": 1,
+              "fp": 4,
+              "fn": 4
+            },
+            "ivt": {
+              "f1": 0.0,
+              "tp": 0,
+              "fp": 1,
+              "fn": 6
+            },
+            "phase": {
+              "f1": 100.0,
+              "tp": 4,
+              "fp": 0,
+              "fn": 0
+            }
+          }
+        }
+      },
+      "cost_accounts_per_inference_path": {
+        "logical_calls": 73,
+        "openrouter_usd": 0.15851044694482444,
+        "aliyun_cny": 0.0244962,
+        "glm_requests": 4.0,
+        "deepseek_requests": 3.0
+      },
+      "candidate_coverage": {
+        "true_ivts_covered": 11,
+        "true_ivts_total": 30,
+        "candidate_ivts": 48,
+        "false_candidate_ivts": 37
+      }
+    }
+  },
+  "collection": {
+    "state": "COMPLETED",
+    "rows": 16,
+    "budget": {
+      "accounts": {
+        "openrouter_usd": {
+          "cap": "5",
+          "occupied": "0.23404738"
+        },
+        "aliyun_cny": {
+          "cap": "6",
+          "occupied": "0.0687448"
+        },
+        "glm_requests": {
+          "cap": "32",
+          "occupied": "32"
+        },
+        "deepseek_requests": {
+          "cap": "32",
+          "occupied": "32"
+        },
+        "xai_usd": {
+          "cap": "0",
+          "occupied": "0"
+        }
+      },
+      "dispatches": 208,
+      "pending": 0
+    }
+  },
+  "paired_checks": {
+    "prior": {
+      "checks": {
+        "f1_not_lower": true,
+        "errors_not_higher": false,
+        "strict_quality_gain": true,
+        "every_video_not_worse": false,
+        "known_usd_within_10_percent": true,
+        "no_unknown_charge_calls": true
+      },
+      "pilot_screen_pass": false
+    },
+    "qwen": {
+      "checks": {
+        "f1_not_lower": false,
+        "errors_not_higher": false,
+        "strict_quality_gain": false,
+        "every_video_not_worse": false,
+        "known_usd_within_10_percent": true,
+        "no_unknown_charge_calls": true
+      },
+      "pilot_screen_pass": false
+    }
+  },
+  "scheme5_prompt_changed_subset": {
+    "rows": 1,
+    "keys": [
+      "VID96_23151"
+    ],
+    "arms": {
+      "control": {
+        "f1": 53.333333333333336,
+        "errors": 4,
+        "by_head": {
+          "instrument": {
+            "f1": 100.0,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "verb": {
+            "f1": 66.66666666666667,
+            "tp": 1,
+            "fp": 1,
+            "fn": 0
+          },
+          "target": {
+            "f1": 0.0,
+            "tp": 0,
+            "fp": 1,
+            "fn": 1
+          },
+          "ivt": {
+            "f1": 0.0,
+            "tp": 0,
+            "fp": 0,
+            "fn": 1
+          },
+          "phase": {
+            "f1": 100.0,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          }
+        }
+      },
+      "prior": {
+        "f1": 53.333333333333336,
+        "errors": 4,
+        "by_head": {
+          "instrument": {
+            "f1": 100.0,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          },
+          "verb": {
+            "f1": 66.66666666666667,
+            "tp": 1,
+            "fp": 1,
+            "fn": 0
+          },
+          "target": {
+            "f1": 0.0,
+            "tp": 0,
+            "fp": 1,
+            "fn": 1
+          },
+          "ivt": {
+            "f1": 0.0,
+            "tp": 0,
+            "fp": 0,
+            "fn": 1
+          },
+          "phase": {
+            "f1": 100.0,
+            "tp": 1,
+            "fp": 0,
+            "fn": 0
+          }
+        }
+      }
+    },
+    "interpretation": "Only this subset changes the scheme5 input; identical-request stochastic differences are not Tracker evidence."
+  },
+  "cost_note": "Virtual inference costs include shared cached replies in each arm and a historical H0 USD estimate. CNY and GLM/DeepSeek request counts are separate; USD is not all-provider total cost."
+}
