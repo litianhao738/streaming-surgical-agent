@@ -1,0 +1,41 @@
+{
+  "schema_version": "default_repair_pipeline_selection_v2",
+  "selected_on": "2026-09-11",
+  "selected_by": "explicit_user_request",
+  "version": "prior-gated-joint-mainline-v1.0.0",
+  "profile": "prior_gated_joint_mainline_v1",
+  "default_entrypoint": "scripts/run_pipeline.py",
+  "implementation_entrypoint": "scripts/run_prior_gated_joint_mainline.py",
+  "scoring_entrypoint": "scripts/run_prior_gated_joint_mainline.py",
+  "scoring_requires_command": true,
+  "accepts_dataset_root": false,
+  "dataset_root": "D:/cholec_dataset",
+  "h0_model": "google/gemini-3.8-flash",
+  "h0_route": "google-ai-studio",
+  "reviewer_models": {
+    "deepseek": "deepseek/deepseek-v4-flash-vision-exp",
+    "gemini": "google/gemini-3.5-flash-lite",
+    "gpt": "openai/gpt-5.6-luna",
+    "grok": "z-ai/glm-5.3-flash",
+    "qwen": "qwen3.5-35b-a3b"
+  },
+  "calls_per_target": 13,
+  "gate": {
+    "add_rate": 0.7,
+    "prune": [],
+    "veto_rate": 0.01
+  },
+  "phase_threshold": 4,
+  "phase_feedback_to_prior": false,
+  "blind_phase_panel": false,
+  "frozen_release_manifest": "artifacts\\preflight\\prior_gated_joint_mainline_testing_20260911_v2\\release_manifest.json",
+  "frozen_manifest_sha256": "0c49c9256562be3407e53e796908bfd70eb2c495063b78922fde5338a5e06650",
+  "previous_default_manifest": "configs/defaults/parallel-phase-repair-v1.3.0-glm-low_before_mainline_20260911.json",
+  "publication_status": "local_workspace_not_tagged",
+  "full_dataset_repair_supported": false,
+  "gate_training_started": false,
+  "scope": "User-selected frozen 13-call mechanism. Existing release entry prepares the fixed Testing confirmation protocol; not a four-video Training collection runner. New backbone comparison uses its own Training-only entry and archive.",
+  "backbone_comparison_entrypoint": "scripts/compare_mainline_backbones.py",
+  "independent_confirmation_passed": false,
+  "selection_basis": "Explicit user request, not a claim that the frozen candidate passed independent confirmation."
+}

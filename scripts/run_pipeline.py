@@ -24,11 +24,16 @@ def write_review_diagnostics(output: Path) -> None:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("command", nargs="?", default="info",
-                        choices=("info", "prepare", "preflight", "execute", "score"))
+                        choices=("info", "prepare", "preflight", "replay", "execute", "score"))
     parser.add_argument("--output", type=Path,
                         help="New experiment directory for prepare; its saved directory for execute/score.")
     parser.add_argument("--dataset-root", type=Path,
                         help="Dataset root; otherwise use CHOLECTRACK20_ROOT or the existing runner default.")
+    parser.add_argument('--source',type=Path)
+    parser.add_argument('--limit',type=int)
+    parser.add_argument('--budget-limits',type=Path)
+    parser.add_argument('--annotations',type=Path)
+    parser.add_argument('--allow-paid',action='store_true')
     args = parser.parse_args(argv)
     selection = json.loads(DEFAULT_MANIFEST.read_text(encoding="utf-8-sig"))
     if args.command == "info":
@@ -41,6 +46,11 @@ def main(argv: list[str] | None = None) -> int:
     if args.command != "score" or selection.get("scoring_requires_command", False):
         command.append(args.command)
     command.extend(("--output", str(args.output.resolve())))
+    if selection.get('profile') == 'pgp_ambiguity_single_probe_v1':
+        for name in ('source','limit','budget_limits','annotations'):
+            value=getattr(args,name)
+            if value is not None: command.extend(('--'+name.replace('_','-'),str(value)))
+        if args.allow_paid: command.append('--allow-paid')
     dataset_root = args.dataset_root or os.environ.get("CHOLECTRACK20_ROOT")
     if dataset_root:
         if selection.get("accepts_dataset_root", True):

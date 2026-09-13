@@ -1,0 +1,21 @@
+{
+  "schema_version": "pgp_research_default_v1",
+  "selected_on": "2026-09-13",
+  "selected_by": "explicit_user_request",
+  "version": "pgp-dual-threshold-no-tracker-v1-20260913",
+  "decision_rule": "dual_threshold_v1",
+  "scope": "offline_research_default",
+  "model_artifact": "artifacts/training/gate/pgp_gate_no_tracker_20260913_r1/semantic_benefit_original_harm/models/final_research_model.json",
+  "model_sha256": "f2f2b661afb5a6b998085395cb300b919f08195b2cd3bf0f3524fdaba7ab0a16",
+  "training_receipt": "artifacts/training/gate/pgp_gate_no_tracker_20260913_r1/training_receipt.json",
+  "training_receipt_sha256": "dcb2b24e3c048808b426bf4750bccb1a11895b13c4d27b13af25a470e6214ad4",
+  "inference_entrypoint": "scripts/predict_pgp_gate_offline.py",
+  "training_entrypoint": "scripts/train_pgp_gate_no_tracker.py",
+  "source_module": "src/surgical_agent/research/gate/pgp_gate.py",
+  "evaluation_state": "DEVELOPMENT_NOT_PASSED",
+  "tracker_enabled": false,
+  "deployable": false,
+  "independent_validation": false,
+  "automatic_experiment_promotion": false,
+  "selection_basis": "User selected current PGP as reference before the separate net-gain trial"
+}

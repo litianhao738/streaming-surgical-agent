@@ -1,0 +1,12 @@
+{
+  "state": "PASS",
+  "rows": 6059,
+  "all_42_features_exact_match": true,
+  "logical_calls": 39870,
+  "known_usd": 91.90112498794409,
+  "glm_requests": 2356.0,
+  "deepseek_requests": 1279.0,
+  "reviewed_targets": 3380,
+  "api_calls": 0,
+  "scope": "final fitted model runtime parity, not independent accuracy evaluation"
+}

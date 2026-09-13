@@ -1,5 +1,7 @@
 # Documentation Authority and Live Checkpoint
 
+PGP pipeline integration (2026-09-13): the default now uses ambiguity protection, one Qwen probe, an HGB Gate and exact stopping. All 6,059 Training cache rows pass end-to-end output and 42-feature parity; 48 related tests pass. Paid transport is connected but was not executed; Testing and deployment remain disabled. [Architecture and commands](PGP_PIPELINE_ARCHITECTURE_2026-09-13.md). Old defaults and weights are preserved.
+
 Six-target Training backbone comparison completed: [results and cost](MAINLINE_BACKBONE_COMPARISON_2026-09-11.md).
 Recommend Gemini 3.8 Flash for the next four-video preparation; no full collection started.
 

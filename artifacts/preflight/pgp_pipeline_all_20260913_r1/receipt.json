@@ -1,0 +1,12 @@
+{
+  "state": "PASS",
+  "rows": 6059,
+  "logical_calls": 39870,
+  "api_calls": 0,
+  "Testing_access": false,
+  "default_version": "pgp-ambiguity-single-qwen-hgb-no-tracker-v1-20260913",
+  "tracker_enabled": false,
+  "prediction_mismatches": 0,
+  "feature_mismatches": 0,
+  "prediction_sha256": "debd8f7fb77be709e2bfe38d99bd569e2aa1473351de2854c134478067177fd3"
+}

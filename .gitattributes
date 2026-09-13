@@ -1,1 +1,8 @@
 artifacts/training/**/*.pt filter=lfs diff=lfs merge=lfs -text
+
+# Frozen Gate manifests/estimators carry byte hashes; preserve exact file bytes.
+DEFAULT_PGP_GATE_VERSION.json -text
+DEFAULT_PIPELINE_VERSION.json -text
+artifacts/training/gate/pgp_ambiguity_assessment_20260913_r2/** -text
+artifacts/preflight/pgp_pipeline_all_20260913_r1/*.json -text
+artifacts/preflight/pgp_pipeline_integration_freeze_20260913/*.json -text
