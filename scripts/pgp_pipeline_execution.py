@@ -12,6 +12,13 @@ def prepare(args):
     if args.output is None or args.limit is None or args.limit<1 or args.budget_limits is None:
         raise ValueError('prepare requires fresh --output, positive --limit and explicit --budget-limits JSON')
     source=args.source.resolve(); original=json.loads((source/'plan.json').read_text('utf-8'))
+    variant=getattr(args,'variant','qwen')
+    tracker_model=None
+    if variant=='tracker-gemini38':
+        from surgical_agent.research.gate.pgp_tracker_gemini38 import load_predictor
+        if args.gate_model is None: raise ValueError('Gemini-3.8/Tracker requires newly trained --gate-model; old default remains unchanged')
+        tracker_model=args.gate_model.resolve()
+        load_predictor(tracker_model,args.tracker=='on')
     caps=json.loads(args.budget_limits.read_text('utf-8'))
     from decimal import Decimal
     if set(caps)!=set(original['limits']) or any(not Decimal(str(v)).is_finite() or Decimal(str(v))<0 for v in caps.values()):
@@ -34,6 +41,17 @@ def prepare(args):
     plan['pgp_runtime_sha256']={p:sha(ROOT/p) for p in ('scripts/run_pgp_pipeline.py','scripts/pgp_pipeline_execution.py',
         'src/surgical_agent/research/gate/pgp_runtime.py','src/surgical_agent/research/gate/pgp_ambiguity.py','src/surgical_agent/research/gate/pgp_default.py')}
     plan['api_execution_validated']=False; plan['Testing_access']=False; plan['tracker_enabled']=False
+    plan['pgp_variant']=variant
+    if variant=='tracker-gemini38':
+        plan['tracker_enabled']=args.tracker=='on'
+        plan['pgp_variant_model']=str(tracker_model); plan['pgp_variant_model_sha256']=sha(tracker_model)
+        index=ROOT/'artifacts/training/tracker_clip_v2_oof5_20260906/oof/index.json'
+        plan['tracker_index']=str(index); plan['tracker_index_sha256']=sha(index)
+        plan['pgp_runtime_sha256'].update({p:sha(ROOT/p) for p in ('scripts/run_pgp_tracker_gemini38.py','src/surgical_agent/research/gate/pgp_tracker_gemini38.py')})
+        plan['probe_model']='google/gemini-3.8-flash'
+        # Gemini compact now uses the H0 model: reserve at the larger frozen
+        # rate for both Gemini stages, never at the old Flash-Lite rate.
+        plan['call_rates']['gemini']=[str(max(Decimal(a),Decimal(b))) for a,b in zip(plan['call_rates']['gemini'],plan['base_rates']['gemini'],strict=True)]
     # This execution uses freshly submitted requests, never imports old response caches.
     plan['source_plan_sha256']=sha(source/'plan.json')
     out=args.output.resolve(); out.mkdir(exist_ok=False); (out/'priors').mkdir()
@@ -60,7 +78,15 @@ def execute(args):
         if s.get('source_split')!='Training' or s['video_id'] not in ('VID103','VID23','VID31','VID96'): raise ValueError('Training-only execution')
         for image in s['images']:
             if sha(Path(image['path']))!=image['sha256']: raise ValueError('image changed')
-    decide,_,_=predictor()
+    variant=plan.get('pgp_variant','qwen'); tracker=None
+    if variant=='tracker-gemini38':
+        from surgical_agent.research.gate.pgp_tracker_gemini38 import load_predictor,FrozenTracker,run as variant_run
+        from scripts.run_pgp_tracker_gemini38 import Gemini38Backend
+        if sha(Path(plan['pgp_variant_model']))!=plan['pgp_variant_model_sha256']: raise ValueError('variant model changed')
+        if sha(Path(plan['tracker_index']))!=plan['tracker_index_sha256']: raise ValueError('Tracker index changed')
+        decide=load_predictor(plan['pgp_variant_model'],plan['tracker_enabled'])
+        if plan['tracker_enabled']: tracker=FrozenTracker(plan['tracker_index'])
+    else: decide,_,_=predictor()
     # Exclusive marker prevents concurrent or repeated paid executions. Interrupted
     # records remain intact for explicit reconciliation, never blind retry.
     write(out/'execution_started.json',{'state':'STARTED','automatic_retry':False})
@@ -75,12 +101,14 @@ def execute(args):
             transport=Calls(out,plan,s,budget,stop)
             try:
                 prior=json.loads((out/'priors'/f"{s['video_id']}.json").read_text('utf-8'))
-                result=run_target(WireBackend(transport,load_base(s),s),s,prior,decide)
+                base=load_base(s)
+                result=(variant_run(Gemini38Backend(transport,base,s),s,prior,decide,tracker=tracker) if variant=='tracker-gemini38'
+                        else run_target(WireBackend(transport,base,s),s,prior,decide))
                 write(out/'targets'/s['key']/'pgp_result.json',result); completed+=1
             finally: transport.close()
             if stop.is_set(): break
         write(out/'execution_receipt.json',{'state':'COMPLETED' if completed==len(plan['selection']) else 'STOPPED',
-              'completed_targets':completed,'budget':budget.summary(),'Testing_access':False,'tracker_enabled':False})
+              'completed_targets':completed,'budget':budget.summary(),'Testing_access':False,'tracker_enabled':plan['tracker_enabled']})
     finally: budget.close()
 
 

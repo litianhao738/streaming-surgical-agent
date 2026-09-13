@@ -34,6 +34,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--budget-limits',type=Path)
     parser.add_argument('--annotations',type=Path)
     parser.add_argument('--allow-paid',action='store_true')
+    parser.add_argument('--variant',choices=['qwen','tracker-gemini38'])
+    parser.add_argument('--tracker',choices=['on','off'])
+    parser.add_argument('--gate-model',type=Path)
     args = parser.parse_args(argv)
     selection = json.loads(DEFAULT_MANIFEST.read_text(encoding="utf-8-sig"))
     if args.command == "info":
@@ -47,7 +50,7 @@ def main(argv: list[str] | None = None) -> int:
         command.append(args.command)
     command.extend(("--output", str(args.output.resolve())))
     if selection.get('profile') == 'pgp_ambiguity_single_probe_v1':
-        for name in ('source','limit','budget_limits','annotations'):
+        for name in ('source','limit','budget_limits','annotations','variant','tracker','gate_model'):
             value=getattr(args,name)
             if value is not None: command.extend(('--'+name.replace('_','-'),str(value)))
         if args.allow_paid: command.append('--allow-paid')

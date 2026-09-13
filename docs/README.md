@@ -1,5 +1,7 @@
 # Documentation Authority and Live Checkpoint
 
+Tracker/Gemini 3.8 profile (2026-09-13): Tracker statistics and the Gemini 3.8 compact probe are wired, with on/off support and 54 passing tests. Matching probe data and a retrained 53-feature Gate are still required; old Qwen weights/caches are rejected and the validated default is unchanged. [Implemented scope and remaining data requirement](PGP_TRACKER_GEMINI38_INTEGRATION_2026-09-13.md).
+
 PGP pipeline integration (2026-09-13): the default now uses ambiguity protection, one Qwen probe, an HGB Gate and exact stopping. All 6,059 Training cache rows pass end-to-end output and 42-feature parity; 48 related tests pass. Paid transport is connected but was not executed; Testing and deployment remain disabled. [Architecture and commands](PGP_PIPELINE_ARCHITECTURE_2026-09-13.md). Old defaults and weights are preserved.
 
 Six-target Training backbone comparison completed: [results and cost](MAINLINE_BACKBONE_COMPARISON_2026-09-11.md).

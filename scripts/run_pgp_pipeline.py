@@ -114,10 +114,15 @@ def main():
     p.add_argument('--allow-paid',action='store_true'); p.add_argument('--dataset-root',type=Path)
     p.add_argument('--budget-limits',type=Path,help='JSON account caps for a new paid execution plan')
     p.add_argument('--annotations',type=Path,help='Explicit Training annotations; used only by score after inference')
+    p.add_argument('--variant',choices=['qwen','tracker-gemini38'],default='qwen')
+    p.add_argument('--tracker',choices=['on','off'],default='on')
+    p.add_argument('--gate-model',type=Path)
     args=p.parse_args()
     if args.command=='info':
         print(json.dumps(load_default()[0],indent=2)); return
     if args.command in ('replay','preflight'):
+        if args.variant!='qwen':
+            raise ValueError('old Qwen/Gemini-3.5 caches cannot replay the Gemini-3.8 variant; matching reviewer caches required')
         if args.output is None: p.error('--output fresh directory required')
         if args.limit is not None and args.limit<1: p.error('--limit must be positive')
         replay(args.source.resolve(),args.output.resolve(),args.limit if args.command=='replay' else (args.limit or 8)); return

@@ -46,13 +46,18 @@ def probe_features(props,h0,observed):
     return dict(zip(PROBE_NAMES,map(float,values)))
 
 
-def run_target(backend, selected, prior, predict_gate):
+def run_target(backend, selected, prior, predict_gate, *, tracker_snapshot=None,
+               include_tracker_features=False, probe_seat='qwen', probe_prefix='qwen'):
     """backend supplies H0/proposal/review methods; predict_gate maps 42 features to score/action."""
     if selected.get('source_split')!='Training' or selected['video_id']=='VID110':
         raise ValueError('this release accepts Training inference only')
     if any(k in selected for k in ('gt','ground_truth','labels','mask')): raise ValueError('truth must not enter inference')
     if prior['excluded_video']!=selected['video_id'] or selected['video_id'] in prior['fit_videos']:
         raise ValueError('query-video prior leakage')
+    if probe_seat not in ORDER: raise ValueError('unknown probe reviewer seat')
+    if tracker_snapshot is not None:
+        if not include_tracker_features: raise ValueError('Tracker input supplied to Tracker-free model')
+        if tracker_snapshot.get('video_id')!=selected['video_id']: raise ValueError('Tracker video mismatch')
     frames=selected['causal_frame_ids']
     if len(frames)!=3 or sorted(set(frames))!=frames or frames[-1]!=selected['frame_id']:
         raise ValueError('three distinct ordered causal frames ending at target required')
@@ -68,9 +73,9 @@ def run_target(backend, selected, prior, predict_gate):
     if proposal is not None:
         try: pool=make_pool(h0,proposal,pool)
         except ValueError: pass # same frozen first-attempt fallback, no retry
-    bf=base_features.extract_features(h0,target_frame_id=selected['frame_id'],causal_frame_ids=frames,tracker_snapshot=None)
-    cheap,feat=cheap_features.extract_features(bf,h0,pool,prior,video_id=selected['video_id'],gate=GATE,tracker=False)
-    feat={k:float(v) for k,v in feat.items() if not k.startswith('tracker_')}
+    bf=base_features.extract_features(h0,target_frame_id=selected['frame_id'],causal_frame_ids=frames,tracker_snapshot=tracker_snapshot)
+    cheap,feat=cheap_features.extract_features(bf,h0,pool,prior,video_id=selected['video_id'],gate=GATE,tracker=include_tracker_features)
+    feat={k:float(v) for k,v in feat.items() if include_tracker_features or not k.startswith('tracker_')}
     props=pool['propositions']; observed={p['id']:[] for p in props}; compact_raw={}
     def compact(seat):
         raw=query('control_graph',seat,lambda:backend.compact(seat,h0,pool))
@@ -80,14 +85,14 @@ def run_target(backend, selected, prior, predict_gate):
             _,diag=aggregate(normalized,pool,image_count=3)
             for p in props:
                 d=diag[p['id']]; observed[p['id']].append(None if seat in d['invalid'] else d['scores'][SEATS.index(seat)])
-    compact('qwen')
-    feat.update(probe_features(props,h0,observed))
+    compact(probe_seat)
+    feat.update({probe_prefix+k[len('qwen'):]:v for k,v in probe_features(props,h0,observed).items()})
     score,action=predict_gate(feat)
     if action not in (0,3): raise ValueError('whole-frame Gate requires action 0 or 3')
     out=deepcopy(cheap); phase_observed=[[] for _ in range(7)]; phase_raw={}
     compact_depth=1; phase_depth=0
     if action==3:
-        for seat in ORDER[1:]:
+        for seat in (s for s in ORDER if s!=probe_seat):
             if all(ambiguous(p) or settled(observed[p['id']],p['label_id'] in h0[p['task']]) for p in props): break
             compact(seat); compact_depth+=1
         if compact_depth==5:
@@ -111,4 +116,5 @@ def run_target(backend, selected, prior, predict_gate):
         out=repair(cheap,out)
     return {'key':selected['key'],'h0':h0,'cheap':cheap,'prediction':out,'features':feat,'gate_score':float(score),
             'gate_action':int(action),'logical_calls':len(calls),'call_keys':calls,'compact_depth':compact_depth,
-            'phase_depth':phase_depth,'tracker_enabled':False}
+            'phase_depth':phase_depth,'tracker_enabled':tracker_snapshot is not None,
+            'tracker_feature_schema':include_tracker_features,'probe_seat':probe_seat,'probe_prefix':probe_prefix}

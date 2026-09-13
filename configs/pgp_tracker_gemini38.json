@@ -1,0 +1,20 @@
+{
+  "profile": "pgp-tracker-gemini38-probe-v1",
+  "probe_seat": "gemini",
+  "probe_model": "google/gemini-3.8-flash",
+  "probe_provider": "google-ai-studio",
+  "compact_order": ["gemini", "qwen", "gpt", "grok", "deepseek"],
+  "phase_order": ["qwen", "gpt", "gemini", "grok", "deepseek"],
+  "tracker_default": "on",
+  "tracker_index": "artifacts/training/tracker_clip_v2_oof5_20260906/oof/index.json",
+  "tracker_weights_frozen": true,
+  "tracker_consumers": ["pgp_gate_features"],
+  "feature_count": 53,
+  "model_schema": "pgp_tracker_gemini38_hgb_v1",
+  "gate_model": null,
+  "status": "WIRED_REQUIRES_MATCHING_PROBE_DATA_AND_RETRAINING",
+  "old_qwen_weights_compatible": false,
+  "paid_api_calls": 0,
+  "Testing_access": false,
+  "deployable": false
+}
