@@ -2,6 +2,8 @@
 
 2026-09-14 按用户要求将方案 4 设置为默认研究 pipeline，入口为 `scripts/run_pipeline.py`。当前为 Training 四视频的完整可执行链路，支持缓存回放、预算计划、真实执行和单独评分。完整方案 4 尚未进行付费在线验证，也未验证 VID110/Testing。Verber/Targeter 新模型、方案 5 和方案 6 均未接入。
 
+论文模块划分已另行确认：先验候选＋Qwen 初审＋学习型 Gate 合称 G，验证修复独立为 R，M1–M3 合称 T。第一个主要消融基线为 H0＋R。详见 [模块划分与新消融设计](PIPELINE_MODULE_ABLATION_DESIGN_2026-09-14.md)；无 G 对照尚需实现，本次文档同步没有改变下述运行逻辑。
+
 ```mermaid
 flowchart TD
     A[按视频和时间排序的三个因果图像] --> B[原 H0 五头预测]
