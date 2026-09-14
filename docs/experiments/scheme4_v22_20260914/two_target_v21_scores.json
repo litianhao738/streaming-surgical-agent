@@ -1,0 +1,14 @@
+{
+  "rows": 2,
+  "f1": 51.42857142857143,
+  "errors": 16,
+  "by_head": {
+    "instrument": 66.66666666666667,
+    "verb": 57.142857142857146,
+    "target": 33.333333333333336,
+    "ivt": 0.0,
+    "phase": 100.0
+  },
+  "api_calls": 0,
+  "scope": "full-fit Training evaluation, not nested outer result"
+}

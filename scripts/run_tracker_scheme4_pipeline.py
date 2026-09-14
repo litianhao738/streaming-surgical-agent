@@ -17,7 +17,8 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT), str(ROOT / 'src')]
 from scripts.run_pgp_pipeline import CachedBackend, WireBackend, frozen
-from surgical_agent.research.gate.tracker_pipeline_v2 import run_target, CausalPhaseFilter, VERSION
+from surgical_agent.research.gate.tracker_pipeline_v2 import (run_target, CausalPhaseFilter, VERSION,
+                                                              OUTPUT_MODULES, DEFAULT_OUTPUT_MODULES)
 from surgical_agent.research.gate.pgp_tracker_gemini38 import FrozenTracker
 from surgical_agent.research.gate.final_only_training import canonical_labels
 
@@ -31,6 +32,12 @@ def sha(path): return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 def write(path, data):
     with Path(path).open('x', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2, allow_nan=False)
+
+
+def output_choice(args):
+    choice = getattr(args, 'output_modules', None) or DEFAULT_OUTPUT_MODULES
+    if choice not in OUTPUT_MODULES: raise ValueError('unknown output-module version')
+    return choice
 
 
 def load_gate(root=ROOT):
@@ -90,14 +97,14 @@ def validate_images(selection):
             if im['frame_id'] != frame or sha(im['path']) != im['sha256']: raise ValueError('image alignment/hash mismatch')
 
 
-def infer_stream(selection, get_backend, priors, decide, tracker, window, sink):
+def infer_stream(selection, get_backend, priors, decide, tracker, window, sink, output=DEFAULT_OUTPUT_MODULES):
     phase = CausalPhaseFilter(seconds=window)
     total = 0
     for n, s in enumerate(selection, 1):
         backend, close = get_backend(s)
         try:
             result = run_target(backend, s, priors[s['video_id']], decide,
-                                tracker_snapshot=tracker.snapshot(s), phase_filter=phase)
+                                tracker_snapshot=tracker.snapshot(s), phase_filter=phase, output=output)
             result.update(video_id=s['video_id'], frame_id=s['frame_id'], source_split='Training')
             sink.write(json.dumps(result, ensure_ascii=False, allow_nan=False)+'\n'); sink.flush()
             total += result['logical_calls']
@@ -109,6 +116,7 @@ def infer_stream(selection, get_backend, priors, decide, tracker, window, sink):
 def replay(args):
     from tools.audit.gate_proposals_offline_20260913 import offline
     start = time.perf_counter()
+    output = output_choice(args)
     decide, manifest, model = load_gate()
     _, selection = inventory(args.source, args.limit if args.command=='replay' else (args.limit or 8))
     tracker = FrozenTracker(tracker_index(args))
@@ -119,9 +127,10 @@ def replay(args):
     args.output.mkdir(parents=True,exist_ok=False)
     def backend(s): return CachedBackend(read(args.source/'targets'/s['key']/'result.json')), lambda:None
     with offline(), (args.output/'predictions.jsonl').open('x',encoding='utf-8') as sink:
-        calls = infer_stream(selection, backend, priors, decide, tracker, model['phase_window_seconds'], sink)
+        calls = infer_stream(selection, backend, priors, decide, tracker, model['phase_window_seconds'], sink, output)
     receipt = {'state':'PASS','profile':PROFILE,'rows':len(selection),'logical_calls':calls,'api_calls':0,
         'gate_version':manifest['version'],'phase_window_seconds':model['phase_window_seconds'],
+        'output_modules':output,'output_modules_version':OUTPUT_MODULES[output]['version'],
         'phase_initialization':'empty per-video state; chronological inventory prefix',
         'elapsed_seconds':time.perf_counter()-start,'predictions_sha256':sha(args.output/'predictions.jsonl'),
         'model_sha256':manifest['model_sha256'],'scope':'full-fit Training replay; not outer OOF or online validation'}
@@ -130,6 +139,7 @@ def replay(args):
 
 def prepare(args):
     if args.limit is None or args.budget_limits is None: raise ValueError('prepare needs --limit and --budget-limits')
+    output = output_choice(args)
     _, manifest, model = load_gate()
     original, selection = inventory(args.source,args.limit)
     validate_images(selection)
@@ -142,7 +152,8 @@ def prepare(args):
     plan.update(profile=PROFILE,selection=selection,limits={k:str(v) for k,v in caps.items()},
         maximum_paid_calls=7*len(selection),tracker_index=str(index),tracker_index_sha256=sha(index),
         phase_window_seconds=model['phase_window_seconds'],api_execution_validated=False,Testing_access=False,
-        tracker_enabled=True,automatic_retry=False)
+        tracker_enabled=True,automatic_retry=False,output_modules=output,
+        output_modules_version=OUTPUT_MODULES[output]['version'])
     bound = ['DEFAULT_PIPELINE_VERSION.json','DEFAULT_PGP_GATE_VERSION.json','scripts/run_tracker_scheme4_pipeline.py',
         'scripts/run_pgp_pipeline.py','scripts/scheme4_transport.py','src/surgical_agent/research/gate/tracker_pipeline_v2.py',
         'scripts/assess_tracker_review_evidence_r3.py','scripts/full_official_reviewer_transport.py',
@@ -159,7 +170,8 @@ def prepare(args):
         path = args.output/'priors'/f'{v}.json'; write(path,prior); plan['prior_sha256'][v] = sha(path)
     write(args.output/'plan.json',plan)
     write(args.output/'prepared.json',{'plan_sha256':sha(args.output/'plan.json'),'api_calls':0})
-    print(json.dumps({'prepared':str(args.output),'rows':len(selection),'maximum_paid_calls':plan['maximum_paid_calls'],'api_calls':0}))
+    print(json.dumps({'prepared':str(args.output),'rows':len(selection),'maximum_paid_calls':plan['maximum_paid_calls'],
+                      'output_modules':output,'api_calls':0}))
 
 
 def execute(args):
@@ -171,6 +183,9 @@ def execute(args):
     for v,h in plan['prior_sha256'].items():
         if sha(out/'priors'/f'{v}.json') != h: raise ValueError('prior changed')
     if sha(plan['tracker_index']) != plan['tracker_index_sha256']: raise ValueError('tracker changed')
+    # Plans prepared before output-module versioning ran v2.1 behavior.
+    output = plan.get('output_modules', 'v2.1')
+    if output not in OUTPUT_MODULES: raise ValueError('unknown output-module version')
     selection = plan['selection']
     if any(s.get('source_split')!='Training' or s['video_id'] not in VIDEOS for s in selection): raise ValueError('Training only')
     if selection != sorted(selection,key=lambda s:(s['video_id'],s['frame_id'])): raise ValueError('noncausal selection order')
@@ -190,9 +205,10 @@ def execute(args):
     start = time.perf_counter()
     try:
         with frozen.joint.credential_context(plan), frozen.joint.roster.lightweight_protocol(), (out/'predictions.jsonl').open('x',encoding='utf-8') as sink:
-            calls = infer_stream(selection,backend,priors,decide,tracker,model['phase_window_seconds'],sink)
+            calls = infer_stream(selection,backend,priors,decide,tracker,model['phase_window_seconds'],sink,output)
         write(out/'receipt.json',{'state':'PASS','profile':PROFILE,'rows':len(selection),'logical_calls':calls,
             'budget':budget.summary(),'elapsed_seconds':time.perf_counter()-start,'predictions_sha256':sha(out/'predictions.jsonl'),
+            'output_modules':output,'output_modules_version':OUTPUT_MODULES[output]['version'],
             'scope':'Training fresh execution; no independent accuracy validation'})
     except Exception as exc:
         write(out/'failure.json',{'state':'STOPPED','error_type':type(exc).__name__,'budget':budget.summary(),'automatic_retry':False})
@@ -219,7 +235,8 @@ def score(args):
     tp,fp,fn = counts.T; den = 2*tp+fp+fn
     f = np.divide(200*tp,den,out=np.full(5,100.),where=den!=0)
     result = {'rows':len(predictions),'f1':float(f.mean()),'errors':int((fp+fn).sum()),
-        'by_head':dict(zip(tasks,f.tolist())),'api_calls':0,'scope':'full-fit Training evaluation, not nested outer result'}
+        'by_head':dict(zip(tasks,f.tolist())),'api_calls':0,'output_modules_version':receipt.get('output_modules_version'),
+        'scope':'full-fit Training evaluation, not nested outer result'}
     write(args.output/'scores.json',result); print(json.dumps(result))
 
 
@@ -229,10 +246,12 @@ def main():
     p.add_argument('--source',type=Path,default=SOURCE); p.add_argument('--output',type=Path)
     p.add_argument('--limit',type=int); p.add_argument('--tracker-index',type=Path)
     p.add_argument('--budget-limits',type=Path); p.add_argument('--annotations',type=Path)
+    p.add_argument('--output-modules',choices=sorted(OUTPUT_MODULES),default=DEFAULT_OUTPUT_MODULES)
     p.add_argument('--allow-paid',action='store_true'); args = p.parse_args()
     if args.command=='info':
         _,manifest,model = load_gate()
-        print(json.dumps({'pipeline':read(ROOT/'DEFAULT_PIPELINE_VERSION.json'),'gate':manifest,'threshold':model['threshold']},ensure_ascii=False,indent=2)); return
+        print(json.dumps({'pipeline':read(ROOT/'DEFAULT_PIPELINE_VERSION.json'),'gate':manifest,'threshold':model['threshold'],
+                          'default_output_modules':OUTPUT_MODULES[DEFAULT_OUTPUT_MODULES]},ensure_ascii=False,indent=2)); return
     if args.output is None: p.error('--output required')
     if args.limit is not None and args.limit<1: p.error('--limit must be positive')
     if args.command in ('replay','preflight'): replay(args)

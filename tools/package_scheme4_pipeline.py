@@ -39,6 +39,8 @@ def main():
         'tracker_index':'artifacts/training/tracker_clip_v2_oof5_20260906/oof/index.json',
         'replay_inventory':inventory.relative_to(ROOT).as_posix(),'replay_inventory_sha256':sha(inventory),
         'calls_per_target_min':3,'calls_per_target_max':7,'phase_window_seconds':60,
+        'output_modules':'v2.2','output_modules_version':'scheme4-output-modules-v2.2',
+        'output_modules_note':'v2.2 excludes specimen_bag from instrument outputs and cleans up refuted null IVTs. Original proposer prompt; use --output-modules v2.1 for historical output behavior.',
         'paid_execution_requires_explicit_flag':True,'api_execution_validated':False,'Testing_enabled':False,
         'deployable':False,'quality_status':'TRAINING_RESEARCH_ONLY_PHASE_LATENCY_AND_IVT_DELETION_LIMITS',
         'supported_commands':['info','preflight','replay','prepare','execute','score']}

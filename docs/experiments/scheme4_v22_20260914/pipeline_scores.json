@@ -1,0 +1,15 @@
+{
+  "rows": 6059,
+  "f1": 67.02087331180908,
+  "errors": 30774,
+  "by_head": {
+    "instrument": 94.46834050215064,
+    "verb": 66.38273436378428,
+    "target": 51.59389794844819,
+    "ivt": 37.31527755387178,
+    "phase": 85.34411619079056
+  },
+  "api_calls": 0,
+  "output_modules_version": "scheme4-output-modules-v2.2",
+  "scope": "full-fit Training evaluation, not nested outer result"
+}

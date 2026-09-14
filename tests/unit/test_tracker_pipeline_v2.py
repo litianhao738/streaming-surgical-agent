@@ -73,3 +73,35 @@ def test_snapshot_rejects_misalignment_and_bad_scores():
     assert current_classes(wrong, selected) is None
     packet['frames'][0]['tracks'] = [{'instrument_id': 0, 'score': float('nan')}]
     assert current_classes(packet, selected) is None
+
+
+def test_ontology_filter_drops_instruments_outside_every_triplet():
+    from surgical_agent.research.gate.tracker_pipeline_v2 import TRIPLET_INSTRUMENTS
+    bag = next(i for i in range(7) if i not in TRIPLET_INSTRUMENTS)
+    pred = {'instrument': [0, bag], 'verb': [], 'target': [], 'ivt': [], 'phase': [0]}
+    assert output_modules(pred, None)[0]['instrument'] == [0, bag]  # v2.1 behaviour is unchanged
+    fallback, log = output_modules(pred, None, ontology_filter=True)
+    assert fallback['instrument'] == [0] and log['excluded_instruments'] == [bag]
+    fused, log = output_modules(pred, {2, bag}, ontology_filter=True)
+    assert fused['instrument'] == [2] and log['excluded_tracker_classes'] == [bag]
+    assert output_modules(pred, {2, bag})[0]['instrument'] == [2, bag]
+
+
+def test_null_label_cleanup_uses_only_valid_probe_rating_one_and_keeps_consistency():
+    from surgical_agent.research.gate.tracker_pipeline_v2 import (
+        NULL_IVTS,
+        NULL_TARGET,
+        NULL_VERB,
+        null_label_cleanup,
+    )
+    null = min(NULL_IVTS)
+    act = next(c for c, comp in COMPONENTS.items() if comp['instrument'] == COMPONENTS[null]['instrument'] and c not in NULL_IVTS)
+    pred = {'instrument': [COMPONENTS[null]['instrument']], 'verb': sorted({COMPONENTS[act]['verb'], NULL_VERB}),
+            'target': sorted({COMPONENTS[act]['target'], NULL_TARGET}), 'ivt': sorted({act, null}), 'phase': [0]}
+    out, log = null_label_cleanup(pred, {f'ivt:{null}': 1, f'ivt:{act}': 1})
+    assert out['ivt'] == [act] and NULL_VERB not in out['verb'] and NULL_TARGET not in out['target']
+    assert log['removed_null_ivts'] == [null] and log['removed_null_verb'] and log['removed_null_target']
+    for ratings in ({f'ivt:{null}': 2}, {f'ivt:{null}': None}, {}):
+        assert null_label_cleanup(pred, ratings)[0] == pred
+    orphan = {**pred, 'ivt': [act]}
+    assert null_label_cleanup(orphan, {})[0]['verb'] == [COMPONENTS[act]['verb']]

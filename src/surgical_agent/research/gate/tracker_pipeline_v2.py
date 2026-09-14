@@ -2,6 +2,13 @@
 
 No network or GT is accessed here. The caller owns the backend, frozen predictions,
 Gate model, and per-stream phase state. The existing PGP runtime stays unchanged.
+
+Output-module versions (routing and the Gate are identical across them):
+- v2.1: M1 Tracker instrument fusion + IVT filter, M2 verb rules, M3 phase filter.
+- v2.2: v2.1 plus an ontology filter (only instruments that occur in some IVT component are
+  output; the Tracker's specimen_bag is a triplet target, never an instrument) and null-label
+  cleanup (a null IVT the Qwen probe validly rated 1 is removed; null_verb/null_target are kept
+  only together with a null IVT, as in every Training annotation).
 """
 from collections import Counter, deque
 from collections.abc import Mapping, Sequence
@@ -19,6 +26,15 @@ VERB_RULES = tuple((_TASK_NAMES['instrument'].index(i), _TASK_NAMES['verb'].inde
                    for i, v in (('clipper', 'clip'), ('hook', 'dissect'), ('scissors', 'cut')))
 CAPS = {t: final_only_schema()['properties'][t]['properties']['selected_ids']['maxItems']
         for t in ('instrument', 'verb')}
+TRIPLET_INSTRUMENTS = frozenset(c['instrument'] for c in COMPONENTS.values())
+NULL_VERB = _TASK_NAMES['verb'].index('null_verb')
+NULL_TARGET = _TASK_NAMES['target'].index('null_target')
+NULL_IVTS = frozenset(c for c, comp in COMPONENTS.items() if comp['verb'] == NULL_VERB and comp['target'] == NULL_TARGET)
+OUTPUT_MODULES = {
+    'v2.1': {'version': 'scheme4-output-modules-v2.1', 'ontology_filter': False, 'null_cleanup': False},
+    'v2.2': {'version': 'scheme4-output-modules-v2.2', 'ontology_filter': True, 'null_cleanup': True},
+}
+DEFAULT_OUTPUT_MODULES = 'v2.2'
 
 
 def current_classes(snapshot, selected):
@@ -43,19 +59,25 @@ def current_classes(snapshot, selected):
     return result
 
 
-def output_modules(prediction, tracker_classes, *, fusion=True, verb_rules=True):
+def output_modules(prediction, tracker_classes, *, fusion=True, verb_rules=True, ontology_filter=False):
     """M1/M2 with explicit schema-capacity fallback, never GT-based truncation."""
     out = canonical_labels(prediction)
     log = {'tracker_available': tracker_classes is not None, 'm1_applied': False,
            'm1_capacity_fallback': False, 'm2_capacity_fallback': False, 'deleted_ivts': [], 'added_verbs': []}
+    if ontology_filter:
+        log['excluded_instruments'] = [i for i in out['instrument'] if i not in TRIPLET_INSTRUMENTS]
+        out['instrument'] = [i for i in out['instrument'] if i in TRIPLET_INSTRUMENTS]
     if tracker_classes is None or not fusion:
-        return out, log
+        return canonical_labels(out), log
     ts = set(tracker_classes)
     if any(type(i) is not int or not 0 <= i < 7 for i in ts):
         raise ValueError('invalid instrument class')
+    if ontology_filter:
+        log['excluded_tracker_classes'] = sorted(ts - TRIPLET_INSTRUMENTS)
+        ts &= TRIPLET_INSTRUMENTS
     if len(ts) > CAPS['instrument']:
         log['m1_capacity_fallback'] = True
-        return out, log
+        return canonical_labels(out), log
     out['instrument'] = sorted(ts)
     log['deleted_ivts'] = [c for c in out['ivt'] if COMPONENTS[c]['instrument'] not in ts]
     out['ivt'] = [c for c in out['ivt'] if c not in log['deleted_ivts']]
@@ -67,6 +89,24 @@ def output_modules(prediction, tracker_classes, *, fusion=True, verb_rules=True)
         else:
             out['verb'] = sorted(set(out['verb']) | added)
             log['added_verbs'] = sorted(added)
+    return canonical_labels(out), log
+
+
+def null_label_cleanup(prediction, probe_ratings):
+    """Drop null IVTs the Qwen probe validly rated 1; keep null verb/target only with a null IVT.
+
+    `probe_ratings` maps 'ivt:<id>' to the Qwen probe's rating (None when invalid or unrated);
+    it holds only responses already paid for before the Gate decision.
+    """
+    out = canonical_labels(prediction)
+    removed = [c for c in out['ivt'] if c in NULL_IVTS and probe_ratings.get(f'ivt:{c}') == 1]
+    out['ivt'] = [c for c in out['ivt'] if c not in removed]
+    log = {'removed_null_ivts': removed, 'removed_null_verb': False, 'removed_null_target': False}
+    if not NULL_IVTS & set(out['ivt']):
+        log['removed_null_verb'] = NULL_VERB in out['verb']
+        log['removed_null_target'] = NULL_TARGET in out['target']
+        out['verb'] = [v for v in out['verb'] if v != NULL_VERB]
+        out['target'] = [t for t in out['target'] if t != NULL_TARGET]
     return canonical_labels(out), log
 
 
@@ -139,6 +179,7 @@ def run_interaction(backend, selected, prior, predict_gate):
                 observed[p['id']].append(None if seat in d['invalid'] else d['scores'][original.SEATS.index(seat)])
 
     compact('qwen')
+    probe_ratings = {f"{p['task']}:{p['label_id']}": observed[p['id']][0] for p in props}
     features.update(original.probe_features(props, h0, observed))
     score, action = predict_gate(features)
     if action not in (0, 1):
@@ -157,12 +198,19 @@ def run_interaction(backend, selected, prior, predict_gate):
         out = original.repair(cheap, out)
     return {'key': selected['key'], 'h0': h0, 'cheap': cheap, 'prediction': canonical_labels(out),
             'features': features, 'gate_score': float(score), 'gate_action': int(action),
-            'logical_calls': len(calls), 'call_keys': calls, 'compact_depth': depth, 'phase_depth': 0}
+            'logical_calls': len(calls), 'call_keys': calls, 'compact_depth': depth, 'phase_depth': 0,
+            'probe_ratings': probe_ratings}
 
 
-def run_target(backend, selected, prior, predict_gate, *, tracker_snapshot, phase_filter):
+def run_target(backend, selected, prior, predict_gate, *, tracker_snapshot, phase_filter, output=DEFAULT_OUTPUT_MODULES):
+    options = OUTPUT_MODULES[output]
     result = run_interaction(backend, selected, prior, predict_gate)
-    pred, log = output_modules(result['prediction'], current_classes(tracker_snapshot, selected))
+    pred, log = output_modules(result['prediction'], current_classes(tracker_snapshot, selected),
+                               ontology_filter=options['ontology_filter'])
+    if options['null_cleanup']:
+        pred, null_log = null_label_cleanup(pred, result['probe_ratings'])
+        log.update(null_log)
     pred['phase'] = [phase_filter.apply(selected['video_id'], selected['frame_id'], result['cheap']['phase'][0])]
-    result.update(prediction=canonical_labels(pred), output_modules=log, version=VERSION)
+    result.update(prediction=canonical_labels(pred), output_modules=log, version=VERSION,
+                  output_modules_version=options['version'])
     return result

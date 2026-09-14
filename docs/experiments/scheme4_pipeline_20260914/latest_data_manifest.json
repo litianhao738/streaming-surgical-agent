@@ -2,6 +2,8 @@
   "schema_version": "scheme4_result_publication_v1",
   "published_on": "2026-09-14",
   "current_pipeline": "tracker-scheme4-complete-pipeline-v1-20260914",
+  "historical_output_modules": "v2.1",
+  "current_output_manifest": "../scheme4_v22_20260914/manifest.json",
   "new_api_calls": 0,
   "verified_existing_summaries": 6,
   "published_files": [
@@ -23,7 +25,7 @@
     },
     {
       "file": "scheme4_pipeline_predictions.jsonl",
-      "status": "CURRENT_PIPELINE_FULLFIT",
+      "status": "HISTORICAL_V21_PIPELINE_FULLFIT",
       "rows": 6059,
       "bytes": 11899326,
       "sha256": "e4a5c8e07fae19aefda7eca9fa9fce58a00d1dfcf3b9332ac3dc661a8a78d1a6",

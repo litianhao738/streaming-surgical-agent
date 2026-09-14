@@ -1,0 +1,80 @@
+{
+  "pipeline": "scheme4",
+  "output_modules": "v2.2",
+  "proposal_prompt": "original",
+  "scope": "Training research; not independent validation",
+  "files": [
+    {
+      "file": "pipeline_predictions.jsonl",
+      "status": "CURRENT_V22_TRAINING_FULLFIT",
+      "source": "artifacts/preflight/scheme4_output_v22_all_20260914/predictions.jsonl",
+      "bytes": 14007236,
+      "sha256": "cac58668c0b2ed8372974a4aef4d756f9878ad9a1455b0cc980ddaa3f2e2eb63"
+    },
+    {
+      "file": "pipeline_scores.json",
+      "status": "CURRENT_V22_TRAINING_FULLFIT",
+      "source": "artifacts/preflight/scheme4_output_v22_all_20260914/scores.json",
+      "bytes": 405,
+      "sha256": "82cf85b838963f5b59211908faa7b59e6b461f62ecf20677cad0a4f8a1062b85"
+    },
+    {
+      "file": "pipeline_receipt.json",
+      "status": "HISTORICAL_EXECUTION_RECEIPT",
+      "source": "artifacts/preflight/scheme4_output_v22_all_20260914/receipt.json",
+      "bytes": 691,
+      "sha256": "302f86858d9d54d759ba16b6c015cdd4e610d37153e39bf1ae0c88d71a57d16b"
+    },
+    {
+      "file": "ambiguity_recall_report.json",
+      "status": "RESEARCH_RULES_NOT_ADOPTED",
+      "source": "artifacts/research/scheme4_ambiguity_recall_20260914_r2/report.json",
+      "bytes": 42686,
+      "sha256": "ae52ca92d33c92ea6b22e99a025eea7425fd1ca4110bcdbf3346c063d8423440"
+    },
+    {
+      "file": "ambiguity_recall_receipt.json",
+      "status": "HISTORICAL_EXECUTION_RECEIPT",
+      "source": "artifacts/research/scheme4_ambiguity_recall_20260914_r2/receipt.json",
+      "bytes": 836,
+      "sha256": "d2ad95cc429bcce0d2434679eecb0d81c5705506bf2597e332c6e568541eefac"
+    },
+    {
+      "file": "ambiguity_predictions.jsonl",
+      "status": "RESEARCH_RULES_NOT_ADOPTED",
+      "source": "artifacts/research/scheme4_ambiguity_recall_20260914_r2/predictions.jsonl",
+      "bytes": 3289024,
+      "sha256": "df87b0a65c1784ce7e9adcd142deb478c895913b4f952edac0abefb2561d4cc1"
+    },
+    {
+      "file": "ambiguity_stages.json",
+      "status": "RESEARCH_DIAGNOSTIC",
+      "source": "artifacts/research/scheme4_ambiguity_recall_20260914_r2/stages.json",
+      "bytes": 1749354,
+      "sha256": "cf29052954867fb6468f2567180a1f5b3e8a0640542358155beafe173cf8493f"
+    },
+    {
+      "file": "two_target_v21_predictions.jsonl",
+      "status": "HISTORICAL_V21_LIVE",
+      "source": "artifacts/experiments/scheme4_two_targets_20260914_r1/predictions.jsonl",
+      "bytes": 3909,
+      "sha256": "a5292759890f90d7017c92daaecc8bce78be7e19168354a1ccb11de751a82a3b"
+    },
+    {
+      "file": "two_target_v21_receipt.json",
+      "status": "HISTORICAL_V21_LIVE",
+      "source": "artifacts/experiments/scheme4_two_targets_20260914_r1/receipt.json",
+      "bytes": 830,
+      "sha256": "ead1fdd7e3c9cf6ddc43f6174769f1b0e2de8175ff553cf376fe989dabe9e68f"
+    },
+    {
+      "file": "two_target_v21_scores.json",
+      "status": "HISTORICAL_V21_LIVE",
+      "source": "artifacts/experiments/scheme4_two_targets_20260914_r1/scores.json",
+      "bytes": 315,
+      "sha256": "6aacca11e8b14c09a44a06500e40822f91a21c6f663288e8a2f4a3b5f554bf1b"
+    }
+  ],
+  "historical_note": "scheme4_pipeline_20260914 pipeline outputs are v2.1; retain them as history.",
+  "raw_provider_logs_and_ground_truth_included": false
+}

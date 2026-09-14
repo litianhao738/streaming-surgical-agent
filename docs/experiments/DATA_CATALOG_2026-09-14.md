@@ -4,6 +4,8 @@
 
 ## 应该使用的数据
 
+当前为**原候选 prompt＋v2.2 输出模块**。本轮发布文件与哈希见 [v2.2 manifest](scheme4_v22_20260914/manifest.json)；新增候选 prompt 实验不在本次同步范围。
+
 | 用途 | 位置 | 说明 |
 |---|---|---|
 | 当前 Gate 模型、输入清单 | `artifacts/training/gate/tracker_scheme4_20260914/` | 已上传；以两个 DEFAULT 清单为准 |
@@ -11,8 +13,11 @@
 | 方案 4 研究汇总 | [research_report.json](scheme4_pipeline_20260914/research_report.json) | 嵌套外层 F1 66.3849、24047 次调用 |
 | 方案 4 逐帧研究输出 | [scheme4_research_predictions.jsonl](scheme4_pipeline_20260914/scheme4_research_predictions.jsonl) | 6059 帧，分别包含旧 Gate、v2 外层和全量拟合预测 |
 | Gate 研究数组 | [scheme4_gate_arrays.npz](scheme4_pipeline_20260914/scheme4_gate_arrays.npz) | 特征、路由、分数、阶段等；labels 是预测差异训练目标，不是 GT 文件 |
-| 当前完整 pipeline 输出 | [scheme4_pipeline_predictions.jsonl](scheme4_pipeline_20260914/scheme4_pipeline_predictions.jsonl) | 6059 帧；逐帧验证匹配全量模型，23600 次调用；不能冒充外层结果 |
-| 当前完整 pipeline 评分 | [pipeline_fullfit_scores.json](scheme4_pipeline_20260914/pipeline_fullfit_scores.json) | F1 66.4002，全量拟合在 Training 的回放 |
+| 当前 v2.2 pipeline 输出 | [pipeline_predictions.jsonl](scheme4_v22_20260914/pipeline_predictions.jsonl) | 6059 帧，23600 次逻辑调用；Training 全量拟合回放 |
+| 当前 v2.2 pipeline 评分 | [pipeline_scores.json](scheme4_v22_20260914/pipeline_scores.json) | F1 67.0209，错漏 30774；非新嵌套外层结果 |
+| 歧义保护放宽与候选漏检分析 | [ambiguity_recall_report.json](scheme4_v22_20260914/ambiguity_recall_report.json) | 四项零调用规则均未通过筛选，保留原保护 |
+| 两帧历史实际运行 | [two_target_v21_receipt.json](scheme4_v22_20260914/two_target_v21_receipt.json) | v2.1 实际运行，不冒充 v2.2 新采集；v2.2 后处理复算见歧义分析报告 |
+| 历史 v2.1 pipeline 输出与评分 | [predictions](scheme4_pipeline_20260914/scheme4_pipeline_predictions.jsonl)、[scores](scheme4_pipeline_20260914/pipeline_fullfit_scores.json) | F1 66.4002，保留历史，不再作为当前 v2.2 评分 |
 | 方案 5、6 最终配对输出 | [schemes56_predictions.json](scheme4_pipeline_20260914/schemes56_predictions.json) | 16 帧三组输出；两方案未通过检查，不是当前默认 |
 | 方案 5、6 费用与完成记录 | [schemes56_collection_receipt.json](scheme4_pipeline_20260914/schemes56_collection_receipt.json) | 208 次请求全部结算；原始账本及回复本地保留 |
 | 方案 5、6 评分与审计 | [quality_report.json](scheme4_pipeline_20260914/quality_report.json)、[completion_audit.json](scheme4_pipeline_20260914/completion_audit.json) | 包含失败情况、逐视频结果与提示改变子集 |
