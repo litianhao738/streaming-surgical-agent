@@ -135,10 +135,10 @@ class CausalPhaseFilter:
         return best[0] if len(best) == 1 else raw_phase
 
 
-def run_interaction(backend, selected, prior, predict_gate):
+def run_interaction(backend, selected, prior, predict_gate, *, inference_split='Training'):
     """M4. Same prefix, compact aggregation and exact stop as frozen PGP; actions 0/1."""
-    if selected.get('source_split') != 'Training' or selected['video_id'] == 'VID110':
-        raise ValueError('Training research only')
+    if inference_split not in ('Training', 'Testing') or selected.get('source_split') != inference_split or selected['video_id'] == 'VID110':
+        raise ValueError('explicit matching Training/Testing inference scope required')
     if any(k in selected for k in ('gt', 'ground_truth', 'labels', 'mask')):
         raise ValueError('truth must not enter inference')
     if prior['excluded_video'] != selected['video_id'] or selected['video_id'] in prior['fit_videos']:
@@ -184,8 +184,16 @@ def run_interaction(backend, selected, prior, predict_gate):
     score, action = predict_gate(features)
     if action not in (0, 1):
         raise ValueError('interaction Gate requires action 0 or 1')
-    out, depth = deepcopy(cheap), 1
-    if action:
+    phase_review_enabled = bool(getattr(predict_gate, 'phase_review_enabled', False))
+    review_mode = getattr(predict_gate, 'review_mode', 'separate')
+    if review_mode not in ('separate', 'unified') or review_mode == 'unified' and not phase_review_enabled:
+        raise ValueError('invalid verification mode')
+    out, depth, phase_depth = deepcopy(cheap), 1, 0
+    phase_decision = {'status': 'gate_skipped' if phase_review_enabled else 'disabled'}
+    if action and review_mode == 'unified':
+        from surgical_agent.research.gate.unified_review import verify
+        out, phase_depth, phase_decision = verify(backend, h0, cheap, pool, prior, query, original)
+    elif action:
         for seat in original.ORDER[1:]:
             if all(original.ambiguous(p) or original.settled(observed[p['id']], p['label_id'] in h0[p['task']]) for p in props):
                 break
@@ -195,22 +203,48 @@ def run_interaction(backend, selected, prior, predict_gate):
             normalized, _ = backend.normalize_compact({s: compact_raw.get(s) for s in original.SEATS}, pool, 3)
             means, _ = original.aggregate(normalized, pool, image_count=3)
             out, _ = original.select_prior_gated(h0, pool, means, prior, phase=h0['phase'][0], **original.GATE)
+        if phase_review_enabled:
+            rec = query('phase_recommendation', 'base', lambda: backend.phase_recommendation(h0, pool, prior))
+            joint_pool = original.joint_pool(pool)
+            phase_observed, phase_raw = [[] for _ in range(7)], {}
+            for seat in original.ORDER:
+                if original.phase_settled(phase_observed, h0['phase'][0]):
+                    break
+                phase_raw[seat] = query('joint_r1', seat, lambda: backend.joint(seat, h0, pool, rec))
+                normalized, _ = original.normalize_five_heads(
+                    {s: phase_raw.get(s) for s in original.SEATS}, joint_pool, image_count=3)
+                _, diagnostics = original.aggregate_five_heads(normalized, joint_pool, image_count=3)
+                for p in range(7):
+                    d = diagnostics[f'phase_{p}']
+                    phase_observed[p].append(None if seat in d['invalid'] else d['scores'][original.SEATS.index(seat)])
+                phase_depth += 1
+            phase_decision = {'status': 'exact_early_stop', 'retained_phase': h0['phase'][0]}
+            if phase_depth == 5:
+                normalized, _ = original.normalize_five_heads(phase_raw, joint_pool, image_count=3)
+                means, _ = original.aggregate_five_heads(normalized, joint_pool, image_count=3)
+                out['phase'], phase_decision = original.decide_phase(h0, means)
         out = original.repair(cheap, out)
     return {'key': selected['key'], 'h0': h0, 'cheap': cheap, 'prediction': canonical_labels(out),
             'features': features, 'gate_score': float(score), 'gate_action': int(action),
-            'logical_calls': len(calls), 'call_keys': calls, 'compact_depth': depth, 'phase_depth': 0,
+            'logical_calls': len(calls), 'call_keys': calls, 'compact_depth': depth, 'phase_depth': phase_depth,
+            'phase_review_enabled': phase_review_enabled, 'phase_decision': phase_decision,
+            'review_mode': review_mode, 'joint_depth': phase_depth if review_mode == 'unified' else 0,
+            'phase_before_smoothing': out['phase'][0],
             'probe_ratings': probe_ratings}
 
 
-def run_target(backend, selected, prior, predict_gate, *, tracker_snapshot, phase_filter, output=DEFAULT_OUTPUT_MODULES):
+def run_target(backend, selected, prior, predict_gate, *, tracker_snapshot, phase_filter, output=DEFAULT_OUTPUT_MODULES, inference_split='Training'):
     options = OUTPUT_MODULES[output]
-    result = run_interaction(backend, selected, prior, predict_gate)
+    result = run_interaction(backend, selected, prior, predict_gate, inference_split=inference_split)
     pred, log = output_modules(result['prediction'], current_classes(tracker_snapshot, selected),
                                ontology_filter=options['ontology_filter'])
     if options['null_cleanup']:
         pred, null_log = null_label_cleanup(pred, result['probe_ratings'])
         log.update(null_log)
-    pred['phase'] = [phase_filter.apply(selected['video_id'], selected['frame_id'], result['cheap']['phase'][0])]
+    pred['phase'] = [phase_filter.apply(selected['video_id'], selected['frame_id'], result['phase_before_smoothing'])]
     result.update(prediction=canonical_labels(pred), output_modules=log, version=VERSION,
                   output_modules_version=options['version'])
+    if result['phase_review_enabled']:
+        result['version'] = ('tracker-five-head-unified-pipeline-v1' if result['review_mode'] == 'unified'
+                             else 'tracker-five-head-phase-pipeline-v1')
     return result

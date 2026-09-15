@@ -1,0 +1,76 @@
+{
+  "version": "reviewer-routes-v3-min-thinking-20260912",
+  "base_model": "google/gemini-3.8-flash",
+  "source_pipeline": "prior-gated-joint-mainline-v1.0.1-empty-pool",
+  "secret_file": ".env.reviewer_routes.local",
+  "routes": {
+    "grok": {
+      "model": "glm-5.3-flash",
+      "base_url": "https://speed.toter.me/v1",
+      "secret_name": "GLM_REVIEWER_API_KEY",
+      "account": "toter_glm",
+      "price_verified": false
+    },
+    "deepseek": {
+      "model": "deepseek-v4.1-flash",
+      "base_url": "https://1.19848845.xyz/v1",
+      "secret_name": "DEEPSEEK_REVIEWER_API_KEY",
+      "account": "relay_deepseek",
+      "price_verified": false
+    },
+    "qwen": {
+      "model": "qwen3.7-flash",
+      "credential_source": "existing_aliyun",
+      "account": "aliyun_cny",
+      "price_verified": false
+    }
+  },
+  "unchanged_reviewers": {
+    "gpt": "openai/gpt-5.6-luna",
+    "gemini": "google/gemini-3.5-flash-lite"
+  },
+  "gate_weights_compatible": false,
+  "historical_training_labels_compatible": false,
+  "reasoning_policy": {
+    "grok": {
+      "mode": "minimum",
+      "thinking": {
+        "type": "enabled"
+      },
+      "reasoning_effort": "low",
+      "source": "https://docs.z.ai/guides/capabilities/thinking-mode"
+    },
+    "deepseek": {
+      "mode": "minimum",
+      "thinking": {
+        "type": "enabled"
+      },
+      "reasoning_effort": "low",
+      "source": "https://api-docs.deepseek.com/api/create-chat-completion/",
+      "reason": "Current relay returned reasoning for both thinking.type=disabled and reasoning_effort=none; use lowest nonzero native effort.",
+      "compatibility_evidence": [
+        "artifacts/preflight/reviewer_v3_min_thinking_20260912_v1/acceptance.json",
+        "artifacts/preflight/deepseek_thinking_variants_20260912_v1/summary.json"
+      ]
+    },
+    "qwen": {
+      "mode": "off",
+      "enable_thinking": false,
+      "source": "https://help.aliyun.com/en/model-studio/qwen-api-via-openai-chat-completions"
+    },
+    "gpt": {
+      "mode": "off",
+      "reasoning": {
+        "effort": "none"
+      },
+      "source": "https://openrouter.ai/docs/guides/best-practices/reasoning-tokens"
+    },
+    "gemini": {
+      "mode": "minimum",
+      "reasoning": {
+        "effort": "minimal"
+      },
+      "source": "https://ai.google.dev/gemini-api/docs/thinking"
+    }
+  }
+}

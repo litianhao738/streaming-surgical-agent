@@ -232,7 +232,7 @@ def prepare(args):
     sources = list((ROOT / "src/surgical_agent").rglob("*.py"))
     sources += [Path(__file__), ROOT / "scripts/run_presence_review_trial.py",
                 ROOT / "scripts/run_grounded_api_pipeline.py", ROOT / "scripts/run_diff_review_trial.py",
-                ROOT / "configs/perception/joint_openrouter_h0.yaml", ROOT / "requirements-prior-panel.txt"]
+                ROOT / "configs/perception/joint_openrouter_h0.yaml", ROOT / "requirements.txt"]
     sources += list(CONTRACTS.glob("*"))
     sources += list((ROOT / "src/surgical_agent/perception/prompts").glob("*.txt"))
     sources += [ROOT / "src/surgical_agent/research/signals/resources/ivt_components_v1.csv"]

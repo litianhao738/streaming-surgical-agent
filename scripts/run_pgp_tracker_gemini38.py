@@ -20,16 +20,32 @@ class Gemini38Backend(WireBackend):
         frozen.check_requests(h0,[wire]); return self.call('control_graph',seat,wire)
 
 
+def information(tracker='on', gate_model=None):
+    config=json.loads((ROOT/'configs/pgp_tracker_gemini38.json').read_text('utf-8'))
+    selected=gate_model or config.get('gate_models',{}).get(tracker) or config.get('gate_model')
+    path=(ROOT/selected).resolve() if selected else None
+    available=path is not None and path.is_file()
+    metadata=json.loads(path.read_text('utf-8')) if available else {}
+    compatible=False; error=None
+    if available:
+        try:
+            profile.load_predictor(path,tracker=='on');compatible=True
+        except (ValueError,KeyError,FileNotFoundError) as exc:error=str(exc)
+    return {'profile':profile.PROFILE,'probe_model':profile.MODEL,'tracker':tracker,
+        'feature_count':len(profile.FEATURE_NAMES),'compact_order':['gemini','qwen','gpt','grok','deepseek'],
+        'trained_model_available':available,'compatible_model':compatible,
+        'gate_model':str(path) if path else None,'evaluation_pass':metadata.get('evaluation_pass',False),
+        'status':config['status'],'validation_error':error,'selected_as_default':False,
+        'api_calls':0,'Testing_access':False,'deployable':False}
+
+
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('command',choices=['info','check-model'],nargs='?',default='info')
     p.add_argument('--gate-model',type=Path); p.add_argument('--tracker',choices=['on','off'],default='on')
     args=p.parse_args()
     if args.command=='info':
-        print(json.dumps({'profile':profile.PROFILE,'probe_model':profile.MODEL,'tracker':args.tracker,
-            'feature_count':len(profile.FEATURE_NAMES),'compact_order':['gemini','qwen','gpt','grok','deepseek'],
-            'trained_model_available':False,'status':'IMPLEMENTED_REQUIRES_MATCHING_PROBE_DATA_AND_RETRAINING',
-            'api_calls':0,'Testing_access':False},indent=2)); return
+        print(json.dumps(information(args.tracker,args.gate_model),indent=2)); return
     if args.gate_model is None: p.error('--gate-model required')
     profile.load_predictor(args.gate_model,args.tracker=='on')
     print('Compatible model loaded; no API calls')

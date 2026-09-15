@@ -1,3 +1,0 @@
-# Evidence snapshots and hashes must survive checkout without newline conversion.
-# Existing Windows CRLF bytes are part of the frozen SHA-256 values.
-*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

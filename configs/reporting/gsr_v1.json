@@ -1,0 +1,12 @@
+{
+  "protocol": "gsr_report_v1",
+  "rule_version": "gsr_rules_2",
+  "generator": {"provider": "google-ai-studio", "model": "gemini-3.8-flash", "endpoint": "", "temperature": 0.0, "max_tokens": 400},
+  "judge": {"provider": "openrouter", "model": "openai/gpt-5.6-luna", "endpoint": "https://openrouter.ai/api/v1/chat/completions", "temperature": 0.0, "max_tokens": 4096},
+  "judge_version": "v2_low",
+  "judge_prompt_version": "gsr_report_v1_judge_2",
+  "judge_effective_wire": {"reasoning": {"effort": "low"}, "omit_temperature": true, "provider_tag": "openai"},
+  "judge_calibration_evidence": "artifacts/reporting/judge_calibration_v2_low_20260914/summary.json",
+  "status": "JUDGE_V2_LOW_CALIBRATED_GENERATOR_DEFAULT_ENDPOINT_NOT_ACTIVATED",
+  "note": "Generator uses the delivered H0 model. Judge v2/low selected after synthetic calibration. Temperature zero is the shared config placeholder; the calibrated GPT wire omits it. No auto-paid CLI."
+}

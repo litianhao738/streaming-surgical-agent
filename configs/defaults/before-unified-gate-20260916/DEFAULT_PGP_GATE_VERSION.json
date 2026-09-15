@@ -1,0 +1,19 @@
+{
+  "schema_version": "tracker_scheme4_gate_default_v1",
+  "selected_on": "2026-09-16",
+  "selected_by": "explicit_user_request_enable_phase_gate",
+  "version": "five-head-phase-gate-20260916",
+  "decision_rule": "five_head_change_threshold_v1",
+  "model_artifact": "artifacts/training/gate/with_phase_20260916_014216/model.json",
+  "model_sha256": "81681cb976f5b79438efe4577e058bd311934de4a16ad63e596236c1bd4594b2",
+  "source_module": "src/surgical_agent/research/gate/tracker_pipeline_v2.py",
+  "inference_entrypoint": "scripts/run_tracker_scheme4_pipeline.py",
+  "training_entrypoint": "scripts/train_gate_with_phase.py",
+  "scope": "Training research full-fit model; nested outer result reported separately",
+  "tracker_enabled": true,
+  "tracker_used_in_gate_features": false,
+  "deployable": false,
+  "independent_validation": false,
+  "previous_default_manifest": "configs/defaults/before-phase-gate-20260916/DEFAULT_PGP_GATE_VERSION.json",
+  "phase_review_enabled": true
+}

@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import re
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from typing import Protocol
 
 from surgical_agent.systems.pipeline import FinalizedEvent
+from surgical_agent.perception.ontology_prompt import _TASK_NAMES, _ivt_rows
 
 REPORT_SCHEMA_VERSION = "event_report_v1"
 REPORT_MODES = frozenset({"template_report", "llm_report"})
@@ -192,3 +194,110 @@ __all__ = [
     "EventReportGenerator",
     "ReportRecord",
 ]
+
+
+# Frame-level GSR contracts extend the existing event-report API.
+
+NAMES = {k: tuple(v) for k, v in _TASK_NAMES.items()}
+TRIPLETS = {r[0]: tuple(NAMES[t][v] for t, v in zip(("instrument", "verb", "target"), r[1:])) for r in _ivt_rows()}
+ONTOLOGY_HASH = hashlib.sha256(json.dumps([NAMES, TRIPLETS], sort_keys=True).encode()).hexdigest()
+
+
+def digest(value):
+    return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
+
+
+def strict_json(raw):
+    def pairs(items):
+        result = {}
+        for k, v in items:
+            if k in result:
+                raise ValueError("duplicate JSON field")
+            result[k] = v
+        return result
+    return json.loads(raw, object_pairs_hook=pairs, parse_constant=lambda _: (_ for _ in ()).throw(ValueError("nonfinite JSON")))
+
+
+@dataclass(frozen=True)
+class ModelConfig:
+    provider: str
+    model: str
+    endpoint: str = ""
+    temperature: float = 0.0
+    max_tokens: int = 400
+
+    def __post_init__(self):
+        if not self.provider.strip() or not self.model.strip():
+            raise ValueError("provider/model must be fixed explicitly")
+        if type(self.max_tokens) is not int or self.max_tokens <= 0:
+            raise ValueError("invalid token limit")
+        if isinstance(self.temperature, bool) or not math.isfinite(self.temperature) or self.temperature != 0:
+            raise ValueError("v1 freezes temperature at zero")
+
+    def to_dict(self):
+        return asdict(self)
+
+
+@dataclass(frozen=True)
+class ReportInput:
+    video_id: str
+    frame_id: int
+    source_prediction: str
+    instrument_ids: tuple[int, ...]
+    verb_ids: tuple[int, ...]
+    target_ids: tuple[int, ...]
+    ivt_ids: tuple[int, ...]
+    phase_id: int
+
+    def __post_init__(self):
+        if not self.video_id or type(self.frame_id) is not int or self.frame_id < 0 or self.source_prediction not in ("H0", "FULL"):
+            raise ValueError("invalid report identity")
+        for task, upper in (("instrument", 6), ("verb", 9), ("target", 14), ("ivt", 99)):
+            values = getattr(self, task + "_ids")
+            if not isinstance(values, tuple) or len(set(values)) != len(values) or any(type(v) is not int or not 0 <= v <= upper for v in values):
+                raise ValueError("invalid canonical " + task)
+        if type(self.phase_id) is not int or not 0 <= self.phase_id < 7:
+            raise ValueError("invalid phase")
+
+    @classmethod
+    def from_prediction(cls, video_id, frame_id, source_prediction, prediction):
+        # Whitelist only five heads: unrelated GT/image/routing metadata cannot enter.
+        heads = {k: tuple(prediction[k]) for k in ("instrument", "verb", "target", "ivt", "phase")}
+        if len(heads["phase"]) != 1:
+            raise ValueError("phase must be a singleton")
+        return cls(video_id, frame_id, source_prediction, *(heads[k] for k in ("instrument", "verb", "target", "ivt")), heads["phase"][0])
+
+    def appendix(self):
+        return {**{t + "_ids": list(getattr(self, t + "_ids")) for t in ("instrument", "verb", "target", "ivt")}, "phase_id": self.phase_id}
+
+    def state(self):
+        return {**{t: [NAMES[t][i] for i in getattr(self, t + "_ids")] for t in ("instrument", "verb", "target")},
+                "ivt": [",".join(TRIPLETS[i]) for i in self.ivt_ids], "phase": NAMES["phase"][self.phase_id]}
+
+
+@dataclass(frozen=True)
+class GroundTruth:
+    ivt_ids: tuple[int, ...] | None
+    phase_id: int | None
+    ivt_valid: bool
+    phase_valid: bool
+
+    def __post_init__(self):
+        if type(self.ivt_valid) is not bool or type(self.phase_valid) is not bool:
+            raise ValueError("mask must be boolean")
+        if self.ivt_valid and (self.ivt_ids is None or any(type(i) is not int or i not in TRIPLETS for i in self.ivt_ids)):
+            raise ValueError("invalid supervised IVT")
+        if self.phase_valid and (type(self.phase_id) is not int or not 0 <= self.phase_id < 7):
+            raise ValueError("invalid supervised phase")
+
+    @property
+    def report_valid(self):
+        return self.ivt_valid and self.phase_valid
+
+    def state(self):
+        if not self.report_valid:
+            raise ValueError("incomplete report supervision")
+        return {"ivt": [",".join(TRIPLETS[i]) for i in self.ivt_ids], "phase": NAMES["phase"][self.phase_id]}
+
+
+__all__ += ["ReportInput", "GroundTruth", "ModelConfig"]

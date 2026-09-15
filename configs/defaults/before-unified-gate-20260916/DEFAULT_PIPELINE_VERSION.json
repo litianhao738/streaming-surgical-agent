@@ -1,8 +1,8 @@
 {
   "schema_version": "default_repair_pipeline_selection_v2",
   "selected_on": "2026-09-16",
-  "selected_by": "explicit_user_request_share_one_verification_panel",
-  "version": "tracker-five-head-unified-complete-pipeline-v1-20260916",
+  "selected_by": "explicit_user_request_enable_phase_gate",
+  "version": "tracker-five-head-phase-complete-pipeline-v1-20260916",
   "profile": "tracker_scheme4_pipeline_v1",
   "default_entrypoint": "scripts/run_pipeline.py",
   "implementation_entrypoint": "scripts/run_tracker_scheme4_pipeline.py",
@@ -11,8 +11,8 @@
   "accepts_dataset_root": false,
   "dataset_root": "D:/cholec_dataset",
   "gate_default_manifest": "DEFAULT_PGP_GATE_VERSION.json",
-  "gate_version": "five-head-unified-gate-20260916",
-  "previous_default_manifest": "configs/defaults/before-unified-gate-20260916/DEFAULT_PIPELINE_VERSION.json",
+  "gate_version": "five-head-phase-gate-20260916",
+  "previous_default_manifest": "configs/defaults/before-phase-gate-20260916/DEFAULT_PIPELINE_VERSION.json",
   "scope": "Training-only full-fit inference; four frozen Training videos; no independent validation",
   "tracker_enabled": true,
   "tracker_mode": "frozen causal held-out detector/tracker predictions",
@@ -20,7 +20,7 @@
   "replay_inventory": "artifacts/training/gate/tracker_scheme4_20260914/replay_inventory.json",
   "replay_inventory_sha256": "7269937ff817d20c624deb9e07347e55c350522a0cb8927f493d014763389c7c",
   "calls_per_target_min": 3,
-  "calls_per_target_max": 9,
+  "calls_per_target_max": 13,
   "phase_window_seconds": 60,
   "output_modules": "v2.2",
   "output_modules_version": "scheme4-output-modules-v2.2",
@@ -40,6 +40,5 @@
   ],
   "phase_review_enabled": true,
   "phase_smoothing_input": "gate-selected phase before smoothing; H0 when gate skips or review is invalid",
-  "testing_entrypoint": "scripts/run_testing_half_complete.py",
-  "review_mode": "unified"
+  "testing_entrypoint": "scripts/run_testing_half_complete.py"
 }

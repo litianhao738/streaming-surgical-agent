@@ -1,4 +1,6 @@
-"""Event-level reporting public API."""
+"""Event reporting and downstream frame-level GSR public API."""
+
+VERSION = "gsr_report_v1"
 
 from surgical_agent.research.reporting.contracts import (
     EventReportGenerator,

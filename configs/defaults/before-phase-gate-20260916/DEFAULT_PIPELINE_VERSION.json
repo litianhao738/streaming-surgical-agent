@@ -1,8 +1,8 @@
 {
   "schema_version": "default_repair_pipeline_selection_v2",
-  "selected_on": "2026-09-16",
-  "selected_by": "explicit_user_request_share_one_verification_panel",
-  "version": "tracker-five-head-unified-complete-pipeline-v1-20260916",
+  "selected_on": "2026-09-14",
+  "selected_by": "explicit_user_request_integrate_scheme4",
+  "version": "tracker-scheme4-complete-pipeline-v1-20260914",
   "profile": "tracker_scheme4_pipeline_v1",
   "default_entrypoint": "scripts/run_pipeline.py",
   "implementation_entrypoint": "scripts/run_tracker_scheme4_pipeline.py",
@@ -11,8 +11,8 @@
   "accepts_dataset_root": false,
   "dataset_root": "D:/cholec_dataset",
   "gate_default_manifest": "DEFAULT_PGP_GATE_VERSION.json",
-  "gate_version": "five-head-unified-gate-20260916",
-  "previous_default_manifest": "configs/defaults/before-unified-gate-20260916/DEFAULT_PIPELINE_VERSION.json",
+  "gate_version": "pgp-tracker-scheme4-gate-v2-20260914",
+  "previous_default_manifest": "configs/defaults/pgp-pipeline-before-scheme4-20260914.json",
   "scope": "Training-only full-fit inference; four frozen Training videos; no independent validation",
   "tracker_enabled": true,
   "tracker_mode": "frozen causal held-out detector/tracker predictions",
@@ -20,14 +20,14 @@
   "replay_inventory": "artifacts/training/gate/tracker_scheme4_20260914/replay_inventory.json",
   "replay_inventory_sha256": "7269937ff817d20c624deb9e07347e55c350522a0cb8927f493d014763389c7c",
   "calls_per_target_min": 3,
-  "calls_per_target_max": 9,
+  "calls_per_target_max": 7,
   "phase_window_seconds": 60,
   "output_modules": "v2.2",
   "output_modules_version": "scheme4-output-modules-v2.2",
   "output_modules_note": "v2.2 adds an ontology filter (Tracker specimen_bag is never output as an instrument) and null-label cleanup (null IVTs the Qwen probe validly rated 1 are removed; null verb/target only with a null IVT). Reproduce the previous behaviour with --output-modules v2.1. See docs/SCHEME4_OUTPUT_MODULES_V22_2026-09-14.md.",
   "paid_execution_requires_explicit_flag": true,
   "api_execution_validated": false,
-  "Testing_enabled": true,
+  "Testing_enabled": false,
   "deployable": false,
   "quality_status": "TRAINING_RESEARCH_ONLY_PHASE_LATENCY_AND_IVT_DELETION_LIMITS",
   "supported_commands": [
@@ -37,9 +37,5 @@
     "prepare",
     "execute",
     "score"
-  ],
-  "phase_review_enabled": true,
-  "phase_smoothing_input": "gate-selected phase before smoothing; H0 when gate skips or review is invalid",
-  "testing_entrypoint": "scripts/run_testing_half_complete.py",
-  "review_mode": "unified"
+  ]
 }

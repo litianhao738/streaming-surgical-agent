@@ -50,11 +50,16 @@ class WireBackend:
     def phase_recommendation(self,h0,pool,prior):
         hints=frozen.retrieve_candidate_hints(h0,prior,video_id=self.selected['video_id'])
         wire=frozen.phase_recommendation_wire(self.base,self.selected,h0,pool,hints)
-        frozen.check_requests(h0,[wire]); return self.call('phase_recommendation','base',wire)
+        frozen.check_requests(h0,[wire])
+        self.phase_recommendation_raw = self.call('phase_recommendation','base',wire)
+        return self.phase_recommendation_raw
     def joint(self,seat,h0,pool,rec):
         error=frozen.joint.phase_choice_error(rec,3)
         wire=frozen.joint_review_wires(self.base,self.selected,h0,pool,None if error else rec['phase_id'])[seat]
-        frozen.check_requests(h0,[wire]); return self.call('joint_r1',seat,wire)
+        frozen.check_requests(h0,[wire])
+        if not hasattr(self, 'joint_raw'): self.joint_raw = {}
+        self.joint_raw[seat] = self.call('joint_r1',seat,wire)
+        return self.joint_raw[seat]
 
 
 def predictor():
@@ -119,6 +124,9 @@ def main():
     p.add_argument('--gate-model',type=Path)
     args=p.parse_args()
     if args.command=='info':
+        if args.variant=='tracker-gemini38':
+            from scripts.run_pgp_tracker_gemini38 import information
+            print(json.dumps(information(args.tracker,args.gate_model),indent=2)); return
         print(json.dumps(load_default()[0],indent=2)); return
     if args.command in ('replay','preflight'):
         if args.variant!='qwen':

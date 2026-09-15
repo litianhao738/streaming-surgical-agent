@@ -48,7 +48,7 @@ def load_gate(root=ROOT):
     if not path.is_relative_to((root / 'artifacts/training/gate').resolve()) or sha(path) != manifest['model_sha256']:
         raise ValueError('Gate model location/hash mismatch')
     model = read(path)
-    if model['version'] != VERSION or model['deployable'] or not model['selection_feasible']:
+    if model['version'] not in (VERSION, 'five-head-phase-gate-research-v1', 'five-head-unified-gate-research-v1') or model['deployable'] or not model['selection_feasible']:
         raise ValueError('unsupported scheme4 Gate model')
     estimator_path = (path.parent / model['estimator_file']).resolve()
     if not estimator_path.is_relative_to(path.parent) or sha(estimator_path) != model['estimator_sha256']:
@@ -63,6 +63,12 @@ def load_gate(root=ROOT):
         if not np.isfinite(x).all(): raise ValueError('nonfinite Gate input')
         score = float(estimator.predict_proba(x)[0, 1])
         return score, int(score >= threshold)
+    predict.phase_review_enabled = model['version'] in ('five-head-phase-gate-research-v1', 'five-head-unified-gate-research-v1')
+    predict.review_mode = 'unified' if model['version'] == 'five-head-unified-gate-research-v1' else 'separate'
+    if bool(manifest.get('phase_review_enabled', False)) != predict.phase_review_enabled:
+        raise ValueError('Gate and phase runtime configuration disagree')
+    if manifest.get('review_mode', 'separate') != predict.review_mode:
+        raise ValueError('Gate and shared-panel configuration disagree')
     return predict, manifest, model
 
 
@@ -150,12 +156,16 @@ def prepare(args):
         raise ValueError('explicit finite nonnegative caps for all accounts required')
     plan = deepcopy(original)
     plan.update(profile=PROFILE,selection=selection,limits={k:str(v) for k,v in caps.items()},
-        maximum_paid_calls=7*len(selection),tracker_index=str(index),tracker_index_sha256=sha(index),
+        maximum_paid_calls=(9 if manifest.get('review_mode') == 'unified' else
+                           13 if manifest.get('phase_review_enabled') else 7)*len(selection),tracker_index=str(index),tracker_index_sha256=sha(index),
         phase_window_seconds=model['phase_window_seconds'],api_execution_validated=False,Testing_access=False,
+        phase_review_enabled=bool(manifest.get('phase_review_enabled')),
+        review_mode=manifest.get('review_mode', 'separate'),
         tracker_enabled=True,automatic_retry=False,output_modules=output,
         output_modules_version=OUTPUT_MODULES[output]['version'])
     bound = ['DEFAULT_PIPELINE_VERSION.json','DEFAULT_PGP_GATE_VERSION.json','scripts/run_tracker_scheme4_pipeline.py',
         'scripts/run_pgp_pipeline.py','scripts/scheme4_transport.py','src/surgical_agent/research/gate/tracker_pipeline_v2.py',
+        'src/surgical_agent/research/gate/unified_review.py',
         'scripts/assess_tracker_review_evidence_r3.py','scripts/full_official_reviewer_transport.py',
         'scripts/reviewer_routes_official.py','scripts/collect_gate_escalation_v1.py',
         'src/surgical_agent/research/gate/collection_budget.py','src/surgical_agent/research/gate/pgp_tracker_gemini38.py',
@@ -237,6 +247,13 @@ def score(args):
     result = {'rows':len(predictions),'f1':float(f.mean()),'errors':int((fp+fn).sum()),
         'by_head':dict(zip(tasks,f.tolist())),'api_calls':0,'output_modules_version':receipt.get('output_modules_version'),
         'scope':'full-fit Training evaluation, not nested outer result'}
+    result['head_metrics'] = {task: {
+        'tp':int(a), 'fp':int(b), 'fn':int(c),
+        'micro_precision':float(100*a/(a+b)) if a+b else None,
+        'micro_recall':float(100*a/(a+c)) if a+c else None,
+        'micro_f1':float(f[j]),
+    } for j,(task,(a,b,c)) in enumerate(zip(tasks,counts))}
+    result['metric_units'] = 'percent; undefined precision/recall denominators are null'
     write(args.output/'scores.json',result); print(json.dumps(result))
 
 

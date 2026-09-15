@@ -1,5 +1,6 @@
 .venv*/
 .worktrees/
+ARCHIVE_20260915/
 .idea/
 __pycache__/
 *.py[cod]
@@ -30,17 +31,21 @@ logs/*
 !logs/.gitkeep
 artifacts/*
 !artifacts/.gitkeep
-# Publish the completed tracker artifacts; large tensors are stored with Git LFS.
-!artifacts/training/
-artifacts/training/*
-!artifacts/training/tracker/
-artifacts/training/tracker/*
-!artifacts/training/tracker/full/
-!artifacts/training/tracker/full/**
-!artifacts/training/tracker/predicted_tracks.json
-!artifacts/training/tracker/full_run_summary.json
-!artifacts/training/tracker_oof5/
-!artifacts/training/tracker_oof5/**
+# Source-only publishing: datasets, learned weights and experiment exports stay local.
+docs/experiments/
+data/
+datasets/
+*.joblib
+*.pkl
+*.pickle
+*.pth
+*.safetensors
+*.npy
+*.npz
+*.jsonl
+*.sqlite
+*.sqlite3
+*.db
 outputs/*
 !outputs/.gitkeep
 
