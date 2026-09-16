@@ -72,8 +72,17 @@ def rows(path):
 
 def scope_rows(scope):
     spec = read(scope / 'run_scope.json')
-    if spec.get('base_model', 'google/gemini-3.8-flash') != 'google/gemini-3.8-flash':
-        raise ValueError('This scope loader requires Gemini H0; import and validate the other base model first')
+    if spec.get('base_model', 'google/gemini-3.8-flash') not in ('google/gemini-3.8-flash', 'qwen3.8-max'):
+        raise ValueError('Unsupported H0 model; import and validate the other base model first')
+    if spec.get('base_model') == 'qwen3.8-max':
+        parent = Path(spec['parent_scope_path'])
+        if sha(parent/'run_scope.json') != spec['parent_scope_sha256']:
+            raise ValueError('Gemini comparison scope changed')
+        old = rows(parent/'frame_inventory.jsonl')
+        new = rows(scope/'frame_inventory.jsonl')
+        fields = ('key','video_id','frame_id','stage','evaluation_target','causal_frame_ids')
+        if [[s[k] for k in fields] for s in old] != [[s[k] for k in fields] for s in new]:
+            raise ValueError('Qwen and Gemini comparison timelines differ')
     if sha(scope / 'frame_inventory.jsonl') != spec['frame_inventory_sha256']:
         raise ValueError('frame inventory changed')
     for path, digest in spec['source_sha256'].items():
@@ -273,11 +282,16 @@ def prepare(out, scope, limits, *, resume=False, streaming=False):
     from decimal import Decimal
     if set(caps) != set(read(scope / 'suggested_budget_limits.json')) or any(Decimal(x) < 0 for x in caps.values()):
         raise ValueError('invalid account caps')
-    source = {s['key']: s for s in rows(demo.INDEX)}
+    source_path = ROOT/spec['h0_index'] if spec.get('h0_index') else demo.INDEX
+    if spec.get('base_model') == 'qwen3.8-max' and not spec.get('h0_index'):
+        raise ValueError('Qwen H0 index required; Gemini fallback is forbidden')
+    source = {s['key']: s for s in rows(source_path)}
     for s in selected:
         s['source_split'] = 'Testing'
         if s['h0_action'] == 'reuse_exact_three_frame_h0':
             original = source[s['key']]
+            if spec.get('base_model') == 'qwen3.8-max' and original.get('model') != 'qwen3.8-max':
+                raise ValueError('H0 model identity mismatch')
             if (sha(original['record_path']) != original['record_sha256']
                     or original['causal_frame_ids'] != s['causal_frame_ids']):
                 raise ValueError('cached H0 evidence changed')
@@ -320,14 +334,18 @@ def prepare(out, scope, limits, *, resume=False, streaming=False):
     plan.update(profile=PROFILE, selection=selected, limits=caps, ram=False,
                 scope_path=str(scope.resolve()), scope_sha256=sha(scope / 'run_scope.json'), automatic_retry=False,
                 base_model=spec.get('base_model', 'google/gemini-3.8-flash'),
-                h0_provenance='reused Gemini H0 inputs; downstream predictions generated with the selected Gate',
+                h0_provenance=spec.get('data_provenance', 'reused Gemini H0; current Gate downstream'),
                 maximum_paid_calls=52562, maximum_workers=8, evaluation_target_frames=7823,
                 pipeline_frames=8578, warmup_h0_frames=480, h0_reuse='exact_three_frame_only',
-                new_h0_calls=1094, phase_window_seconds=60,
+                new_h0_calls=sum('cached_h0' not in s for s in selected), phase_window_seconds=60,
                 phase_review_enabled=bool(gate_manifest.get('phase_review_enabled')),
                 review_mode=gate_manifest.get('review_mode', 'separate'),
                 gate_version=gate_manifest['version'], gate_model_sha256=gate_manifest['model_sha256'],
                 model_sha256=gate_manifest['model_sha256'])
+    if plan['base_model'] == 'qwen3.8-max':
+        from scripts.testing_qwen_h0 import prepare_config
+        plan['qwen_h0'] = prepare_config(plan)
+        plan['proposal_model'] = 'google/gemini-3.8-flash'
     if plan['phase_review_enabled']:
         plan['maximum_paid_calls'] = plan['new_h0_calls'] + plan['pipeline_frames'] * (
             6 if plan['review_mode'] == 'five_head_probe' else 8 if plan['review_mode'] == 'unified' else 12)
@@ -467,7 +485,12 @@ def execute(out, workers, allow_paid):
             if 'cached_h0' in s:
                 h0 = s['cached_h0']
             else:
-                raw = delegate.call(s['key'], 'h0', 'base', app.frozen.gemini_h0_wire(make_h0_base(s)))
+                wire = app.frozen.gemini_h0_wire(make_h0_base(s))
+                if plan.get('base_model') == 'qwen3.8-max':
+                    from scripts.testing_qwen_h0 import call_h0
+                    raw = call_h0(out, plan, s, budget, stop, wire)
+                else:
+                    raw = delegate.call(s['key'], 'h0', 'base', wire)
                 if raw is None and getattr(delegate, 'last_http_failure', None):
                     write(out/'unavailable_h0'/(s['key']+'.json'),
                           {**delegate.last_http_failure, 'prediction': None, 'automatic_retry': False})
@@ -499,7 +522,8 @@ def execute(out, workers, allow_paid):
                 if result['call_keys'] != without['call_keys']:
                     raise ValueError('tracker changed Gate/review routing')
                 result.update(video_id=s['video_id'], frame_id=s['frame_id'], source_split='Testing',
-                              without_tracker=without['prediction'], cached_h0='cached_h0' in s)
+                              without_tracker=without['prediction'], cached_h0='cached_h0' in s,
+                              base_model=plan.get('base_model','google/gemini-3.8-flash'))
                 if result['phase_review_enabled']:
                     result.update(phase_recommendation_raw=getattr(backend, 'phase_recommendation_raw', None),
                                   joint_raw=getattr(backend, 'joint_raw', {}))

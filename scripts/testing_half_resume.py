@@ -25,6 +25,8 @@ def reconcile_completed_reservations(core):
         paths = list((core/'targets'/target/'run/calls').glob(f'*_{target}_{stage}_{seat}/record.json'))
         changed = core/'targets'/target/'changed'/f'{stage}_{seat}'/'record.json'
         if changed.exists(): paths.append(changed)
+        qwen_h0 = core/'targets'/target/'qwen_h0'/'record.json'
+        if seat == 'qwen_h0' and qwen_h0.exists(): paths.append(qwen_h0)
         if len(paths) != 1:
             raise ValueError('unresolved paid request; no unique saved record')
         path = paths[0]
@@ -41,7 +43,7 @@ def reconcile_completed_reservations(core):
             raise ValueError('saved response hash mismatch')
         if row.get('charge_kind') == 'native' and Decimal(str(body['usage']['cost'])) != Decimal(row['charge']):
             raise ValueError('saved native cost mismatch')
-        if path != changed:
+        if path != changed and path != qwen_h0:
             ledger = read(core/'targets'/target/'run/budget.json')
             if row not in ledger['calls']:
                 raise ValueError('saved target ledger differs from response record')
