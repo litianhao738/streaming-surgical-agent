@@ -1,5 +1,7 @@
 # Qwen 同范围半量 Testing 完整流程
 
+> 本文记录最初的 Qwen H0 / Gemini 提案版本。该轮已按用户要求暂停；当前续跑与 Qwen 提案配置见 [Qwen 候选提案续跑](QWEN_PROPOSER_CONTINUATION_2026-09-16.md)。不要再启动下面的旧目录。
+
 已准备的本地运行目录：`artifacts/experiments/qwen38_half_probe_complete_20260916_r2`。
 使用新 54 维 Phase Gate，保持 Gemini 实验的相同时间段、8,578 帧 pipeline、7,823 帧评分和 480 帧 H0 预热。
 7,964 条 Qwen H0 直接复用，1,094 条缺失或短上下文 H0 由 `qwen3.8-max` 补齐。

@@ -88,3 +88,25 @@ def test_qwen_scope_cannot_change_evaluation_frames(tmp_path):
     core.write(new/'run_scope.json',{'base_model':qwen.MODEL,'parent_scope_path':str(old),
                                    'parent_scope_sha256':core.sha(old/'run_scope.json')})
     with pytest.raises(ValueError,match='timelines differ'):core.scope_rows(new)
+
+
+def test_proposal_uses_distinct_journal_and_does_not_parse_as_h0(setup):
+    args,calls,raw=setup
+    raw['choices'][0]['message']['content']=json.dumps({'candidate_proposals':[]})
+    result=qwen.call_base(**args,stage='proposal')
+    assert result=={'candidate_proposals':[]}
+    record=core.read(args['out']/'targets/VID01_100/qwen_proposal/record.json')
+    assert record['stage']=='proposal' and record['seat']=='qwen_proposal'
+    assert qwen.call_base(**args,stage='proposal')==result
+    assert len(calls)==1
+
+
+def test_proposal_wrapper_preserves_reviewer_routes(setup):
+    args,calls,raw=setup
+    class Delegate:
+        def call(self,*a):return a
+    wrapper=qwen.ProposalCalls(Delegate(),*(args[k] for k in ('out','plan','selected','budget','stop')))
+    raw['choices'][0]['message']['content']='{}'
+    assert wrapper.call('VID01_100','proposal','base',args['body'])=={}
+    assert calls[0]['model']=='qwen3.8-max'
+    assert wrapper.call('VID01_100','five_head_v1','gpt',{})==('VID01_100','five_head_v1','gpt',{})

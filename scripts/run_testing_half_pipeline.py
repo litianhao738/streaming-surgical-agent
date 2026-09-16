@@ -345,7 +345,7 @@ def prepare(out, scope, limits, *, resume=False, streaming=False):
     if plan['base_model'] == 'qwen3.8-max':
         from scripts.testing_qwen_h0 import prepare_config
         plan['qwen_h0'] = prepare_config(plan)
-        plan['proposal_model'] = 'google/gemini-3.8-flash'
+        plan['proposal_model'] = 'qwen3.8-max'
     if plan['phase_review_enabled']:
         plan['maximum_paid_calls'] = plan['new_h0_calls'] + plan['pipeline_frames'] * (
             6 if plan['review_mode'] == 'five_head_probe' else 8 if plan['review_mode'] == 'unified' else 12)
@@ -478,6 +478,11 @@ def execute(out, workers, allow_paid):
         if input_runtime is not None and (s['stage'] == 'pipeline' or 'cached_h0' not in s):
             s = input_runtime.resolve(s)
         delegate = GuardedCalls(out, plan, s, budget, stop)
+        proposal_model = ('google/gemini-3.8-flash' if s['key'] in plan.get('legacy_proposal_targets', [])
+                          else plan.get('proposal_model','google/gemini-3.8-flash'))
+        if proposal_model == 'qwen3.8-max':
+            from scripts.testing_qwen_h0 import ProposalCalls
+            delegate = ProposalCalls(delegate,out,plan,s,budget,stop)
         try:
             # Persist local evidence even if H0 or a later remote call fails.
             snapshot = (tracker_runtime.snapshot(s) if tracker_runtime is not None and s['stage'] == 'pipeline'
@@ -523,7 +528,8 @@ def execute(out, workers, allow_paid):
                     raise ValueError('tracker changed Gate/review routing')
                 result.update(video_id=s['video_id'], frame_id=s['frame_id'], source_split='Testing',
                               without_tracker=without['prediction'], cached_h0='cached_h0' in s,
-                              base_model=plan.get('base_model','google/gemini-3.8-flash'))
+                              base_model=plan.get('base_model','google/gemini-3.8-flash'),
+                              proposal_model=proposal_model)
                 if result['phase_review_enabled']:
                     result.update(phase_recommendation_raw=getattr(backend, 'phase_recommendation_raw', None),
                                   joint_raw=getattr(backend, 'joint_raw', {}))

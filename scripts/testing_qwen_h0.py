@@ -1,4 +1,4 @@
-"""Durable Qwen-only H0 completion. Proposal/reviewer routes are deliberately unchanged."""
+"""Durable Qwen H0 and candidate proposals, with distinct request journals."""
 from copy import deepcopy
 from datetime import datetime, timezone
 from decimal import Decimal
@@ -44,10 +44,16 @@ def charge(usage, config):
 
 
 def call_h0(out, plan, selected, budget, stop, body):
+    return call_base(out, plan, selected, budget, stop, body, stage='h0')
+
+
+def call_base(out, plan, selected, budget, stop, body, *, stage):
     from scripts import run_testing_half_pipeline as core
     from scripts import reviewer_routes_official as routes
     from scripts.full_official_reviewer_transport import parse_changed
     from surgical_agent.research.gate.collection_budget import Budget, BudgetStop, AmbiguousDispatch
+    if stage not in ('h0','proposal'):
+        raise ValueError('unsupported Qwen base stage')
     wire = wire_body(body)
     config = plan['qwen_h0']
     if config != {**CONFIG,'endpoint':config['endpoint']}:
@@ -69,15 +75,16 @@ def call_h0(out, plan, selected, budget, stop, body):
     if text_bytes+image_tokens+1024 > config['input_token_ceiling']:
         raise ValueError('Qwen request exceeds reserved input envelope')
     safe = core.app.frozen.joint.roster.transport.redact_images(wire)
-    folder = out/'targets'/selected['key']/'qwen_h0'
-    identity = Budget.key(selected['key'],'h0','qwen_h0')
+    seat = 'qwen_h0' if stage == 'h0' else 'qwen_proposal'
+    folder = out/'targets'/selected['key']/seat
+    identity = Budget.key(selected['key'],stage,seat)
     if (folder/'record.json').exists():
         record = core.read(folder/'record.json')
         if core.read(folder/'request.json') != safe:
             raise ValueError('Qwen cached request changed')
         if (record['status']!='JSON_PARSED' or not record.get('finished_utc')
                 or core.sha(folder/'response.json')!=record['response_sha256']):
-            raise AmbiguousDispatch('Qwen H0 failed or unfinished; no automatic resend: '+selected['key'])
+            raise AmbiguousDispatch('Qwen '+stage+' failed or unfinished; no automatic resend: '+selected['key'])
         raw = core.read(folder/'response.json')
         budget.settle(identity,Decimal(record['charge']))
         return parse_changed(raw,wire)
@@ -91,7 +98,7 @@ def call_h0(out, plan, selected, budget, stop, body):
     folder.mkdir(parents=True,exist_ok=False)
     core.write(folder/'request.json',safe)
     now = lambda:datetime.now(timezone.utc).isoformat()
-    record = dict(target=selected['key'],stage='h0',seat='qwen_h0',model=MODEL,endpoint=config['endpoint'],
+    record = dict(target=selected['key'],stage=stage,seat=seat,model=MODEL,endpoint=config['endpoint'],
                   account='aliyun_cny',reserve=str(reserve),charge=str(reserve),
                   charge_kind='unknown_reserved',status='DISPATCHED',started_utc=now())
     core.write(folder/'record.json',record)
@@ -113,7 +120,8 @@ def call_h0(out, plan, selected, budget, stop, body):
         if not response.ok or raw.get('error'):
             raise ValueError('Qwen H0 HTTP '+str(response.status_code)+'; inspect saved response')
         result = parse_changed(raw,wire)
-        core.app.frozen.gated.h0_from_raw(result)
+        if stage == 'h0':
+            core.app.frozen.gated.h0_from_raw(result)
         record['status']='JSON_PARSED'
         return result
     except BaseException as exc:
@@ -124,3 +132,20 @@ def call_h0(out, plan, selected, budget, stop, body):
         record.update(finished_utc=now(),seconds=time.perf_counter()-started)
         core.write(folder/'record.json',record)
         budget.settle(identity,Decimal(record['charge']))
+
+
+class ProposalCalls:
+    """Only new candidate proposals move to Qwen; reviewers keep their existing routes."""
+    def __init__(self, delegate, out, plan, selected, budget, stop):
+        self.delegate=delegate
+        self.args=(out,plan,selected,budget,stop)
+
+    def call(self,target,stage,seat,body):
+        if target != self.args[2]['key']:
+            raise ValueError('proposal target mismatch')
+        if stage=='proposal' and seat=='base':
+            return call_base(*self.args,body,stage='proposal')
+        return self.delegate.call(target,stage,seat,body)
+
+    def __getattr__(self,name):
+        return getattr(self.delegate,name)

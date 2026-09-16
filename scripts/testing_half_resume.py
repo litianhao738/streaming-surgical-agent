@@ -25,8 +25,8 @@ def reconcile_completed_reservations(core):
         paths = list((core/'targets'/target/'run/calls').glob(f'*_{target}_{stage}_{seat}/record.json'))
         changed = core/'targets'/target/'changed'/f'{stage}_{seat}'/'record.json'
         if changed.exists(): paths.append(changed)
-        qwen_h0 = core/'targets'/target/'qwen_h0'/'record.json'
-        if seat == 'qwen_h0' and qwen_h0.exists(): paths.append(qwen_h0)
+        qwen_h0 = core/'targets'/target/seat/'record.json'
+        if seat in ('qwen_h0','qwen_proposal') and qwen_h0.exists(): paths.append(qwen_h0)
         if len(paths) != 1:
             raise ValueError('unresolved paid request; no unique saved record')
         path = paths[0]
