@@ -33,6 +33,8 @@ class CachedBackend:
     def compact(self,seat,*args): return deepcopy(self.responses['compact'].get(seat))
     def phase_recommendation(self,*args): return deepcopy(self.responses['phase_recommendation'])
     def joint(self,seat,*args): return deepcopy(self.responses['joint'].get(seat))
+    def five_head(self, seat, *args):
+        raise ValueError('Historical joint responses are not five_head_v1 responses; collect the new request first')
 
 
 class WireBackend:
@@ -47,6 +49,19 @@ class WireBackend:
     def compact(self,seat,h0,pool):
         wire=frozen.joint.roster.review_wire(seat,self.base,self.selected,pool)
         frozen.check_requests(h0,[wire]); return self.call('control_graph',seat,wire)
+    def five_head(self, seat, h0, pool):
+        wire = frozen.joint.roster.review_wire(seat, self.base, self.selected, pool)
+        packet = frozen.joint.packet_of(wire)
+        packet['task'] = 'Independently rate the four interaction heads and all seven Phase alternatives.'
+        packet['instructions'] += '\n\n' + (ROOT/'src/surgical_agent/research/verification/prompts/five_head_probe_v1.txt').read_text('utf-8').strip()
+        packet['phase_definitions'] = deepcopy(frozen.joint.PHASE_GUIDE)
+        packet['current_prediction_hypothesis'] = deepcopy(h0)
+        packet['review_protocol'] = 'five_head_probe_v1'
+        wire = frozen.joint.put_packet(wire, packet)
+        frozen.check_requests(h0, [wire])
+        if not hasattr(self, 'five_head_raw'): self.five_head_raw = {}
+        self.five_head_raw[seat] = self.call('five_head_v1', seat, wire)
+        return self.five_head_raw[seat]
     def phase_recommendation(self,h0,pool,prior):
         hints=frozen.retrieve_candidate_hints(h0,prior,video_id=self.selected['video_id'])
         wire=frozen.phase_recommendation_wire(self.base,self.selected,h0,pool,hints)

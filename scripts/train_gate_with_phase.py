@@ -24,8 +24,16 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--check-only', action='store_true')
-    parser.add_argument('--unified-cache', type=Path, help='Sealed shared-panel replay directory from build_unified_gate_cache.py')
+    parser.add_argument('--unified-cache', type=Path, help='Sealed shared-panel replay directory from build_unified_gate_cache.py or a completed five_head_probe collection')
+    parser.add_argument('--drop-phase-probe-features', action='store_true',
+                        help='Ablation on a five_head_probe cache: fit the 42 historical features only, same labels and protocol')
+    parser.add_argument('--label', choices=('change', 'harm'), default='change',
+                        help='change: any head differs after review (default). harm: review strictly reduces fp+fn over the five heads (GT-derived training label only)')
+    parser.add_argument('--selection-rule', choices=('strict', 'overall'), default='strict',
+                        help='strict: every video must not regress vs skip_review (default). overall: only pooled errors and 90%% of the full-review gain are required')
     args = parser.parse_args()
+    if args.drop_phase_probe_features and not args.unified_cache:
+        parser.error('--drop-phase-probe-features requires a five_head_probe --unified-cache')
     started = time.perf_counter()
     rows = json.loads(ROWS.read_text('utf-8'))
     assert rows and all(r['source_split'] == 'Training' and all(r['mask'].values()) for r in rows)
@@ -42,15 +50,30 @@ def main():
     assert X.shape == (n, len(names)) and np.isfinite(X).all()
     trackers, tracker_hashes = load_trackers(unique)
     cheap, reviewed = [], []
+    cache_mode = 'unified'
     if args.unified_cache:
         receipt = json.loads((args.unified_cache/'receipt.json').read_text('utf-8'))
         path = args.unified_cache/'rows.jsonl'
-        assert receipt['state'] == 'PASS' and receipt['review_mode'] == 'unified' and receipt['rows'] == n
+        cache_mode = receipt['review_mode']
+        assert receipt['state'] == 'PASS' and cache_mode in ('unified', 'five_head_probe') and receipt['rows'] == n
         assert hashlib.sha256(path.read_bytes()).hexdigest() == receipt['rows_sha256']
         cached = [json.loads(line) for line in path.read_text('utf-8').splitlines()]
         assert [r['sample_id'] for r in cached] == ids.tolist()
         assert all(r['source_split'] == 'Training' for r in cached)
-        assert np.array_equal(X, np.array([[r['features'][k] for k in names] for r in cached]))
+        if cache_mode == 'five_head_probe':
+            from surgical_agent.research.gate.unified_review import PHASE_PROBE_NAMES
+            base_names = [k for k in names if not k.startswith('qwen_')]
+            assert np.array_equal(X[:, [names.index(k) for k in base_names]],
+                np.array([[r['features'][k] for k in base_names] for r in cached]))
+            assert all(k in r['features'] for r in cached for k in PHASE_PROBE_NAMES)
+            if not args.drop_phase_probe_features:
+                names = names + list(PHASE_PROBE_NAMES)
+            X = np.array([[r['features'][k] for k in names] for r in cached], dtype=float)
+            assert X.shape == (n, 42 if args.drop_phase_probe_features else 54) and np.isfinite(X).all()
+        else:
+            if args.drop_phase_probe_features:
+                parser.error('--drop-phase-probe-features requires a five_head_probe cache')
+            assert np.array_equal(X, np.array([[r['features'][k] for k in names] for r in cached]))
         cheap = [r['cheap'] for r in cached]; reviewed = [r['reviewed'] for r in cached]
         review_calls = np.array([r['logical_calls'] for r in cached])
     else:
@@ -66,6 +89,8 @@ def main():
     # Preserve the existing change-prediction objective, extended to phase.
     # GT is used for offline threshold evaluation, never an inference feature.
     y = np.array([any(a[t] != b[t] for t in TASKS) for a, b in zip(cheap, reviewed)], int)
+    if args.label == 'harm':
+        y = (cr[:, :, 1:].sum(axis=(1, 2)) < cc[:, :, 1:].sum(axis=(1, 2))).astype(int)
     raw0 = np.array([p['phase'][0] for p in cheap])
     raw1 = np.array([p['phase'][0] for p in reviewed])
     truth = np.array([r['gt']['phase'][0] for r in rows])
@@ -119,7 +144,7 @@ def main():
             per = all(quality(c[j])['f1'] + 1e-12 >= quality(baseline[j])['f1'] and
                       quality(c[j])['errors'] <= quality(baseline[j])['errors']
                       for v in set(videos[ix]) for j in [ix[videos[ix] == v]])
-            feasible = per and q['errors'] <= q0['errors'] and q['f1'] - q0['f1'] + 1e-12 >= .9 * max(0., q1['f1'] - q0['f1'])
+            feasible = (per or args.selection_rule == 'overall') and q['errors'] <= q0['errors'] and q['f1'] - q0['f1'] + 1e-12 >= .9 * max(0., q1['f1'] - q0['f1'])
             candidates.append({'threshold': threshold, 'fraction': float(frac), 'feasible': bool(feasible),
                                'review_frames': int(route[ix].sum()), 'metrics': q})
         valid = [c for c in candidates if c['feasible']]
@@ -151,14 +176,27 @@ def main():
              'estimator_file': model_path.name, 'estimator_sha256': hashlib.sha256(model_path.read_bytes()).hexdigest(),
              'threshold': calibration['selected']['threshold'], 'selection_feasible': calibration['selected']['feasible'],
              'action_rule': '1 if score >= threshold else 0', 'phase_window_seconds': 60,
-             'label_definition': 'Any of five heads changes after historical review and tracker M1/M2, before smoothing',
+             'label_definition': ('Review strictly reduces fp+fn summed over the five heads (GT-derived training label; inference uses features only)'
+                                  if args.label == 'harm' else 'Any of five heads changes after historical review and tracker M1/M2, before smoothing'),
+             'label': args.label, 'selection_rule': args.selection_rule,
+             'selection_rule_definition': ('Pooled errors <= skip_review and pooled gain >= 90% of full-review gain; per-video non-regression NOT required'
+                                           if args.selection_rule == 'overall' else 'Every video non-regressing vs skip_review, pooled errors <= skip_review, pooled gain >= 90% of full-review gain'),
              'deployable': False, 'runtime_requirement': 'Route phase review together with interaction review, then smooth routed phase stream',
              'scope': 'Reused Training development videos; fixed upstream not fully nested; runtime integration and independent validation required'}
     if args.unified_cache:
-        model.update(review_mode='unified', output_modules='v2.2',
+        model.update(review_mode=cache_mode, output_modules='v2.2',
             runtime_requirement='One post-Gate joint panel for all five heads, then v2.2 Tracker output modules and routed phase smoothing',
             training_cache_sha256=receipt['rows_sha256'])
+        if cache_mode == 'five_head_probe':
+            model.update(version='five-head-probe-gate-research-v1', feature_set='historical_42_plus_phase_probe_12',
+                runtime_requirement='Five-head Qwen probe -> 54-feature Gate -> remaining seats on same pool; no phase recommendation or second Qwen call')
+            if args.drop_phase_probe_features:
+                model.update(version='five-head-probe-gate-base42-ablation-v1', feature_set='historical_42_only',
+                    ablation='Same five_head_probe cache and labels without the 12 phase probe features; isolates their contribution from the protocol change',
+                    runtime_requirement='Five-head Qwen probe -> 42-feature Gate (phase probe ratings ignored) -> remaining seats on same pool')
     report = {'rows': n, 'videos': unique, 'api_calls': 0, 'default_changed': False,
+              'feature_count': len(names), 'feature_set': model.get('feature_set', 'historical_42'),
+              'label': args.label, 'selection_rule': args.selection_rule,
               'label_positives': int(y.sum()), 'outer_folds': folds, 'calibration': calibration,
               'variants': {'skip_review': quality(baseline), 'all_review': quality(full),
                            'nested_gate': quality(evaluate(routed))},

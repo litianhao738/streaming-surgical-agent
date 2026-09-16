@@ -11,7 +11,7 @@ from tests.unit.test_gate_ready_mainline import inputs, RecordingMock
 
 @pytest.mark.parametrize('action', [0, 1])
 @pytest.mark.parametrize('streaming', [False, True])
-@pytest.mark.parametrize('phase_enabled,review_mode', [(False, 'separate'), (True, 'separate'), (True, 'unified')])
+@pytest.mark.parametrize('phase_enabled,review_mode', [(False, 'separate'), (True, 'separate'), (True, 'unified'), (True, 'five_head_probe')])
 def test_execute_cached_new_warmup_and_replay_offline(tmp_path, monkeypatch, inputs, action, streaming, phase_enabled, review_mode):
     base, selected, prior, _ = inputs
     mock = RecordingMock()
@@ -80,13 +80,18 @@ def test_execute_cached_new_warmup_and_replay_offline(tmp_path, monkeypatch, inp
     for r in predictions:
         assert r['phase_review_enabled'] == phase_enabled
         stages = {key.split('|')[0] for key in r['call_keys']}
-        assert ('joint_r1' in stages) == (phase_enabled and bool(action))
-        if phase_enabled and action:
+        assert ('joint_r1' in stages) == (phase_enabled and bool(action) and review_mode != 'five_head_probe')
+        if phase_enabled and action and review_mode != 'five_head_probe':
             assert r['joint_raw'] and 'phase_recommendation_raw' in r
             assert r['without_tracker']['phase'] == [r['phase_before_smoothing']]
         if review_mode == 'unified':
             assert r['logical_calls'] <= 9
             assert {k for k in r['call_keys'] if k.startswith('control_graph|')} == {'control_graph|qwen'}
+        if review_mode == 'five_head_probe':
+            assert len(r['features']) == 54 and r['logical_calls'] <= 7
+            assert stages == {'h0', 'proposal', 'five_head_v1'}
+            assert r['call_keys'].count('five_head_v1|qwen') == 1
+            assert r['five_head_raw'] and r['compact_depth'] == 0
     if streaming:
         assert set(resolved) == {'query_125', 'query_150', 'query_175'}
         assert set(tracked) == {'query_150', 'query_175'}

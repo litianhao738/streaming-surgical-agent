@@ -21,7 +21,7 @@ from surgical_agent.research.gate import tracker_pipeline_v2 as tracker_pipeline
 from surgical_agent.research.gate.tracker_pipeline_v2 import CausalPhaseFilter
 
 PROFILE = 'testing_half_gate_tracker_v1'
-SCOPE = ROOT / 'artifacts/evaluation/testing_half_unified_gate_tracker_plan_20260916'
+SCOPE = ROOT / 'artifacts/evaluation/testing_half_probe_gate_tracker_plan_20260916'
 REFERENCE = ROOT / 'artifacts/experiments/scheme4_testing_demo_20260914_r3'
 read, sha = demo.read, demo.sha
 
@@ -72,6 +72,8 @@ def rows(path):
 
 def scope_rows(scope):
     spec = read(scope / 'run_scope.json')
+    if spec.get('base_model', 'google/gemini-3.8-flash') != 'google/gemini-3.8-flash':
+        raise ValueError('This scope loader requires Gemini H0; import and validate the other base model first')
     if sha(scope / 'frame_inventory.jsonl') != spec['frame_inventory_sha256']:
         raise ValueError('frame inventory changed')
     for path, digest in spec['source_sha256'].items():
@@ -316,7 +318,9 @@ def prepare(out, scope, limits, *, resume=False, streaming=False):
         print('Streaming mode: images and trained Tracker are evaluated per target; no batch Tracker preparation', flush=True)
     plan = deepcopy(reference_plan)
     plan.update(profile=PROFILE, selection=selected, limits=caps, ram=False,
-                scope_sha256=sha(scope / 'run_scope.json'), automatic_retry=False,
+                scope_path=str(scope.resolve()), scope_sha256=sha(scope / 'run_scope.json'), automatic_retry=False,
+                base_model=spec.get('base_model', 'google/gemini-3.8-flash'),
+                h0_provenance='reused Gemini H0 inputs; downstream predictions generated with the selected Gate',
                 maximum_paid_calls=52562, maximum_workers=8, evaluation_target_frames=7823,
                 pipeline_frames=8578, warmup_h0_frames=480, h0_reuse='exact_three_frame_only',
                 new_h0_calls=1094, phase_window_seconds=60,
@@ -326,7 +330,7 @@ def prepare(out, scope, limits, *, resume=False, streaming=False):
                 model_sha256=gate_manifest['model_sha256'])
     if plan['phase_review_enabled']:
         plan['maximum_paid_calls'] = plan['new_h0_calls'] + plan['pipeline_frames'] * (
-            8 if plan['review_mode'] == 'unified' else 12)
+            6 if plan['review_mode'] == 'five_head_probe' else 8 if plan['review_mode'] == 'unified' else 12)
     if streaming:
         plan.update(input_mode='on_demand', tracker_mode='on_demand',
                     tracker_device='cuda:0', tracker_cache=str(ROOT/'artifacts/cache/tracker_testing'),
@@ -343,6 +347,7 @@ def prepare(out, scope, limits, *, resume=False, streaming=False):
     model_path = ROOT / gate_manifest['model_artifact']
     bound = {Path(__file__), ROOT / 'DEFAULT_PGP_GATE_VERSION.json', model_path,
              ROOT/'src/surgical_agent/research/gate/unified_review.py',
+             ROOT/'src/surgical_agent/research/verification/prompts/five_head_probe_v1.txt',
              model_path.parent / read(model_path)['estimator_file']}
     if streaming:
         bound.update((ROOT/'src/surgical_agent/tracking').rglob('*.py'))
@@ -488,6 +493,7 @@ def execute(out, workers, allow_paid):
                     def compact(self, seat, *args): return deepcopy(backend.review_raw[seat])
                     def phase_recommendation(self, *args): return deepcopy(backend.phase_recommendation_raw)
                     def joint(self, seat, *args): return deepcopy(backend.joint_raw[seat])
+                    def five_head(self, seat, *args): return deepcopy(backend.five_head_raw[seat])
                 without = run_target(Replay(), selected, prior, decide, tracker_snapshot=None,
                     phase_filter=CausalPhaseFilter(0), output='v2.2', inference_split='Testing')
                 if result['call_keys'] != without['call_keys']:
@@ -497,6 +503,8 @@ def execute(out, workers, allow_paid):
                 if result['phase_review_enabled']:
                     result.update(phase_recommendation_raw=getattr(backend, 'phase_recommendation_raw', None),
                                   joint_raw=getattr(backend, 'joint_raw', {}))
+                if result['review_mode'] == 'five_head_probe':
+                    result['five_head_raw'] = deepcopy(backend.five_head_raw)
                 write(out / 'results' / (s['key'] + '.json'), result)
             with lock:
                 counter[0] += 1

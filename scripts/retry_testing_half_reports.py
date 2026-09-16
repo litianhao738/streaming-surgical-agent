@@ -1,4 +1,4 @@
-"""Explicit one-pass Report/Judge recovery in a new directory; original evidence is preserved."""
+"""Report recovery and bounded Judge-only retries; original evidence is preserved."""
 import argparse
 from contextlib import closing
 from decimal import Decimal
@@ -9,6 +9,7 @@ import sys
 import threading
 import time
 from types import SimpleNamespace
+from filelock import FileLock
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT), str(ROOT / 'src')]
@@ -110,6 +111,8 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--budget-usd', default='20', help='Additional budget for this recovery only')
     parser.add_argument('--interval-seconds', type=float, default=3)
+    parser.add_argument('--max-rounds', type=int, default=12,
+                        help='Maximum rounds for Judge-only recovery; budget is shared across rounds')
     parser.add_argument('--allow-paid', action='store_true')
     parser.add_argument('--dry-run', action='store_true')
     args = parser.parse_args()
@@ -119,7 +122,25 @@ def main():
     cap = Decimal(args.budget_usd)
     if not cap.is_finite() or cap <= 0 or not 0 <= args.interval_seconds < float('inf'):
         raise ValueError('Invalid budget or interval')
-    from filelock import FileLock
+    if not 1 <= args.max_rounds <= 20:
+        raise ValueError('max-rounds must be between 1 and 20')
+    # Finished reports need only their exact failed Judge requests replayed. This
+    # independent path verifies frozen scoring sources and reproduces all baseline
+    # scores, so unrelated complete-workflow entrypoint changes do not block it.
+    with FileLock(str(source) + '.process.lock', timeout=0):
+        _, retry = reusable_rows(source)
+    if all(row[1] == 'offline_evaluation' for row in retry):
+        from scripts.complete_testing_half_judges import main as finish_judges
+        forwarded = ['--source', str(source), '--output', str(out),
+                     '--budget-usd', str(cap), '--max-rounds', str(args.max_rounds),
+                     '--interval-seconds', str(args.interval_seconds)]
+        if args.allow_paid:
+            forwarded.append('--allow-paid')
+        if args.dry_run:
+            forwarded.append('--dry-run')
+        if not args.allow_paid and not args.dry_run:
+            raise ValueError('--allow-paid is required')
+        return finish_judges(forwarded)
     with FileLock(str(source) + '.process.lock', timeout=0):
         plan = workflow.read(source / 'plan.json')
         origin = Path(plan.get('recovery_original', str(source)))

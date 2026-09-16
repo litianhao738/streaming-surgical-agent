@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "base_model": "google/gemini-3.8-flash",
+  "gate_manifest": "DEFAULT_PGP_GATE_VERSION.json",
+  "gate_version": "five-head-probe-gate-20260916",
+  "review_mode": "five_head_probe",
+  "training_probe_collection": "artifacts/training/gate/five_head_probe_full_20260916_r1",
+  "testing_h0_index": "artifacts/h0_import/gemini_testing_delivery_20260914_r2/h0_index.jsonl",
+  "testing_scope": "artifacts/evaluation/testing_half_probe_gate_tracker_plan_20260916",
+  "historical_report_scores": "artifacts/data/h0_baselines/gemini38_report_testing_half_20260916",
+  "historical_report_gate": "historical core Gate; see original core plan, not the current default",
+  "historical_reports_are_new_gate_results": false,
+  "other_base_models": "Await explicit local input paths and validate model identity, frame coverage and image protocol before creating a scope. Never fill another model's missing H0 with Gemini.",
+  "artifact_distribution": "Local only. GitHub contains source and provenance pointers, not datasets, weights or API credentials."
+}

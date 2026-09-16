@@ -23,7 +23,7 @@ from surgical_agent.api.credentials import load_api_key_file
 from surgical_agent.research.gate.collection_budget import Budget, BudgetStop
 from surgical_agent.research.reporting.contracts import ModelConfig, ReportInput, digest
 from surgical_agent.research.reporting.event_report_generator import ReportGenerator
-from surgical_agent.research.reporting.judge_selection import build_judge
+from surgical_agent.research.reporting.judge_selection import build_judge as build_legacy_judge
 from surgical_agent.research.reporting.rule_evaluator import evaluate_rule
 from surgical_agent.research.reporting.evaluator import write_artifacts
 from surgical_agent.research.reporting.transport import CachedCalls
@@ -36,11 +36,18 @@ REPORT_CONFIG = ROOT/'configs/reporting/gsr_v1.json'
 ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions'
 
 
+def build_judge(config, cache):
+    if config.get('judge_version') == 'v2_low_strict':
+        from surgical_agent.research.reporting.llm_judge_strict import build_strict_judge
+        return build_strict_judge(config, cache)
+    return build_legacy_judge(config, cache)
+
+
 def report_config():
     """Use the successfully exercised generator wire and the selected v2/low judge."""
     previous, selected = read(REPORT_REFERENCE), read(REPORT_CONFIG)
-    if selected['rule_version'] != 'gsr_rules_2' or selected['judge_version'] != 'v2_low':
-        raise ValueError('expected frozen Rule v2 and Judge v2/low')
+    if selected['rule_version'] != 'gsr_rules_2' or selected['judge_version'] not in ('v2_low', 'v2_low_strict'):
+        raise ValueError('expected Rule v2 and an explicit Judge v2/low version')
     config = {'generator': previous['models']['report_generation'],
               'judge': selected['judge'], 'judge_version': selected['judge_version'],
               'rule_version': selected['rule_version']}
@@ -201,7 +208,13 @@ class ReportCaller:
                 raise RuntimeError('report provider failure/model mismatch; inspect saved response')
             choice = body['choices'][0]
             if choice.get('finish_reason') != 'stop' or choice['message'].get('refusal'):
-                raise RuntimeError('report response incomplete/refused')
+                # A received, settled response is a per-request terminal failure.
+                # Do not poison the entire worker pool or accept truncated text.
+                return {'text': '', 'usage': usage,
+                        'cost': {'USD': float(cost)} if cost is not None else None,
+                        'transport_error': {'http_status': response.status_code,
+                            'finish_reason': choice.get('finish_reason'),
+                            'refused': bool(choice['message'].get('refusal'))}}
             return {'text': choice['message']['content'], 'usage': usage,
                     'cost': {'USD': float(cost)} if cost is not None else None,
                     'provider_request_id': body.get('id'), 'returned_model': body.get('model')}
@@ -282,10 +295,17 @@ def evaluate_reports(scores, out, config, cache, workers, stop):
 
 def verify_core(core_out, *, completed=False):
     plan = read(core_out/'plan.json')
+    if 'scope_path' in plan:
+        scope_path = Path(plan['scope_path'])/'run_scope.json'
+    else:
+        # Historical sealed runs predate scope_path. Resolve their actual hash,
+        # never bind them retroactively to whichever Gate is today's default.
+        scope_path = next((p for p in (ROOT/'artifacts/evaluation').glob('*/run_scope.json')
+                           if sha(p) == plan['scope_sha256']), core.SCOPE/'run_scope.json')
     if (sha(core_out/'plan.json') != read(core_out/'prepared.json')['plan_sha256']
             or plan['profile'] != core.PROFILE or plan['evaluation_target_frames'] != 7823
             or plan['pipeline_frames'] != 8578 or plan['ram'] is not False
-            or plan['scope_sha256'] != sha(core.SCOPE/'run_scope.json')):
+            or plan['scope_sha256'] != sha(scope_path)):
         raise ValueError('core is not the frozen half-Testing plan')
     if completed:
         receipt = read(core_out/'receipt.json')
@@ -420,16 +440,23 @@ def run(out, core_out, report_cap, core_limits, workers, allow_paid):
 
 
 def main():
+    global REPORT_CONFIG
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('command', choices=('run', 'prepare', 'execute', 'resume', 'status'))
     parser.add_argument('--output', required=True, type=Path)
     parser.add_argument('--core-output', type=Path, help='Attach an existing prepared/completed half run')
+    parser.add_argument('--scope', type=Path, default=core.SCOPE, help='Frozen input scope for a NEW run')
     parser.add_argument('--report-budget-usd', default='30')
-    parser.add_argument('--core-budget-limits', type=Path, default=core.SCOPE/'suggested_budget_limits.json')
+    parser.add_argument('--report-config', type=Path, default=REPORT_CONFIG,
+                        help='Configuration for a new plan; existing plans keep their frozen Judge version')
+    parser.add_argument('--core-budget-limits', type=Path)
     parser.add_argument('--workers', type=int, default=8)
     parser.add_argument('--allow-paid', action='store_true')
     parser.add_argument('--resume-prepare', action='store_true', help='Retry interrupted local preparation in the same directory')
     args = parser.parse_args()
+    core.SCOPE = args.scope.resolve()
+    args.core_budget_limits = args.core_budget_limits or core.SCOPE/'suggested_budget_limits.json'
+    REPORT_CONFIG = args.report_config.resolve()
     out = args.output.resolve()
     if args.command in ('run', 'execute', 'resume'):
         from filelock import FileLock

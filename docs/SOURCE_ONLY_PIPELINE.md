@@ -1,7 +1,7 @@
 # Source-only pipeline setup
 
-The current default uses a retrained 42-feature Gate and a shared five-head
-post-Gate panel. `DEFAULT_PGP_GATE_VERSION.json` selects the model version and
+The current default uses a retrained 54-feature Gate, a five-head Qwen probe
+before the Gate, and a shared five-head panel. `DEFAULT_PGP_GATE_VERSION.json` selects the model version and
 local model manifest. `DEFAULT_PIPELINE_VERSION.json` describes the pipeline.
 All model artifacts and experiment datasets stay outside version control.
 
@@ -17,7 +17,7 @@ All model artifacts and experiment datasets stay outside version control.
   generated reports and calibration outputs remain local.
 
 The selected testing scope lives locally at
-`artifacts/evaluation/testing_half_unified_gate_tracker_plan_20260916`.
+`artifacts/evaluation/testing_half_probe_gate_tracker_plan_20260916`.
 Scope and source hashes prevent mixing unrelated inputs and model versions.
 The repository does not download private data or weights automatically.
 
@@ -38,21 +38,19 @@ requiring private model files.
 To rebuild from locally available, sealed Training response caches:
 
 ```powershell
-python scripts/build_unified_gate_cache.py --output artifacts/training/gate/unified_replay_new --workers 4
-python scripts/train_gate_with_phase.py --unified-cache artifacts/training/gate/unified_replay_new --output artifacts/training/gate/unified_gate_new
+python scripts/train_gate_with_phase.py --unified-cache artifacts/training/gate/five_head_probe_full_20260916_r1 --label harm --selection-rule overall --output artifacts/training/gate/probe_gate_new
 ```
 
-Both steps are offline. Retraining writes a separate model; it does not silently
+This step is offline. Retraining writes a separate model; it does not silently
 replace default model pointers or bypass the model/source integrity checks.
 
 ## Runtime behavior
 
-Gate keeps the original H0/proposal/Qwen-probe feature prefix. If it opens,
-Gemini proposes a phase and a single joint panel verifies all five tasks.
+Gate uses the original 42 features plus 12 Phase probe features. If it opens,
+a single joint panel verifies all five tasks, reusing the first Qwen response.
 Four-head repair and phase admission use that same panel, retaining prior rules,
 ambiguity protection and invalid-response fallback. Maximum logical calls are
-nine per routed frame including H0. The pre-Gate Qwen probe is separate from
-the post-Gate panel. This maximum is not a wall-time or total-cost guarantee.
+seven per routed frame including H0. This maximum is not a wall-time or total-cost guarantee.
 
 Tracker detections and snapshots are cached locally for reuse across experiments.
 M3 uses the repaired phase before smoothing, with causal nonrecursive 60-second

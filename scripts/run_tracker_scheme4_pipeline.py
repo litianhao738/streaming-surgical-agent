@@ -48,14 +48,20 @@ def load_gate(root=ROOT):
     if not path.is_relative_to((root / 'artifacts/training/gate').resolve()) or sha(path) != manifest['model_sha256']:
         raise ValueError('Gate model location/hash mismatch')
     model = read(path)
-    if model['version'] not in (VERSION, 'five-head-phase-gate-research-v1', 'five-head-unified-gate-research-v1') or model['deployable'] or not model['selection_feasible']:
+    if model['version'] not in (VERSION, 'five-head-phase-gate-research-v1', 'five-head-unified-gate-research-v1', 'five-head-probe-gate-research-v1') or model['deployable'] or not model['selection_feasible']:
         raise ValueError('unsupported scheme4 Gate model')
     estimator_path = (path.parent / model['estimator_file']).resolve()
     if not estimator_path.is_relative_to(path.parent) or sha(estimator_path) != model['estimator_sha256']:
         raise ValueError('Gate estimator hash mismatch')
     names = model['feature_names']; threshold = model['threshold']
-    if len(names) != 42 or len(set(names)) != 42 or not np.isfinite(threshold) or not 0 <= threshold <= 1:
+    is_phase_probe = model['version'] == 'five-head-probe-gate-research-v1'
+    expected_features = 54 if is_phase_probe else 42
+    if len(names) != expected_features or len(set(names)) != expected_features or not np.isfinite(threshold) or not 0 <= threshold <= 1:
         raise ValueError('invalid feature schema/threshold')
+    if is_phase_probe:
+        from surgical_agent.research.gate.unified_review import PHASE_PROBE_NAMES
+        if not set(PHASE_PROBE_NAMES).issubset(names) or model.get('review_mode') != 'five_head_probe':
+            raise ValueError('five-head probe model schema mismatch')
     estimator = joblib.load(estimator_path)
     def predict(features):
         if set(features) != set(names): raise ValueError('Gate feature schema mismatch')
@@ -63,8 +69,8 @@ def load_gate(root=ROOT):
         if not np.isfinite(x).all(): raise ValueError('nonfinite Gate input')
         score = float(estimator.predict_proba(x)[0, 1])
         return score, int(score >= threshold)
-    predict.phase_review_enabled = model['version'] in ('five-head-phase-gate-research-v1', 'five-head-unified-gate-research-v1')
-    predict.review_mode = 'unified' if model['version'] == 'five-head-unified-gate-research-v1' else 'separate'
+    predict.phase_review_enabled = model['version'] in ('five-head-phase-gate-research-v1', 'five-head-unified-gate-research-v1', 'five-head-probe-gate-research-v1')
+    predict.review_mode = 'five_head_probe' if is_phase_probe else 'unified' if model['version'] == 'five-head-unified-gate-research-v1' else 'separate'
     if bool(manifest.get('phase_review_enabled', False)) != predict.phase_review_enabled:
         raise ValueError('Gate and phase runtime configuration disagree')
     if manifest.get('review_mode', 'separate') != predict.review_mode:
@@ -128,14 +134,25 @@ def replay(args):
     tracker = FrozenTracker(tracker_index(args))
     priors = {v:read(args.source/'priors'/f'{v}.json') for v in {s['video_id'] for s in selection}}
     sealed = read(ROOT / read(ROOT/'DEFAULT_PIPELINE_VERSION.json')['replay_inventory'])['source_sha256']
+    probe_rows, cache_sha = None, None
+    if manifest.get('review_mode') == 'five_head_probe':
+        from scripts.probe_replay_backend import ProbeReplayBackend, load_collection
+        probe_rows, cache_sha = load_collection(ROOT/manifest['training_cache'], sha, read)
     for s in selection:
         if sha(args.source/'targets'/s['key']/'result.json') != sealed[s['key']]: raise ValueError('unsealed source response')
+        if probe_rows is not None and probe_rows[s['key']]['source_sha256'] != sealed[s['key']]:
+            raise ValueError('five-head probe used different H0/proposal inputs')
     args.output.mkdir(parents=True,exist_ok=False)
-    def backend(s): return CachedBackend(read(args.source/'targets'/s['key']/'result.json')), lambda:None
+    def backend(s):
+        original = read(args.source/'targets'/s['key']/'result.json')
+        cached = (ProbeReplayBackend(original, probe_rows[s['key']]) if probe_rows is not None
+                  else CachedBackend(original))
+        return cached, lambda:None
     with offline(), (args.output/'predictions.jsonl').open('x',encoding='utf-8') as sink:
         calls = infer_stream(selection, backend, priors, decide, tracker, model['phase_window_seconds'], sink, output)
     receipt = {'state':'PASS','profile':PROFILE,'rows':len(selection),'logical_calls':calls,'api_calls':0,
         'gate_version':manifest['version'],'phase_window_seconds':model['phase_window_seconds'],
+        'five_head_collection_sha256':cache_sha,
         'output_modules':output,'output_modules_version':OUTPUT_MODULES[output]['version'],
         'phase_initialization':'empty per-video state; chronological inventory prefix',
         'elapsed_seconds':time.perf_counter()-start,'predictions_sha256':sha(args.output/'predictions.jsonl'),
@@ -156,7 +173,7 @@ def prepare(args):
         raise ValueError('explicit finite nonnegative caps for all accounts required')
     plan = deepcopy(original)
     plan.update(profile=PROFILE,selection=selection,limits={k:str(v) for k,v in caps.items()},
-        maximum_paid_calls=(9 if manifest.get('review_mode') == 'unified' else
+        maximum_paid_calls=(7 if manifest.get('review_mode') == 'five_head_probe' else 9 if manifest.get('review_mode') == 'unified' else
                            13 if manifest.get('phase_review_enabled') else 7)*len(selection),tracker_index=str(index),tracker_index_sha256=sha(index),
         phase_window_seconds=model['phase_window_seconds'],api_execution_validated=False,Testing_access=False,
         phase_review_enabled=bool(manifest.get('phase_review_enabled')),
@@ -166,6 +183,7 @@ def prepare(args):
     bound = ['DEFAULT_PIPELINE_VERSION.json','DEFAULT_PGP_GATE_VERSION.json','scripts/run_tracker_scheme4_pipeline.py',
         'scripts/run_pgp_pipeline.py','scripts/scheme4_transport.py','src/surgical_agent/research/gate/tracker_pipeline_v2.py',
         'src/surgical_agent/research/gate/unified_review.py',
+        'src/surgical_agent/research/verification/prompts/five_head_probe_v1.txt',
         'scripts/assess_tracker_review_evidence_r3.py','scripts/full_official_reviewer_transport.py',
         'scripts/reviewer_routes_official.py','scripts/collect_gate_escalation_v1.py',
         'src/surgical_agent/research/gate/collection_budget.py','src/surgical_agent/research/gate/pgp_tracker_gemini38.py',

@@ -178,21 +178,36 @@ def run_interaction(backend, selected, prior, predict_gate, *, inference_split='
                 d = diag[p['id']]
                 observed[p['id']].append(None if seat in d['invalid'] else d['scores'][original.SEATS.index(seat)])
 
-    compact('qwen')
+    review_mode = getattr(predict_gate, 'review_mode', 'separate')
+    five_head_probe = review_mode == 'five_head_probe'
+    qwen_joint_raw = None
+    if five_head_probe:
+        joint_pool = original.joint_pool(pool)
+        qwen_joint_raw = query('five_head_v1', 'qwen', lambda: backend.five_head('qwen', h0, joint_pool))
+        normalized, _ = original.normalize_five_heads(
+            {s: qwen_joint_raw if s == 'qwen' else None for s in original.SEATS}, joint_pool, image_count=3)
+        _, diagnostics = original.aggregate_five_heads(normalized, joint_pool, image_count=3)
+        for p in props:
+            d = diagnostics[p['id']]
+            observed[p['id']].append(None if 'qwen' in d['invalid'] else d['scores'][original.SEATS.index('qwen')])
+        from surgical_agent.research.gate.unified_review import phase_probe_features
+        features.update(phase_probe_features(diagnostics, h0, original))
+    else:
+        compact('qwen')
     probe_ratings = {f"{p['task']}:{p['label_id']}": observed[p['id']][0] for p in props}
     features.update(original.probe_features(props, h0, observed))
     score, action = predict_gate(features)
     if action not in (0, 1):
         raise ValueError('interaction Gate requires action 0 or 1')
     phase_review_enabled = bool(getattr(predict_gate, 'phase_review_enabled', False))
-    review_mode = getattr(predict_gate, 'review_mode', 'separate')
-    if review_mode not in ('separate', 'unified') or review_mode == 'unified' and not phase_review_enabled:
+    if review_mode not in ('separate', 'unified', 'five_head_probe') or review_mode in ('unified', 'five_head_probe') and not phase_review_enabled:
         raise ValueError('invalid verification mode')
-    out, depth, phase_depth = deepcopy(cheap), 1, 0
+    out, depth, phase_depth = deepcopy(cheap), 0 if five_head_probe else 1, 1 if five_head_probe else 0
     phase_decision = {'status': 'gate_skipped' if phase_review_enabled else 'disabled'}
-    if action and review_mode == 'unified':
+    if action and review_mode in ('unified', 'five_head_probe'):
         from surgical_agent.research.gate.unified_review import verify
-        out, phase_depth, phase_decision = verify(backend, h0, cheap, pool, prior, query, original)
+        out, phase_depth, phase_decision = verify(backend, h0, cheap, pool, prior, query, original,
+            reuse_probe=five_head_probe, probe_raw=qwen_joint_raw)
     elif action:
         for seat in original.ORDER[1:]:
             if all(original.ambiguous(p) or original.settled(observed[p['id']], p['label_id'] in h0[p['task']]) for p in props):
@@ -228,7 +243,8 @@ def run_interaction(backend, selected, prior, predict_gate, *, inference_split='
             'features': features, 'gate_score': float(score), 'gate_action': int(action),
             'logical_calls': len(calls), 'call_keys': calls, 'compact_depth': depth, 'phase_depth': phase_depth,
             'phase_review_enabled': phase_review_enabled, 'phase_decision': phase_decision,
-            'review_mode': review_mode, 'joint_depth': phase_depth if review_mode == 'unified' else 0,
+            'review_mode': review_mode, 'joint_depth': phase_depth if review_mode in ('unified', 'five_head_probe') else 0,
+            'candidate_pool_tasks': ['instrument', 'verb', 'target', 'ivt', 'phase'] if five_head_probe else ['instrument', 'verb', 'target', 'ivt'],
             'phase_before_smoothing': out['phase'][0],
             'probe_ratings': probe_ratings}
 
@@ -247,4 +263,6 @@ def run_target(backend, selected, prior, predict_gate, *, tracker_snapshot, phas
     if result['phase_review_enabled']:
         result['version'] = ('tracker-five-head-unified-pipeline-v1' if result['review_mode'] == 'unified'
                              else 'tracker-five-head-phase-pipeline-v1')
+    if result['review_mode'] == 'five_head_probe':
+        result['version'] = 'tracker-five-head-probe-pipeline-v1'
     return result

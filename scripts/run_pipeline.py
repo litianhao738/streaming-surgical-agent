@@ -24,7 +24,8 @@ def write_review_diagnostics(output: Path) -> None:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("command", nargs="?", default="info",
-                        choices=("info", "prepare", "preflight", "replay", "execute", "score"))
+                        choices=("info", "prepare", "preflight", "replay", "execute", "score",
+                                 "testing-run", "testing-prepare", "testing-execute", "testing-resume", "testing-status"))
     parser.add_argument("--output", type=Path,
                         help="New experiment directory for prepare; its saved directory for execute/score.")
     parser.add_argument("--dataset-root", type=Path,
@@ -39,6 +40,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--gate-model',type=Path)
     parser.add_argument('--tracker-index',type=Path)
     parser.add_argument('--output-modules',choices=['v2.1','v2.2'])
+    parser.add_argument('--scope',type=Path)
+    parser.add_argument('--core-output',type=Path)
+    parser.add_argument('--report-config',type=Path)
+    parser.add_argument('--report-budget-usd',default='30')
+    parser.add_argument('--workers',type=int,default=8)
     args = parser.parse_args(argv)
     selection = json.loads(DEFAULT_MANIFEST.read_text(encoding="utf-8-sig"))
     if args.command == "info":
@@ -46,6 +52,21 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.output is None:
         parser.error("--output is required for prepare, execute and score")
+    if args.command.startswith('testing-'):
+        if any((args.source, args.limit, args.variant, args.tracker, args.gate_model,
+                args.tracker_index, args.output_modules, args.annotations, args.dataset_root)):
+            parser.error('Testing uses its frozen scope; Training overrides are unsupported')
+        command = [sys.executable, '-X', 'utf8', str(ROOT/selection['testing_entrypoint']),
+                   args.command.removeprefix('testing-'), '--output', str(args.output.resolve()),
+                   '--workers', str(args.workers), '--report-budget-usd', args.report_budget_usd]
+        for name in ('scope', 'core_output', 'report_config', 'budget_limits'):
+            value = getattr(args, name)
+            if value is not None:
+                flag = 'core-budget-limits' if name == 'budget_limits' else name.replace('_', '-')
+                command.extend(('--'+flag, str(value.resolve())))
+        if args.allow_paid:
+            command.append('--allow-paid')
+        return subprocess.run(command, cwd=ROOT, check=False).returncode
     entry = selection["scoring_entrypoint" if args.command == "score" else "implementation_entrypoint"]
     command = [sys.executable, "-X", "utf8", str(ROOT / entry)]
     if args.command != "score" or selection.get("scoring_requires_command", False):

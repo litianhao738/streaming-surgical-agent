@@ -1,11 +1,11 @@
 {
   "schema_version": "tracker_scheme4_gate_default_v1",
   "selected_on": "2026-09-16",
-  "selected_by": "explicit_user_request_share_one_verification_panel",
-  "version": "five-head-unified-gate-20260916",
-  "decision_rule": "unified_five_head_change_threshold_v1",
-  "model_artifact": "artifacts/training/gate/unified_gate_20260916_r1/model.json",
-  "model_sha256": "d7528df30783f4c8420ea4bd532f8b3b907451a65d61f5beec8e854b7c307b44",
+  "selected_by": "explicit_user_request_integrate_phase_probe_gate",
+  "version": "five-head-probe-gate-20260916",
+  "decision_rule": "five_head_probe_harm_threshold_overall_rule_v1",
+  "model_artifact": "artifacts/training/gate/five_head_probe_gate_20260916_r2_harm_overall/model.json",
+  "model_sha256": "3bd7f1f35083c1047d2eba00d14b16693158c0184f21c83791da24a3d632daad",
   "source_module": "src/surgical_agent/research/gate/tracker_pipeline_v2.py",
   "inference_entrypoint": "scripts/run_tracker_scheme4_pipeline.py",
   "training_entrypoint": "scripts/train_gate_with_phase.py",
@@ -14,8 +14,17 @@
   "tracker_used_in_gate_features": false,
   "deployable": false,
   "independent_validation": false,
-  "previous_default_manifest": "configs/defaults/before-unified-gate-20260916/DEFAULT_PGP_GATE_VERSION.json",
+  "previous_default_manifest": "configs/defaults/before-probe-gate-20260916/DEFAULT_PGP_GATE_VERSION.json",
   "phase_review_enabled": true,
-  "review_mode": "unified",
-  "training_cache": "artifacts/training/gate/unified_replay_20260916_r1"
+  "review_mode": "five_head_probe",
+  "training_cache": "artifacts/training/gate/five_head_probe_full_20260916_r1",
+  "feature_set": "historical_42_plus_phase_probe_12",
+  "gate_label": "harm",
+  "gate_selection_rule": "overall",
+  "selection_note": "Strict per-video rule was infeasible on the five_head_probe cache: full review regresses VID96 by 0.023 F1 / +8 errors (phase, ivt). 'overall' rule accepts pooled errors <= skip_review and >= 90% of the full-review gain; VID96 regression is disclosed in the report.",
+  "reference_reports": [
+    "artifacts/training/gate/five_head_probe_gate_20260916_r1/report.json",
+    "artifacts/training/gate/five_head_probe_gate_20260916_r2_harm_overall/report.json",
+    "artifacts/training/gate/five_head_probe_gate_20260916_r2_change_overall/report.json"
+  ]
 }
