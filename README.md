@@ -10,10 +10,11 @@ The post-Gate panel shares responses across instrument, verb, target, IVT and
 phase. It stops only when both interaction and phase decisions are settled.
 The five-head Qwen probe runs before the Gate and is reused by the panel. RAM is disabled.
 
-This is a **source-only repository**. Datasets, images, H0 caches, trained Gate
-and Tracker weights, experiment outputs, reports and credentials are not
-distributed. Default manifests reference local artifacts; a fresh clone cannot
-run paid inference until those private prerequisites have been supplied.
+Git contains source code; the current Gate and Tracker inference weights are
+available separately as [GitHub Release assets](https://github.com/litianhao738/streaming-surgical-agent/releases/tag/tracker-phase-gate-weights-20260916).
+See [weight download and restoration](docs/MODEL_WEIGHTS.md).
+Datasets, images, H0/OOF caches, experiment outputs and credentials remain local.
+A fresh clone still requires the relevant inputs and credentials before inference.
 
 - [Source-only setup and entry points](docs/SOURCE_ONLY_PIPELINE.md)
 - [New Gate commands, Gemini input provenance and validation limits](docs/NEW_GATE_PIPELINE_2026-09-16.md)
