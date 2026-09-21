@@ -58,9 +58,9 @@ def verify(backend, h0, cheap, pool, prior, query, original, *, reuse_probe=Fals
     out = deepcopy(cheap)
     decision = {'status': 'joint_exact_early_stop', 'retained_phase': h0['phase'][0]}
     if depth == 5:
-        # Both heads consume the same validated responses. The prior retains its H0 bucket.
+        # Both heads consume the same evidence; post-review prior veto/add is disabled.
         out, _ = original.select_prior_gated(h0, pool,
             {p['id']: means[p['id']] for p in pool['propositions']}, prior,
-            phase=h0['phase'][0], **original.GATE)
+            phase=h0['phase'][0], **original.POST_REVIEW_GATE)
         out['phase'], decision = original.decide_phase(h0, means)
     return original.repair(cheap, out), depth, decision

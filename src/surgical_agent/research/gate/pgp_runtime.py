@@ -18,6 +18,9 @@ ORDER=('qwen','gpt','gemini','grok','deepseek')
 PROBE_NAMES=('qwen_nonamb_items','qwen_invalid_nonamb','qwen_present_min','qwen_present_le2','qwen_present_le3',
              'qwen_absent_max','qwen_absent_ge4','qwen_absent_ge5','qwen_settled_fraction','qwen_all_settled')
 GATE={'veto_rate':.01,'add_rate':.7,'prune':[]}
+# Keep cheap-answer priors and Gate features frozen; disable priors only after review.
+POST_REVIEW_GATE={'veto_rate':None,'add_rate':None,'prune':[]}
+REPAIR_POLICY_VERSION='no-post-review-prior-v1-20260921'
 
 
 def ambiguous(p):
@@ -98,7 +101,7 @@ def run_target(backend, selected, prior, predict_gate, *, tracker_snapshot=None,
         if compact_depth==5:
             normalized,_=backend.normalize_compact({s:compact_raw.get(s) for s in SEATS},pool,3)
             means,_=aggregate(normalized,pool,image_count=3)
-            out,_=select_prior_gated(h0,pool,means,prior,phase=h0['phase'][0],**GATE)
+            out,_=select_prior_gated(h0,pool,means,prior,phase=h0['phase'][0],**POST_REVIEW_GATE)
         rec=query('phase_recommendation','base',lambda:backend.phase_recommendation(h0,pool,prior))
         jp=joint_pool(pool)
         for seat in ORDER:
@@ -117,4 +120,5 @@ def run_target(backend, selected, prior, predict_gate, *, tracker_snapshot=None,
     return {'key':selected['key'],'h0':h0,'cheap':cheap,'prediction':out,'features':feat,'gate_score':float(score),
             'gate_action':int(action),'logical_calls':len(calls),'call_keys':calls,'compact_depth':compact_depth,
             'phase_depth':phase_depth,'tracker_enabled':tracker_snapshot is not None,
+            'repair_policy_version':REPAIR_POLICY_VERSION,'post_review_prior_enabled':False,
             'tracker_feature_schema':include_tracker_features,'probe_seat':probe_seat,'probe_prefix':probe_prefix}

@@ -1,5 +1,10 @@
 # Streaming SurgicalAgent: Phase-aware five-head probe Gate
 
+Default repair policy (2026-09-21): **post-review prior veto/add disabled**.
+Candidate hints and cheap-answer priors remain enabled; Gate weights/features,
+Phase replacement, ambiguity rollback, Tracker and smoothing are retained.
+This is a user-selected configuration change, not a new accuracy claim.
+
 The default pipeline uses `five-head-probe-gate-20260916` (54 features including Phase probe evidence).
 
 H0 -> prior-guided proposal -> Qwen probe -> Gate -> one conditional five-head

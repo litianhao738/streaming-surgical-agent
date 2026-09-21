@@ -217,7 +217,7 @@ def run_interaction(backend, selected, prior, predict_gate, *, inference_split='
         if depth == 5:
             normalized, _ = backend.normalize_compact({s: compact_raw.get(s) for s in original.SEATS}, pool, 3)
             means, _ = original.aggregate(normalized, pool, image_count=3)
-            out, _ = original.select_prior_gated(h0, pool, means, prior, phase=h0['phase'][0], **original.GATE)
+            out, _ = original.select_prior_gated(h0, pool, means, prior, phase=h0['phase'][0], **original.POST_REVIEW_GATE)
         if phase_review_enabled:
             rec = query('phase_recommendation', 'base', lambda: backend.phase_recommendation(h0, pool, prior))
             joint_pool = original.joint_pool(pool)
@@ -242,6 +242,7 @@ def run_interaction(backend, selected, prior, predict_gate, *, inference_split='
     return {'key': selected['key'], 'h0': h0, 'cheap': cheap, 'prediction': canonical_labels(out),
             'features': features, 'gate_score': float(score), 'gate_action': int(action),
             'logical_calls': len(calls), 'call_keys': calls, 'compact_depth': depth, 'phase_depth': phase_depth,
+            'repair_policy_version': original.REPAIR_POLICY_VERSION, 'post_review_prior_enabled': False,
             'phase_review_enabled': phase_review_enabled, 'phase_decision': phase_decision,
             'review_mode': review_mode, 'joint_depth': phase_depth if review_mode in ('unified', 'five_head_probe') else 0,
             'candidate_pool_tasks': ['instrument', 'verb', 'target', 'ivt', 'phase'] if five_head_probe else ['instrument', 'verb', 'target', 'ivt'],

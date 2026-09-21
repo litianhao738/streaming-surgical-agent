@@ -1,8 +1,8 @@
 {
   "schema_version": "default_repair_pipeline_selection_v2",
-  "selected_on": "2026-09-16",
-  "selected_by": "explicit_user_request_integrate_phase_probe_gate",
-  "version": "tracker-five-head-probe-complete-pipeline-v1-20260916",
+  "selected_on": "2026-09-21",
+  "selected_by": "explicit_user_request_disable_post_review_prior",
+  "version": "tracker-five-head-probe-no-post-review-prior-v1-20260921",
   "profile": "tracker_scheme4_pipeline_v1",
   "default_entrypoint": "scripts/run_pipeline.py",
   "implementation_entrypoint": "scripts/run_tracker_scheme4_pipeline.py",
@@ -49,5 +49,13 @@
   "review_mode": "five_head_probe",
   "testing_scope": "artifacts/evaluation/testing_half_probe_gate_tracker_plan_20260916",
   "default_base_model": "google/gemini-3.8-flash",
-  "input_manifest": "configs/defaults/gemini_probe_inputs.json"
+  "input_manifest": "configs/defaults/gemini_probe_inputs.json",
+  "repair_policy_version": "no-post-review-prior-v1-20260921",
+  "post_review_prior_enabled": false,
+  "post_review_prior": {
+    "veto_rate": null,
+    "add_rate": null,
+    "prune": []
+  },
+  "repair_policy_note": "Disable only post-review prior veto/add. Preserve candidate hints, cheap-answer priors, existing Gate weights/features, phase replacement, ambiguity rollback, Tracker and phase smoothing. No claim of improved scores."
 }
