@@ -9,9 +9,11 @@ import shutil
 import sqlite3
 
 ROOT = Path(__file__).resolve().parents[1]
-ALLOWED_CHANGES = {'scripts/run_testing_half_complete.py', 'scripts/run_testing_half_pipeline.py'}
+ALLOWED_CHANGES = {'scripts/run_testing_half_complete.py', 'scripts/run_testing_half_pipeline.py',
+                   'scripts/testing_qwen_h0.py', 'scripts/testing_half_resume.py'}
 ADDED_SOURCES = {'scripts/testing_half_transport.py', 'scripts/testing_half_progress.py',
-                 'scripts/testing_half_resume.py', 'scripts/watch_testing_half.py', 'scripts/testing_half_file_io.py'}
+                 'scripts/testing_half_resume.py', 'scripts/watch_testing_half.py', 'scripts/testing_half_file_io.py',
+                 'scripts/pipeline_checkpoint.py'}
 
 
 def reconcile_completed_reservations(core):
@@ -26,7 +28,7 @@ def reconcile_completed_reservations(core):
         changed = core/'targets'/target/'changed'/f'{stage}_{seat}'/'record.json'
         if changed.exists(): paths.append(changed)
         qwen_h0 = core/'targets'/target/seat/'record.json'
-        if seat in ('qwen_h0','qwen_proposal') and qwen_h0.exists(): paths.append(qwen_h0)
+        if seat.startswith(('qwen_h0','qwen_proposal')) and qwen_h0.exists(): paths.append(qwen_h0)
         if len(paths) != 1:
             raise ValueError('unresolved paid request; no unique saved record')
         path = paths[0]
@@ -91,7 +93,16 @@ def validate_runtime(out, plan, field):
             raise ValueError('runtime changed: '+name)
 
 
-def prepare_resume(out, *, apply=True):
+def prepare_resume(out, *, apply=True, full_check=False):
+    if not full_check:
+        import sys
+        from scripts.pipeline_checkpoint import prepare_fast_resume
+        from scripts.run_testing_half_complete import write, verify_core
+        return prepare_fast_resume(out, sys.modules[__name__], verify_core, write, apply=apply)
+    return prepare_resume_full(out, apply=apply)
+
+
+def prepare_resume_full(out, *, apply=True):
     """Offline only. Requires every dispatched request terminal and report stage unstarted."""
     from scripts.run_testing_half_complete import write, verify_core
     plan = read(out/'plan.json')
@@ -149,7 +160,8 @@ def prepare_resume(out, *, apply=True):
                 amended[name] = dict(before=before, after=after)
         policy = dict(plan_sha256=sha(folder/'plan.json'), amended_sources=amended,
                       added_sources={name: sha(ROOT/name) for name in sorted(ADDED_SOURCES)},
-                      policy='nonbilling_http_continue_and_inline_tqdm_v1', automatic_retry=False,
+                      policy='deferred_frame_errors_qwen_terminal_response_retry_v1', automatic_retry=True,
+                      deferred_retry_rounds=3,
                       archive=str(archive), paid_requests_preserved=len(calls))
         policies.append((folder, policy))
     for category in ('results', 'h0', 'tracker_runtime'):

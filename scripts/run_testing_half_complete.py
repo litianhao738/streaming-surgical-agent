@@ -413,7 +413,7 @@ def execute(out, workers, allow_paid):
         print(json.dumps({'state': 'COMPLETE_PIPELINE_PASS', 'gsr': summary['methods'],
                           'report_summary': str(report_out/'results/summary.json')}), flush=True)
     except BaseException as exc:
-        write(out/'failure.json', {'error_type': type(exc).__name__, 'automatic_retry': False,
+        write(out/'failure.json', {'error_type': type(exc).__name__, 'message': str(exc), 'automatic_retry': False,
                                   'report_budget': budget.summary() if budget else None})
         raise
     finally:
@@ -466,7 +466,7 @@ def main():
         # OS-backed lock is released on process exit, including unexpected termination.
         out.parent.mkdir(parents=True, exist_ok=True)
         with (FileLock(str(out)+'.process.lock', timeout=0), retry_local_writes(),
-              PipelineProgress(out, stage='RESUME_CHECKS: verifying existing requests and results'
+              PipelineProgress(out, stage='CHECKPOINT: loading saved progress'
                                if args.command == 'resume' else None) as progress):
             if args.command == 'resume':
                 if not args.allow_paid:

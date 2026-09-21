@@ -51,3 +51,8 @@ outputs/*
 
 # The raw dataset is external to this repository.
 cholec_dataset/
+
+# Local provider credentials and experiment caches.
+*_API/
+消融实验API/
+mechanism_internal_ablation/outputs/

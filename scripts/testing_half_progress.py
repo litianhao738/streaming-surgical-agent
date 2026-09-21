@@ -27,7 +27,7 @@ class PipelineProgress:
         else:
             name, label = 'Gate+Tracker', 'Pipeline'
         if self.stage:
-            label = 'Resume checks'
+            label = 'Load checkpoint' if self.stage.startswith('CHECKPOINT') else 'Resume checks'
         elif value['state'] == 'STARTUP_CHECKS':
             label = 'Startup checks'
         elif value['state'] == 'STOPPED':

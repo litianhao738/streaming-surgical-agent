@@ -1,0 +1,280 @@
+{
+  "protocol_id": "mechanism_internal_v1_20260920",
+  "status": "SOURCE_ONLY_REPRODUCTION_REQUIRES_LOCAL_ARTIFACTS",
+  "path_base": "project_root",
+  "experiment_directory": "mechanism_internal_ablation",
+  "future_code_directory": "mechanism_internal_ablation/src",
+  "future_test_directory": "mechanism_internal_ablation/tests",
+  "scope": {
+    "split": "Testing",
+    "inventory": "artifacts/evaluation/testing_third_ablation_20260916/frame_inventory.jsonl",
+    "inventory_sha256": "6e8a847e78d6c358235e55e9a085b926cdefb3cf3e401a1c71780c43339f1240",
+    "source_scope": "artifacts/evaluation/testing_third_ablation_20260916/run_scope.json",
+    "source_cache": "artifacts/experiments/gate_ablation_third_20260916_r1/core",
+    "proposed_output": "mechanism_internal_ablation/outputs/testing2855_20260920_r1",
+    "videos": [
+      "VID01",
+      "VID06",
+      "VID07",
+      "VID111",
+      "VID12",
+      "VID25",
+      "VID39",
+      "VID92"
+    ],
+    "pipeline_frames": 2855,
+    "evaluation_target_frames": 2599,
+    "historical_warmup_frames": 480,
+    "primary_runs_warmup": false,
+    "fps": 1,
+    "causal_images_per_target": 3,
+    "selection": "reuse_frozen_inventory_without_performance_filter",
+    "reuse_existing_per_head_ground_truth_masks": true
+  },
+  "gate": {
+    "version": "five-head-probe-gate-20260916",
+    "model_path": "artifacts/training/gate/five_head_probe_gate_20260916_r2_harm_overall/model.json",
+    "model_sha256": "3bd7f1f35083c1047d2eba00d14b16693158c0184f21c83791da24a3d632daad",
+    "estimator_sha256": "61ea0ec4822204787fcc5407222211a0c8403980944b04f2588972682984c735",
+    "feature_count": 54,
+    "threshold": 0.011637720680921813,
+    "action": "score >= threshold",
+    "training_label": "harm",
+    "retrain": false,
+    "expected_selected_frames": 924,
+    "do_not_use_forced_historical_gate_action": true,
+    "mismatch_policy": "stop_preparation_and_investigate"
+  },
+  "rule_gate": {
+    "version": "probe_rule_v1",
+    "nonambiguous_four_head_candidates_only": true,
+    "present_refutation_rating_max": 2,
+    "absent_support_rating_min": 4,
+    "components": [
+      "refuted_present_fraction",
+      "supported_absent_fraction",
+      "positive_phase_margin_divided_by_4"
+    ],
+    "weights": [
+      1,
+      1,
+      1
+    ],
+    "phase_requires_all_seven_valid_probe_ratings": true,
+    "phase_alternative_support_min": 4,
+    "empty_fraction_value": 0,
+    "invalid_ratings_are_excluded_from_fractions": true,
+    "selection": "top_K_descending_score_then_sha256_ascending",
+    "tie_hash_prefix": "rule_v1|",
+    "K_source": "count_of_frozen_learned_actions_without_GT"
+  },
+  "random_gate": {
+    "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19
+    ],
+    "selection": "first_K_by_sha256_utf8_random_v1_pipe_seed_pipe_frame_key_ascending",
+    "without_replacement": true,
+    "universe": "all_2855_pipeline_frames",
+    "report": "mean_and_sample_standard_deviation_of_20_individual_metrics"
+  },
+  "panel": {
+    "review_mode": "five_head_probe",
+    "fixed_seats": 5,
+    "early_stop": false,
+    "probe_is_first_seat": true,
+    "logical_slots": [
+      "qwen",
+      "gpt",
+      "gemini",
+      "grok",
+      "deepseek"
+    ],
+    "physical_models_from_historical_records": {
+      "qwen": "qwen3.7-flash",
+      "gpt": "openai/gpt-5.6-luna",
+      "gemini": "google/gemini-3.5-flash-lite",
+      "grok": "glm-5.3-flash",
+      "deepseek": "deepseek-flash"
+    },
+    "same_model_replicates": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "same_model_new_replicates": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "request_identity_includes_replicate": true,
+    "cross_replicate_response_cache_reuse": false,
+    "invalid_candidate_mean": null,
+    "incomplete_phase_panel": "retain_h0_phase",
+    "prompt_and_generation_parameters": "match_each_physical_route_frozen_historical_request"
+  },
+  "repair": {
+    "selection_current": "h0",
+    "metric_reference": "cheap",
+    "rollback_reference": "cheap",
+    "prior_phase_bucket": "h0_phase",
+    "rating_threshold": 4.0,
+    "prior_on": {
+      "veto_rate": 0.01,
+      "add_rate": 0.7,
+      "prune": [],
+      "universe_add": false
+    },
+    "prior_off": {
+      "veto_rate": null,
+      "add_rate": null,
+      "prune": [],
+      "universe_add": false
+    },
+    "rollback_verb_names": [
+      "grasp",
+      "retract"
+    ],
+    "rollback_associated_ivts": true,
+    "retain_existing_schema_fallback": true,
+    "no_global_GATE_mutation": true
+  },
+  "arms": {
+    "A0": {
+      "routing": "none",
+      "output": "cheap"
+    },
+    "A1": {
+      "routing": "random_each_seed",
+      "panel": "multi",
+      "prior_after": true,
+      "rollback": true
+    },
+    "A2": {
+      "routing": "rule_top_K",
+      "panel": "multi",
+      "prior_after": true,
+      "rollback": true
+    },
+    "A3": {
+      "routing": "learned_frozen",
+      "panel": "multi",
+      "prior_after": true,
+      "rollback": true
+    },
+    "B0": {
+      "alias_of": "A0"
+    },
+    "B1": {
+      "routing": "learned_frozen",
+      "panel": "qwen5",
+      "prior_after": true,
+      "rollback": true
+    },
+    "B2": {
+      "routing": "learned_frozen",
+      "panel": "multi",
+      "prior_after": false,
+      "rollback": true
+    },
+    "B3": {
+      "routing": "learned_frozen",
+      "panel": "multi",
+      "prior_after": true,
+      "rollback": false
+    },
+    "B4": {
+      "alias_of": "A3"
+    }
+  },
+  "primary_output_boundary": {
+    "name": "after_review_and_optional_rollback_before_run_target_output_modules",
+    "tracker_M1_M2": false,
+    "v22_extra_output_cleanup": false,
+    "phase_smoothing_M3": false,
+    "RAM": false,
+    "report_judge": false,
+    "schema_and_evidence_validation": true
+  },
+  "metrics": {
+    "primary_recognition_observation": "ivt_micro_f1",
+    "recognition": [
+      "instrument_micro_f1",
+      "verb_micro_f1",
+      "target_micro_f1",
+      "ivt_micro_f1",
+      "phase_accuracy"
+    ],
+    "scope": [
+      "all_evaluation_targets",
+      "learned_selected_valid_targets",
+      "per_video"
+    ],
+    "harm_percent": "100 * cheap_correct_after_wrong / cheap_correct",
+    "net_gain_pp": "100 * (cheap_wrong_after_correct - cheap_correct_after_wrong) / valid_frame_head_fields",
+    "zero_denominator": "NA",
+    "routing_rate_denominator": 2855,
+    "optional_bootstrap": {
+      "unit": "video",
+      "paired": true,
+      "repeats": 2000,
+      "seed": 20260920
+    }
+  },
+  "expected_new_calls": {
+    "multi_gpt": 22,
+    "multi_gemini": 394,
+    "multi_grok_actual_glm": 1903,
+    "multi_deepseek": 2448,
+    "qwen5_additional": 3696,
+    "total": 8463,
+    "assumption": "all_historical_terminal_outcomes_are_request_compatible; retries_excluded"
+  },
+  "execution_design": {
+    "maximum_global_inflight_requests": 8,
+    "paid_execution_started": false,
+    "collect_requires_explicit_paid_flag": true,
+    "automatic_resend_of_unknown_outcome": false,
+    "retry_429_max_additional_attempts": 2,
+    "retry_content_invalid_or_refusal": false,
+    "replay_network_access": false,
+    "GT_access_stage": "score_only",
+    "budget_rmb_proposal_not_applied": 100,
+    "historical_new_cost_estimate_rmb": [
+      60,
+      90
+    ],
+    "historical_walltime_estimate_hours_excluding_implementation": [
+      4.5,
+      7
+    ],
+    "cost_ledgers": [
+      "incremental_paid_including_attempts",
+      "per_arm_logical_including_shared_prefix"
+    ],
+    "primary_logical_cost_includes_warmup": false,
+    "missing_usage_policy": "unknown_not_zero"
+  },
+  "documentation": "mechanism_internal_ablation/GATE_BASELINES_DEFINITIONS.md"
+}

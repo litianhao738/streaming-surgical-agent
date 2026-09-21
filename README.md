@@ -29,3 +29,7 @@ private artifacts with `python scripts/run_pipeline.py info`.
 Use a new experiment directory when switching Gate versions. Never resume old
 predictions under a different verification policy. Independent Testing quality
 or wall-time improvements are not implied by this code release.
+
+## Gate routing baselines
+
+Random, Uncertainty-only and Rule-based Gate source, formulas and pseudocode are available in [mechanism_internal_ablation](mechanism_internal_ablation/README.md). These fixed-threshold baselines share the existing pipeline evidence; generated data and synthetic score tables are not part of this source release.

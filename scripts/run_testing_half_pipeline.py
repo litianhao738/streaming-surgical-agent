@@ -407,6 +407,38 @@ def list_next(iterator, n):
     return list(islice(iterator, n))
 
 
+def deferred_map(function, items, workers, stop, out, *, retry_rounds=3):
+    """Drain healthy frames first, then retry frame failures in bounded later passes."""
+    from surgical_agent.research.gate.collection_budget import AmbiguousDispatch
+    pending = list(items)
+    for attempt in range(retry_rounds + 1):
+        failed = []
+        lock = threading.Lock()
+        def guarded(item):
+            try:
+                function(item)
+            except (BudgetStop, AmbiguousDispatch):
+                stop.set()
+                raise
+            except Exception as exc:
+                if stop.is_set():
+                    raise
+                write(out/'deferred_errors'/(item['key']+'.json'),
+                      dict(target=item['key'], error_type=type(exc).__name__,
+                           attempt=attempt, state='PENDING_RETRY'))
+                with lock:
+                    failed.append(item)
+                print(f"DEFERRED {item['key']}: {type(exc).__name__}; pass={attempt}", flush=True)
+            else:
+                (out/'deferred_errors'/(item['key']+'.json')).unlink(missing_ok=True)
+        bounded_map(guarded, pending, workers, stop)
+        if not failed:
+            return
+        pending = sorted(failed, key=lambda item: item['key'])
+        print(f'Deferred frames: {len(pending)}; completed pass {attempt}', flush=True)
+    raise RuntimeError(f'{len(pending)} frames remain after {retry_rounds} deferred retry rounds; resume to retry')
+
+
 def finalize(out, selection):
     phase = CausalPhaseFilter(60)
     predictions, all_results = [], []
@@ -439,6 +471,9 @@ def execute(out, workers, allow_paid):
         raise ValueError('unsealed plan')
     from scripts.testing_half_resume import validate_runtime
     validate_runtime(out, plan, 'runtime_sha256')
+    from scripts.pipeline_checkpoint import Checkpoint
+    checkpoint = Checkpoint(out, plan['selection'], sha(out/'plan.json'))
+    checkpoint.recover_tail()
     for video, digest in plan['prior_sha256'].items():
         if sha(out / 'priors' / (video + '.json')) != digest:
             raise ValueError('prior changed')
@@ -449,6 +484,8 @@ def execute(out, workers, allow_paid):
         if actual != plan['tracker_environment']:
             raise ValueError('Tracker GPU environment differs from prepared plan')
     for s in plan['selection']:
+        if s['key'] in checkpoint.done:
+            continue
         if s.get('images'):
             demo.make_base(s)
         if (plan.get('tracker_mode') != 'on_demand' and s['stage'] == 'pipeline'
@@ -456,25 +493,20 @@ def execute(out, workers, allow_paid):
             raise ValueError('tracker snapshot changed')
     # Exclusive marker prevents overlapping runs and automatic uncertain-outcome retries.
     with (out / 'execution_started.json').open('x') as stream:
-        json.dump({'workers': workers, 'automatic_retry': False}, stream)
+        json.dump({'workers': workers, 'automatic_retry': True, 'deferred_retry_rounds': 3}, stream)
     budget = Budget(out / 'budget.sqlite', plan['limits'], sha(out / 'plan.json'))
     stop = threading.Event()
     decide, _, _ = app.load_gate()
     started = time.perf_counter()
-    counter, lock = [0], threading.Lock()
+    counter, lock = [len(checkpoint.done)], threading.Lock()
     input_runtime = tracker_runtime = None
 
     def task(s):
         if stop.is_set():
             raise BudgetStop('stopped before target')
-        if (out/'resume_policy.json').exists():
-            result_path = out/'results'/(s['key']+'.json')
-            h0_path = out/'h0'/(s['key']+'.json')
-            if (s['stage'] == 'pipeline' and result_path.exists()
-                    or s['stage'] != 'pipeline' and h0_path.exists()):
-                with lock:
-                    counter[0] += 1
-                return
+        if s['key'] in checkpoint.done:
+            return
+        checkpoint.start(s['key'])
         if input_runtime is not None and (s['stage'] == 'pipeline' or 'cached_h0' not in s):
             s = input_runtime.resolve(s)
         delegate = GuardedCalls(out, plan, s, budget, stop)
@@ -536,11 +568,9 @@ def execute(out, workers, allow_paid):
                 if result['review_mode'] == 'five_head_probe':
                     result['five_head_raw'] = deepcopy(backend.five_head_raw)
                 write(out / 'results' / (s['key'] + '.json'), result)
+            checkpoint.finish(s['key'])
             with lock:
                 counter[0] += 1
-        except BaseException:
-            stop.set()
-            raise
         finally:
             delegate.close()
 
@@ -550,7 +580,9 @@ def execute(out, workers, allow_paid):
             input_runtime = Inputs(plan['selection'], out)
             tracker_runtime = Tracker(out, plan['tracker_checkpoint_sha256'], plan['legacy_tracker_sha256'])
         with app.frozen.joint.credential_context(plan), app.frozen.joint.roster.lightweight_protocol():
-            bounded_map(task, plan['selection'], workers, stop)
+            remaining = [s for s in plan['selection'] if s['key'] not in checkpoint.done]
+            print(f"Checkpoint: {len(checkpoint.done)} saved targets; {len(remaining)} remaining", flush=True)
+            deferred_map(task, remaining, workers, stop, out)
         unavailable = list((out/'unavailable_h0').glob('*.json'))
         if unavailable:
             raise ValueError(f'Batch drained but {len(unavailable)} H0 predictions unavailable; outputs remain incomplete')
@@ -563,13 +595,14 @@ def execute(out, workers, allow_paid):
             continuous_predictions_sha256=sha(out / 'continuous_predictions.json'), ram=False))
         print('PASS: predictions sealed; run score next', flush=True)
     except BaseException as exc:
-        write(out / 'failure.json', dict(state='STOPPED', error_type=type(exc).__name__,
+        write(out / 'failure.json', dict(state='STOPPED', error_type=type(exc).__name__, message=str(exc),
               completed_targets=counter[0], budget=budget.summary()))
         raise
     finally:
         if input_runtime is not None:
             input_runtime.close()
         budget.close()
+        checkpoint.close()
 
 
 def score(out):
